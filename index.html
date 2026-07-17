@@ -7,36 +7,49 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&family=Noto+Sans+Ethiopic:wght@400&display=swap">
+<link rel="stylesheet" href="https://use.typekit.net/diu6bwx.css">
 <link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </head>
 <body>
 
+<div id="navbar-wrap">
+  <nav class="navbar">
+    <div class="brand">
+      <img class="brand-icon" src="assets/icon_coffee.svg" alt="">
+      <span class="brand-name">THE PREVAILER</span>
+    </div>
+    <div class="nav-track">
+      <div class="nav-track-fill" id="navProgressFill"></div>
+    </div>
+  </nav>
+  <div class="nav-actions">
+    <button class="nav-btn">RESOURCES</button>
+    <div class="lang-wrapper" id="langWrapper">
+      <button class="nav-btn lang-btn" id="langToggle">
+        <span id="langLabel">ENGLISH</span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button class="lang-option active" data-lang="ENGLISH">English</button>
+        <button class="lang-option" data-lang="SWAHILI">Swahili</button>
+        <button class="lang-option" data-lang="FRENCH">French</button>
+        <button class="lang-option" data-lang="HINDI">Hindi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="progress-bar"></div>
+
+<div class="text-panel pop" id="panel-5-driver">
+  <p>All aboard The Prevailer!</p>
+</div>
 
 <div id="scroll-hint">
   Scroll <span class="scroll-arrow">→</span>
 </div>
 
-<div id="scene-dots">
-  <div class="dot active" data-scene="0"></div>
-  <div class="dot" data-scene="1"></div>
-  <div class="dot" data-scene="2"></div>
-  <div class="dot" data-scene="3"></div>
-  <div class="dot" data-scene="4"></div>
-  <div class="dot" data-scene="5"></div>
-  <div class="dot" data-scene="6"></div>
-  <div class="dot" data-scene="7"></div>
-  <div class="dot" data-scene="8"></div>
-  <!-- Dots 10–17 correspond to scenes 12–19 (scroll indices 9–16) -->
-  <div class="dot" data-scene="9"></div>
-  <div class="dot" data-scene="10"></div>
-  <div class="dot" data-scene="11"></div>
-  <div class="dot" data-scene="12"></div>
-  <div class="dot" data-scene="13"></div>
-  <div class="dot" data-scene="14"></div>
-  <div class="dot" data-scene="15"></div>
-  <div class="dot" data-scene="16"></div>
-</div>
 
 <!-- Scene-21 road preview — sits behind #pinned-wrap; revealed when s12-s15-bg fades out -->
 <div id="s21-preview">
@@ -180,6 +193,34 @@
       <div class="layer layer-s21-road"><img src="assets/s21-s23/Road.svg" alt=""></div>
     </div>
 
+    <!-- Wide background spanning scenes 26–30 (600vw, absolute at left:1465vw) -->
+    <div id="s26-s30-bg">
+      <img class="s2630-clouds"    src="assets/s26-s30/Clouds%20extended.svg"         alt="">
+      <img class="s2630-buildings" src="assets/s26-s30/Group%20883.svg"               alt="">
+      <img class="s2630-road"      src="assets/s26-s30/road%20extended.svg"            alt="">
+      <img class="s2630-trees"     src="assets/s26-s30/trees.svg"                      alt="">
+      <img class="s2630-fence"     src="assets/s26-s30/front%20tree%20and%20fence.svg" alt="">
+      <lottie-player class="s2630-run-signal"
+        src="assets/s26-s30/Run%20Not%20Walk%20(2).json"
+        background="transparent" speed="1" loop autoplay>
+      </lottie-player>
+    </div>
+
+    <!-- SCENE 26: Street arrival (scroll index 11) -->
+    <div class="scene city scene-26"></div>
+
+    <!-- SCENE 27: Asmelash Teka Hadgu & Away Ly (scroll index 12) -->
+    <div class="scene city scene-27"></div>
+
+    <!-- SCENE 28: Chris Emezue & Kathleen Siminyu (scroll index 13) -->
+    <div class="scene city scene-28"></div>
+
+    <!-- SCENE 29: Sadik Shahadu & Samuel Rutunda (scroll index 14) -->
+    <div class="scene city scene-29"></div>
+
+    <!-- SCENE 30: All interviewees aboard (scroll index 15) -->
+    <div class="scene city scene-30"></div>
+
   </div><!-- /scroll-x -->
 
   <!-- City bus lives inside #pinned-wrap so its z-index is relative to scenes.
@@ -190,6 +231,7 @@
     <img id="city-bus-people"   src="assets/Matatu-with-people.svg"                          alt="matatu with people">
     <img id="city-bus-full"     src="assets/s12-s15/Matatu%20with%20full%20toto%20moto.svg"  alt="matatu full">
     <img id="city-bus-people1"  src="assets/s12-s15/Matatu%20with%20people1.svg"             alt="matatu with people 1">
+    <img id="city-bus-s26"      src="assets/s26-s30/Matatu%20with%20interviewees.svg"        alt="matatu with interviewees">
   </div>
 
 
@@ -202,6 +244,7 @@
 <div id="jungle-bus">
   <img src="assets/s1/matatu-top.svg" alt="matatu">
 </div>
+
 
 <!-- Fixed trees overlay for scene 4 — z:11 keeps it above #jungle-bus (z:10) so the bus
      passes under the trees but stays in front of the road (road is inside #pinned-wrap at z:0) -->
@@ -238,6 +281,10 @@
     <p>In the African region we are highly multilingual! I speak Twi, Pidgin and understand Fante. What languages do you speak?</p>
   </div>
 </div>
+<div class="text-panel" id="panel-8">
+  <p>Language is the foundational inheritance passed down from our ancestors, a living connection we share with each other and those who follow us.</p>
+  <p>It is the very essence of how we think, speak, imagine, and experience the world. It sits at the core of our identity and culture, enabling us to share our stories and collective knowledge.</p>
+</div>
 <div id="city-overlay-8">
   <div class="char-wrap char-s8-purple-man">
     <img src="assets/s8/purple%20man.svg" alt="">
@@ -254,10 +301,6 @@
   <div class="char-wrap char-s8-green-man">
     <img src="assets/s8/green%20man.svg" alt="">
     <button class="cross-btn" data-popup="s8-green-man" data-dir="left"><img src="assets/cross.svg" alt=""></button>
-  </div>
-  <div class="text-panel" id="panel-8">
-    <h3>PROBLEM PLAZA</h3>
-    <p>Language is the foundational inheritance passed down from our ancestors, a living connection we share with each other and those who follow us.</p>
   </div>
   <div class="text-panel s8-pop" id="panel-8a">
     <p>For aeons, Africa has been home to over 2,000 distinct languages across 54 countries — a profound pluralism that stands in sharp contrast to the European historical preference for linguistic uniformity.</p>
@@ -296,6 +339,53 @@
   </div>
 </div>
 
+<!-- Scene 26–30 overlay — 500vw wide, translates in sync with the strip -->
+<div id="city-overlay-26">
+  <!-- Ambient street characters (scene-26 area, 0–100vw) -->
+  <img class="char-s26-basket"     src="assets/s26-s30/vendor%20basket.svg"             alt="">
+  <img class="char-s26-moto"       src="assets/s26-s30/Motorcycle%20guy.svg"            alt="">
+  <!-- Pair s27: Asmelash (behind) + Awa Ly (front) -->
+  <div class="people-group1">
+    <div class="char-wrap char-s27-asmelash">
+      <img src="assets/s26-s30/Asmelash_Teka_Hadgu.svg" alt="Asmelash Teka Hadgu">
+      <button class="plus-btn" data-popup="s27-asmelash" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+    <div class="char-wrap char-s27-awayly">
+      <img src="assets/s26-s30/Away%20Ly.svg" alt="Awa Ly">
+      <button class="plus-btn" data-popup="s27-awayly" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+
+    <div class="char-wrap char-s28-chris">
+      <img src="assets/s26-s30/Chris_Emezue.svg" alt="Chris Emezue">
+      <button class="plus-btn" data-popup="s28-chris" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+    <div class="char-wrap char-s28-kathleen">
+      <img src="assets/s26-s30/Kathleen_Siminyu.svg" alt="Kathleen Siminyu">
+      <button class="plus-btn" data-popup="s28-kathleen" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+
+    <div class="char-wrap char-s29-sadik">
+      <img src="assets/s26-s30/Sadik_Shahadu.svg" alt="Sadik Shahadu">
+      <button class="plus-btn" data-popup="s29-sadik" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+    <div class="char-wrap char-s29-samuel">
+      <img src="assets/s26-s30/Samuel_Rutunda.svg" alt="Samuel Rutunda">
+      <button class="plus-btn" data-popup="s29-samuel" data-dir="right"><img src="assets/cross.svg" alt=""></button>
+    </div>
+  </div>
+<div class="people-group2">
+  <!-- name cards — direct children so position:absolute still works -->
+  <img class="char-s28-chris-1"    src="assets/s26-s30/Chris_Emezue-1.svg"           alt="">
+  <img class="char-s28-kathleen-1" src="assets/s26-s30/Kathleen_Siminyu-1.svg"      alt="">
+  <img class="char-s29-samuel-1"   src="assets/s26-s30/Samuel_Rutunda-1.svg"         alt="">
+  <img class="char-s27-awayly-1"   src="assets/s26-s30/Away%20Ly-1.svg"              alt="">
+  <img class="char-s27-asmelash-1" src="assets/s26-s30/Asmelash_Teka_Hadgu-1.svg"   alt="">
+  <img class="char-s29-sadik-1"    src="assets/s26-s30/Sadik_Shahadu-1.svg"          alt="">
+  </div>
+  <img class="char-s30-matatu"     src="assets/s26-s30/Matatu%20with%20interviewees.svg" alt="">
+
+</div>
+
 <!-- Scene-12 popup — standalone root-level fixed element, never moves with bus or overlay -->
 <div class="text-panel" id="panel-12">
   <p>With 85% of the internet dominated by just ten languages, about 9 out of 10 African internet users are forced to switch to a colonial language simply to engage online.</p>
@@ -319,12 +409,12 @@
 </div>
 
 <!-- Debug scale — remove when done tuning -->
-<div id="debug-scale">
+<!-- <div id="debug-scale">
   <span id="dbg-scene">scene 1</span>
   <span id="dbg-time">0.0s</span>
   <span id="dbg-bus">bus: –</span>
   <div id="dbg-bar"><div id="dbg-cursor"></div></div>
-</div>
+</div> -->
 
 <!-- Character speech bubble — repositioned by JS on each cross-btn click -->
 <div id="char-bubble">
@@ -333,5 +423,31 @@
 </div>
 
 <script src="scroll.js"></script>
+<script>
+  (function () {
+    const wrapper = document.getElementById('langWrapper');
+    const toggle  = document.getElementById('langToggle');
+    const label   = document.getElementById('langLabel');
+    const options = document.querySelectorAll('.lang-option');
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      wrapper.classList.toggle('open');
+    });
+
+    options.forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        label.textContent = opt.dataset.lang;
+        options.forEach(function (o) { o.classList.remove('active'); });
+        opt.classList.add('active');
+        wrapper.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', function () {
+      wrapper.classList.remove('open');
+    });
+  })();
+</script>
 </body>
 </html>

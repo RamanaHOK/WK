@@ -2,6 +2,14 @@
    PREVAILER MATATU JOURNEY — style.css
    ============================================ */
 
+:root {
+  --maroon:      #301512;
+  --pill-bg:     #FFFFFF73;
+  --pill-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+  --btn-bg:      #910202;
+  --btn-text:    #ffffff;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* Prevent blur on images inside CSS-transformed parents */
@@ -16,7 +24,7 @@ html, body {
   overflow-y: scroll;
   height: 100%;
   background: #1C2A15;
-  font-family: 'Georgia', serif;
+  font-family: 'Noto Sans', sans-serif;
 }
 
 /* Scene-21 road preview — fixed behind #pinned-wrap, revealed as s12-s15-bg fades out */
@@ -312,6 +320,12 @@ html, body {
   left: 0;
   opacity: 0;
 }
+#city-bus-s26 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
 
 /* -- Shared floor line: road top at 40%, floor at 70% (bottom: 30%) --
    Matches the jungle three-layer grid so all scenes join seamlessly. */
@@ -358,9 +372,9 @@ html, body {
   background: #FFFFFFF2;
   border: 1px solid #9F2222;
   border-radius: 10px;
-  padding: 45px 55px;
-  max-width: 900px;
-  min-width: 900px;
+  padding: 25px 35px;
+  max-width: 500px;
+  min-width: 500px;
   box-shadow: 0px 4px 6px 0px #0000004D;
   opacity: 0;
   transform: translateY(8px);
@@ -396,7 +410,7 @@ html, body {
 
 .text-panel h3 {
   font-family: 'Noto Sans', sans-serif;
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 500;
   color: #9F2222;
   margin-bottom: 8px;
@@ -407,36 +421,58 @@ html, body {
 
 .text-panel p {
   font-family: 'Noto Sans', sans-serif;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 500;
   color: #9F2222;
   line-height: 1.2;
   letter-spacing: 0;
   margin-bottom: 20px;
 }
+.text-panel p:last-child {
+  margin-bottom: 0;
+}
 
-/* Panel positions per scene — jungle panels on left, city on right */
-.scene-1 .text-panel { left: 52%; top: 28%; max-width: 240px; min-width: unset; }
-.scene-2 .text-panel { left: 4%; top: 10%; }
-.scene-3 .text-panel { left: 4%; top: 10%; }
+/* Panel positions per scene */
+.scene-1 .text-panel { left: 52%; top: 28%; }
+.scene-2 .text-panel { left: 52%; top: 28%; }
+.scene-3 .text-panel { left: 52%; top: 28%; }
+.scene-5 .text-panel { right: 5%;  top: 20%; }
+.scene-6 .text-panel { right: 3%;  top: 20%; }
+/* Panels 7 & 9 live inside their fixed overlays */
+#city-overlay-7 .text-panel { right: 3%; top: 20%; }
+
+/* Scene-5 driver popup — fixed so it stays anchored near the bus driver window */
+#panel-5-driver {
+  position: fixed;
+  left: 28%;
+  top: 42%;
+  z-index: 200;
+  max-width: 300px;
+  min-width: 200px;
+  transition: none;
+}
+
 /* Scene 1 panel: mixed-case, no uppercase transform */
 #panel-1 h3 { text-transform: none; }
 #panel-1 strong { color: #910202; }
-.scene-2 .text-panel { left: 52%; top: 28%; }
-.scene-3 .text-panel { left: 52%; top: 28%; }
-.scene-5 .text-panel { right: 5%;  top: 15%; }
-.scene-6 .text-panel { right: 3%;  top: 12%; }
-/* Panels 7, 8 & 9 live inside their fixed overlays — positioned within 100vw × 100vh */
-#city-overlay-7 .text-panel { right: 3%; top: 10%; }
-#city-overlay-8 .text-panel { right: 3%; top: 10%; }
+
+/* Panel-8 is a standalone fixed element (not inside the overlay) so the
+   overlay's horizontal pan doesn't carry it off-screen */
+#panel-8 {
+  position: fixed;
+  right: 43%;
+  top: 20%;
+  z-index: 200;
+  transition: none;
+}
 
 /* Scene-8 post-zoom popups — match global big-popup spec */
 #panel-8a {
-  left: 2%;
-  right: auto;
-  top: 8%;
-  max-width: 900px;
-  min-width: unset;
+  right: 89% !important;
+  left: auto !important;
+  top: 33% !important;
+  max-width: 500px;
+  min-width: 500px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -468,8 +504,8 @@ html, body {
   right: 89% !important;
   left: auto !important;
   top: 33% !important;
-  max-width: 700px;
-  min-width: 700px;
+  max-width: 500px;
+  min-width: 500px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -951,6 +987,23 @@ html, body {
 }
 .cross-btn:hover { transform: translate(30%, -30%) scale(1.15); }
 
+/* Plus button — used for s26-s30 interviewee characters */
+.plus-btn {
+  position: absolute;
+  top: 8%;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
+  transform: translate(40%, -40%);
+  transition: transform 0.2s ease;
+}
+.plus-btn:hover { transform: translate(40%, -40%) scale(1.2); }
+
 /* Per-character face positions — right-facing (default right side) */
 .char-s7-red-girl .cross-btn   { top: 8%;  }
 .char-s7-granny .cross-btn     { top: 6%;  }
@@ -982,6 +1035,7 @@ html, body {
 #city-overlay-7 .cross-btn img,
 #city-overlay-8 .cross-btn img,
 #city-overlay-12 .cross-btn img,
+#city-overlay-26 .plus-btn img,
 .layer .cross-btn img {
   position: static;
   display: block;
@@ -1086,6 +1140,108 @@ html, body {
   border-width: 7px 0 7px 9px;
   border-color: transparent transparent transparent #FFFFFFF2;
 }
+
+/* ================================================================
+   SCENES 26–30: Street interviewees
+   Wide background (600vw) — absolute in scroll-x at DOM pos 1465vw.
+   Overlay (#city-overlay-26) is 500vw wide and translates with strip.
+   ================================================================ */
+#s26-s30-bg {
+  position: absolute;
+  left: 1465vw;
+  top: 0;
+  width: 600vw;
+  height: 100vh;
+  background: #87CEEB;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+#s26-s30-bg img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+.s2630-clouds    { top: 2vh; }
+.s2630-buildings {     bottom: 40vh;
+    top: auto;
+    width: auto !important;
+    height: 70vh !important;
+    left: 0vw !important;
+    z-index: 1;}
+.s2630-road      { bottom: 0; top: auto; left: 0 !important; width: auto !important; height: 42vh !important; }
+.s2630-trees  { bottom: 0; top: auto; height: 70vh !important; width: auto !important; left: auto !important; right: 0; z-index: 2; }
+.s2630-fence  { bottom: 0; top: auto; height: 25vh !important; width: auto !important; left: auto !important; right: 0; z-index: 3; }
+.s2630-run-signal {
+  position: absolute;
+  top: 10vh;
+  left: 40vw;
+  width: 500px;
+  height: 120px;
+  z-index: 2;
+}
+
+/* Scenes 26–30 transparent so s26-s30-bg shows through */
+.scene.city.scene-26,
+.scene.city.scene-27,
+.scene.city.scene-28,
+.scene.city.scene-29,
+.scene.city.scene-30 { background: transparent; }
+
+/* Scene-26 overlay — 500vw wide (5 scenes × 100vw), fixed, translates with strip */
+#city-overlay-26 {
+  position: fixed;
+  top: 0; left: 0;
+  width: 500vw;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Direct img children and name cards inside .people-group stay absolutely positioned */
+#city-overlay-26 > img,
+#city-overlay-26 .people-group2 > img {
+  position: absolute;
+  display: block;
+  height: auto;
+}
+/* Imgs inside char-wrap divs — in normal flow so the wrapper auto-sizes to them */
+#city-overlay-26 .char-wrap > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Scene-26 ambient street characters (0–100vw in overlay) */
+.char-s26-basket     { height: 16vh; bottom: 0; top: auto; left: 15vw;
+  width: 7vw; }
+.char-s26-moto       { bottom: -7vh;
+  top: auto;
+  left: 46vw;
+  width: 18vw; }
+
+/* Scene-27: Asmelash Teka Hadgu & Away Ly */
+.char-s27-asmelash   { width: 5vw;   height: auto; bottom: 12vh; top: auto; left: 106vw; }
+.char-s27-asmelash-1 { width: 4vw;   height: auto; bottom: 8vh;  top: auto; left: 144vw; }
+.char-s27-awayly     { width: 7vw;   height: auto; bottom: 14vh; top: auto; left: 91vw;  }
+.char-s27-awayly-1   { width: 4vw;   height: auto; bottom: 17vh; top: auto; left: 144vw; }
+
+/* Scene-28: Chris Emezue & Kathleen Siminyu */
+.char-s28-chris      { width: 5vw;   height: auto; bottom: 10vh; top: auto; left: 99vw;  }
+.char-s28-chris-1    { width: 4.3vw; height: auto; bottom: 24vh; top: auto; left: 147vw; }
+.char-s28-kathleen   { width: 6vw;   height: auto; bottom: 10vh; top: auto; left: 280vw; }
+.char-s28-kathleen-1 { width: 5vw;   height: auto; bottom: 0vh;  top: auto; left: 147vw; }
+
+/* Scene-29: Sadik Shahadu & Samuel Rutunda */
+.char-s29-sadik      { width: 5vw;   height: auto; bottom: 8vh;  top: auto; left: 112vw; }
+.char-s29-sadik-1    { width: 5vw;   height: auto; bottom: -8vh; top: auto; left: 144vw; }
+.char-s29-samuel     { width: 5vw;   height: auto; bottom: 10vh; top: auto; left: 86vw;  }
+.char-s29-samuel-1   { width: 4vw;   height: auto; bottom: 24vh; top: auto; left: 144vw; }
+
+/* Scene-30: Matatu with all interviewees aboard (400–500vw in overlay) */
+.char-s30-matatu     { height: 58vh; bottom: 10vh; top: auto; left: 415vw; }
 #char-bubble.dialogue .char-bubble-stat {
   display: none;
 }
@@ -1098,6 +1254,151 @@ html, body {
   color: #9F2222;
   white-space: normal;
 }
+
+/* ---- NAVBAR ---- */
+#navbar-wrap {
+  position: fixed;
+  top: 56px;
+  left: 44px; right: 44px;
+  z-index: 150;
+  pointer-events: none;
+}
+#navbar-wrap * { pointer-events: auto; }
+
+.navbar {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background: var(--pill-bg);
+  border-radius: 40px;
+  box-shadow: var(--pill-shadow);
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nav-track {
+  flex: 1;
+  position: relative;
+  height: 15px;
+  margin-left: 20px;
+  overflow: hidden;
+  background-image: repeating-linear-gradient(
+    to right,
+    #ffffff 0px 7px,
+    transparent 7px 12px
+  );
+  background-size: 100% 7px;
+  background-repeat: no-repeat;
+  background-position: left center;
+}
+
+.nav-track-fill {
+  position: absolute;
+  left: 0; top: 0;
+  width: 0%;
+  height: 100%;
+  background: #FF3B3B;
+  pointer-events: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+.brand-icon { width: 36px; height: 36px; display: block; }
+.brand-name {
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 700;
+  font-size: 31.98px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--maroon);
+  white-space: nowrap;
+}
+.brand-underline {
+  width: 28px;
+  height: 6px;
+  background: #ff4d3d;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.nav-btn {
+  background: var(--pill-bg);
+  color: var(--maroon);
+  border: none;
+  border-radius: 24px;
+  padding: 12px 26px;
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.nav-btn:hover { opacity: 0.85; }
+
+.lang-wrapper { position: relative; }
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lang-btn .caret {
+  font-size: 11px;
+  margin-top: 1px;
+  transition: transform 0.2s ease;
+}
+.lang-wrapper.open .caret { transform: rotate(180deg); }
+
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 8px;
+  min-width: 160px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+}
+.lang-wrapper.open .lang-menu { display: flex; }
+
+.lang-option {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--maroon);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lang-option:hover  { background: var(--pill-bg); }
+.lang-option.active { background: var(--btn-bg); color: #fff; }
 
 /* ---- MOBILE ---- */
 @media (max-width: 768px) {
