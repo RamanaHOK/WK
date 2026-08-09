@@ -1358,10 +1358,14 @@ function animateCityBus(scene, local, opacity) {
       // transition frame instead of dimming at a constant rate.
       const busFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.7) / 0.3)));
       eff  = opacity * (1 - busFadeT);
-      // Cover fades in exactly as the bus fades out — by the time the bus is fully gone
-      // (busFadeT=1) the clouds+birds cover is fully opaque, so it reads as the cover
-      // settling over the bus rather than the bus just vanishing into nothing.
-      if (s5558TransitionCover) s5558TransitionCover.style.opacity = (opacity * busFadeT).toFixed(3);
+      // Cover starts bringing in as soon as scene 58 begins (right after the last popup
+      // closes, back in scene 57) and grows across the WHOLE scene, fully overlapping the
+      // main screen by the time scene 58 — and the story — ends, not just tucked into the
+      // bus's own fade-out tail.
+      if (s5558TransitionCover) {
+        const coverT = easeInOutCubic(local);
+        s5558TransitionCover.style.opacity = (opacity * coverT).toFixed(3);
+      }
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.
