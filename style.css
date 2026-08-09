@@ -1,7 +1,17 @@
 /* ============================================
    PREVAILER MATATU JOURNEY — style.css
+
+   Organized by scene: shared/global rules first, then one section per
+   scene (in scene order) with everything that scene uses — layers,
+   overlays, character positions, cross-buttons, text panels — kept
+   together. The mobile media query MUST stay last in the file (CSS
+   cascade order matters there — it overrides earlier rules by being
+   later, not by specificity).
    ============================================ */
 
+/* ================================================================
+   GLOBAL — root vars, reset, base elements
+   ================================================================ */
 :root {
   --maroon:      #301512;
   --pill-bg:     #FFFFFF73;
@@ -11,6 +21,65 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Visually hidden but still announced by screen readers — standard accessible way to
+   give a single shared description without it being visible on-screen. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Story Previous/Next controls — hidden like .sr-only until a button inside receives
+   keyboard focus, then it becomes visible so a sighted keyboard-only user can see what
+   they're activating (standard "skip link" pattern). */
+.sr-only-focusable button {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 10px 18px;
+  background: var(--maroon, #9F2222);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  cursor: pointer;
+}
+.sr-only-focusable button:focus {
+  left: 10px;
+  top: 10px;
+}
+.sr-only-focusable button#storyNextBtn:focus {
+  left: 210px;
+}
+
+/* Skip link — first focusable element on the page, jumps a keyboard/screen-reader user
+   straight past the navbar to the story Previous/Next controls. */
+.sr-only-focusable-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 10px 18px;
+  background: var(--maroon, #9F2222);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  text-decoration: none;
+}
+.sr-only-focusable-link:focus {
+  left: 10px;
+  top: 10px;
+}
 
 /* Prevent blur on images inside CSS-transformed parents */
 img {
@@ -27,67 +96,9 @@ html, body {
   font-family: 'Noto Sans', sans-serif;
 }
 
-/* Scene-21 road preview — fixed behind #pinned-wrap, revealed as s12-s15-bg fades out */
-#s21-preview {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  overflow: hidden;
-  z-index: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-#s21-preview img {
-  position: absolute;
-  top: 0; left: 0;
-  width: 400vw; height: 100%;
-  object-fit: cover;
-}
-
-/* Scene-21 cloud overlays — fixed z:2 (above road, below vehicles z:3); opacity driven by JS */
-#s21-clouds {
-  position: fixed; top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 4;
-  pointer-events: none;
-  transform: translateZ(0);
-}
-#s21-clouds img { position: absolute; display: block; width: 100%; height: 100%; object-fit: cover; top: 0; left: 0; }
-#s21c-regular { opacity: 0; }
-#s21c-white   { opacity: 0; }
-
-/* Scene-21 vehicle overlay — fixed z:3 (above pinned-wrap z:1); opacity driven by JS */
-#s21-vehicles {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0;
-}
-#s21-vehicles img {
-  position: absolute;
-  display: block;
-}
-/* All 4 vehicles in fixed overlay — all move right */
-#s21v-meta      { width: 32vw; top: 5%;  }
-#s21v-openai    { width: 32vw; top: 20%; }
-#s21v-matatu    { width: 32vw; top: 38%; }
-#s21v-google    { width: 32vw; top: 68%; left: 0%; }
-#s21v-microsoft { width: 32vw; top: 68%; left: 0;   }
-
-
-/* ---- TRUCK PLACEMENT PREVIEW ----
-   Uncomment the block below, refresh, and all trucks appear at page load so you can
-   adjust the top% values above without scrolling to scene 21.
-   Re-comment when done.
-#s21-vehicles { opacity: 1 !important; }
-#s21v-meta, #s21v-matatu, #s21v-google, #s21v-microsoft {
-  transform: translate3d(10vw, 0, 0) !important;
-}
-   ---- END PREVIEW ---- */
-
-/* ---- PINNED VIEWPORT ---- */
+/* ================================================================
+   GLOBAL — pinned viewport / horizontal scroll engine
+   ================================================================ */
 #pinned-wrap {
   position: fixed;
   top: 0; left: 0;
@@ -112,7 +123,7 @@ html, body {
   width: 1px;
 }
 
-/* ---- SCENES ---- */
+/* ---- SCENES (base) ---- */
 .scene {
   position: relative;
   width: 100vw;
@@ -121,112 +132,14 @@ html, body {
   overflow: hidden;
 }
 
-
-/* Spanning background for scenes 1–3 */
-#s1-s3-bg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 300vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 1;
-}
-#s1-s3-bg img {
-  position: absolute;
-}
-.s1s3-road  { left: 0;    width: 100%; top: 23%;  bottom: auto; height: 45%; object-fit: cover; object-position: center;        z-index: 1; }
-.s1s3-troad { left: -5%;  width: 105%; top: 0;    bottom: auto; height: 40%; object-fit: cover; object-position: bottom center; z-index: 2; }
-.s1s3-broad { left: -5%;  width: 105%; bottom: 0; top: auto;    height: 40%; object-fit: cover; object-position: top center;    z-index: 3; }
-
-/* Scenes 1–3 background transparent so spanning bg shows through */
-.scene.jungle.scene-1,
-.scene.jungle.scene-2,
-.scene.jungle.scene-3 { background: transparent; }
-
-/* Spanning background for scenes 5–8 */
-#s5-s8-bg {
-  position: absolute;
-  left: 400vw;
-  top: 0;
-  width: 400vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 1;
-}
-#s5-s8-bg img {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: auto;
-}
-.s5s8-clouds    { top: 2%;   }
-.s5s8-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
-.s5s8-road      { top: 56%;  }
-.s5s8-fence     { bottom: -13%; top: auto; left: 19% !important; height: 25% !important; }
-
-/* Spanning background for scenes 12–13 (starts at 800vw = after 8 scenes, 200vw covers scenes 12+13 only) */
-#s12-s15-bg {
-  position: absolute;
-  left: 800vw;
-  top: 0;
-  width: 265vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #6FBAE3;
-  pointer-events: none;
-  z-index: 1;
-}
-#s12-s15-bg img {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: auto;
-}
-.s1215-clouds    { top: 2vh; }
-.s1215-buildings { bottom: 34vh; top: auto; width: auto !important; height: 80vh !important; left: 5vw !important; }
-.s1215-road      { top: 65vh; }
-.s1215-trees     { bottom: -29vh; top: auto; height: 100vh !important; width: 100% !important; z-index: 3; left: -80vw !important; }
-
-/* Scenes 12–15 transparent so the spanning bg shows through */
-.scene.city.scene-12,
-.scene.city.scene-13 { background: transparent; }
-
-/* Sky backgrounds */
+/* Sky backgrounds — base per scene "biome", overridden per-scene below where needed */
 .scene.jungle  { background: #1C2A15; }
 .scene.savanna { background: linear-gradient(180deg, #87CEEB 0%, #d4e8a0 55%, #c8a96e 100%); }
 .scene.city    { background: linear-gradient(180deg, #87CEEB 0%, #c8ddf0 55%, #b8886e 100%); }
 
-
-
-/* Scene 4 slides over the fixed jungle bus and overlaps scene-3 & scene-5 */
-.scene-4 { z-index: 11; overflow: visible; }
-
-/* Inner wrapper extends 20vw beyond scene-4 on both sides */
-.s4-extend {
-  position: absolute;
-  left: -20vw;
-  top: 0;
-  width: 140vw;
-  height: 100%;
-}
-
-/* Scene 4 layer stacking */
-.scene-4 .layer-s4-clouds   { z-index: 0; }
-.scene-4 .layer-s4-road     { z-index: 1; height: 41%; bottom: 0; top: auto; overflow: hidden; }
-.scene-4 .layer-s4-trees    { display: none; } /* replaced by #s4-trees fixed overlay */
-/* Attach scene 4 to scene 3: left edge fades from jungle dark so no hard seam
-   z-index 4 = above trees (z:3) so the seam stays clean */
-.scene-4::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 30%;
-  z-index: 4;
-  pointer-events: none;
-}
-
-/* ---- LAYER SYSTEM ---- */
+/* ================================================================
+   GLOBAL — layer system base (shared by every scene's .layer divs)
+   ================================================================ */
 .layer {
   position: absolute;
   bottom: 0;
@@ -250,38 +163,357 @@ html, body {
   will-change: transform, opacity;
 }
 
-/* -- Jungle: three-layer zones — each image stretches to fill its container -- */
-.layer-troad { top: 0;   bottom: auto; height: 40%; overflow: hidden; }
-.layer-road  { top: 22%; bottom: auto; height: 54%; overflow: hidden; }
-.layer-broad { top: auto; bottom: 0;   height: 30%; }
-
-/* object-fit: cover fills each zone without gaps on any viewport height */
-.layer-troad img    { width: 100%; height: 100%; object-fit: cover; object-position: bottom center; top: 0; left: 0; bottom: 0; }
-.layer-road img     { width: 100%; height: 100%; object-fit: cover; object-position: center;        top: 0; left: 0; bottom: 0; }
-.layer-broad img    { width: 100%; height: 100%; object-fit: cover; object-position: top center;    top: 0; left: 0; bottom: 0; z-index: 1; }
-/* In-scene jungle matatu images hidden — replaced by #jungle-bus fixed overlay */
-.scene-1 .layer-matatu,
-.scene-2 .layer-matatu,
-.scene-3 .layer-matatu { display: none; }
-
-/* Fixed bus that travels continuously across all jungle scenes */
-#jungle-bus {
-  position: fixed;
-  top: 38%;
-  left: 0;
-  z-index: 10;
-  pointer-events: none;
+/* ================================================================
+   GLOBAL — text panel base (shared by every popup across all scenes)
+   ================================================================ */
+.text-panel {
+  position: absolute;
+  background: #FFFFFFF2;
+  border: 1px solid #9F2222;
+  border-radius: 10px;
+  padding: 25px 35px;
+  max-width: 37.5rem; /* 600px equivalent — above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  min-width: 37.5rem;
+  box-shadow: 0px 4px 6px 0px #0000004D;
   opacity: 0;
-}
-#jungle-bus img {
-  width: 38vw;
-  display: block;
-  will-change: transform;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+  z-index: 20;
 }
 
-/* City bus — inside #pinned-wrap stacking context.
-   z:5 = above regular scenes (z:auto) but below scene-4 savanna (z:11),
-   so the savanna slides over it naturally during transition. */
+.text-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pop variant — spring scale-in used for scene 3 */
+.text-panel.pop {
+  transform: scale(0.7);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.text-panel.pop.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* s8-pop: spring scale-in for scene-8 / scene-13 popups (aeons, draw, Algorithm Ave) */
+.text-panel.s8-pop {
+  transform: scale(0.85);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.text-panel.s8-pop.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.text-panel h3 {
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 1.485rem; /* 2.2vmin equivalent at 1920x1080 — above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  font-weight: 500;
+  color: #9F2222;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.text-panel p {
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 1.485rem; /* 2.2vmin equivalent at 1920x1080 — above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  font-weight: 500;
+  color: #9F2222;
+  line-height: 1.2;
+  letter-spacing: 0;
+  margin-bottom: 20px;
+}
+.text-panel p:last-child {
+  margin-bottom: 0;
+}
+
+/* ================================================================
+   GLOBAL — cross/plus buttons (shared by character overlays in
+   scenes 7, 8, 12, 26-30). Per-character position overrides live in
+   each scene's own section below, not here.
+   ================================================================ */
+.cross-btn {
+  position: absolute;
+  top: 8%;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
+  transform: translate(30%, -30%);
+  transition: transform 0.2s ease;
+}
+.cross-btn:hover { transform: translate(30%, -30%) scale(1.15); }
+
+/* Plus button — used for s26-s30 interviewee characters */
+.plus-btn {
+  position: absolute;
+  top: 8%;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
+  transform: translate(40%, -40%);
+  transition: transform 0.2s ease;
+}
+.plus-btn:hover { transform: translate(40%, -40%) scale(1.2); }
+
+/* Character wrapper — takes absolute position; cross button positions relative to this */
+.char-wrap { position: absolute; }
+
+/* Override position:absolute set by overlay/layer img rules */
+#city-overlay-7 .cross-btn img,
+#city-overlay-8 .cross-btn img,
+#city-overlay-12 .cross-btn img,
+#city-overlay-26 .plus-btn img,
+.layer .cross-btn img {
+  position: static;
+  display: block;
+  width: 15px;
+  height: 15px;
+  max-width: none;
+}
+
+/* ================================================================
+   GLOBAL — character speech bubble (appears next to the cross icon)
+   ================================================================ */
+#char-bubble {
+  position: fixed;
+  z-index: 500;
+  background: #000000;
+  border-radius: 8px;
+  padding: 20px;
+  width: 255px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+#char-bubble.visible { display: flex; }
+
+/* Left-pointing tail */
+#char-bubble::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 7px 9px 7px 0;
+  border-style: solid;
+  border-color: transparent #000000 transparent transparent;
+}
+
+.char-bubble-stat {
+  font-family: 'Noto Sans Ethiopic', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: normal;
+}
+
+.char-bubble-lang {
+  font-family: 'Noto Sans Ethiopic', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: normal;
+}
+
+/* Dialogue mode — scene-7 speech bubbles */
+#char-bubble.dialogue {
+  background: #FFFFFFF2;
+  width: 900px;
+  max-width: 900px;
+  min-width: 900px;
+  padding: 45px 55px;
+  border: 1px solid #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+}
+#char-bubble.dialogue .char-bubble-stat {
+  display: none;
+}
+#char-bubble.dialogue .char-bubble-lang {
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 500;
+  font-size: 2rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #9F2222;
+  white-space: normal;
+}
+/* Border layer of arrow (red, slightly larger) */
+#char-bubble.dialogue::before {
+  left: -11px;
+  border-width: 8px 11px 8px 0;
+  border-color: transparent #9F2222 transparent transparent;
+}
+/* Fill layer of arrow (white, sits on top of border layer) */
+#char-bubble.dialogue::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 7px 9px 7px 0;
+  border-style: solid;
+  border-color: transparent #FFFFFFF2 transparent transparent;
+}
+
+/* Pop-left: bubble opens to the left — arrows flip to right side */
+#char-bubble.pop-left::before {
+  left: auto;
+  right: -11px;
+  border-width: 8px 0 8px 11px;
+  border-color: transparent transparent transparent #000000;
+}
+#char-bubble.dialogue.pop-left::before {
+  border-color: transparent transparent transparent #9F2222;
+}
+#char-bubble.dialogue.pop-left::after {
+  left: auto;
+  right: -8px;
+  border-width: 7px 0 7px 9px;
+  border-color: transparent transparent transparent #FFFFFFF2;
+}
+
+/* ================================================================
+   GLOBAL — UI chrome (debug scale, scroll hint, progress bar, dots)
+   ================================================================ */
+#debug-scale {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-family: monospace;
+  font-size: 0.6875rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  padding: 5px 12px;
+  border-radius: 4px;
+  z-index: 200;
+  white-space: nowrap;
+}
+#debug-scale span { opacity: 0.85; }
+#dbg-bar {
+  position: relative;
+  width: 160px;
+  height: 6px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255,255,255,0.18) 0,
+    rgba(255,255,255,0.18) calc(100% / 8 - 1px),
+    rgba(255,255,255,0.5)  calc(100% / 8 - 1px),
+    rgba(255,255,255,0.5)  calc(100% / 8)
+  );
+  border-radius: 3px;
+  overflow: hidden;
+}
+#dbg-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: #F7904B;
+  border-radius: 2px;
+  transition: left 0.05s linear;
+}
+
+#scroll-hint {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #910202;
+  font-size: 0.8125rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  font-weight: bold;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.5s;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px solid #910202;
+}
+
+#scroll-hint.hidden { opacity: 0; pointer-events: none; }
+
+
+.scroll-arrow {
+  animation: bounce-x 1s ease-in-out infinite;
+  font-size: 1.125rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+}
+
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(6px); }
+}
+
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 4px;
+  background: #910202;
+  width: 0%;
+  transition: width 0.1s linear;
+  z-index: 100;
+}
+
+#scene-dots {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(145, 2, 2, 0.3);
+  border: 2px solid #910202;
+  transition: background 0.3s, transform 0.3s;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: #910202;
+  transform: scale(1.3);
+}
+
+/* ================================================================
+   SHARED — city bus prop (reused across scenes 5-30; JS swaps which
+   child image is visible depending on the scene). Not one scene's
+   element, so it stays as its own shared block rather than being
+   split across every scene section that uses it.
+   ================================================================ */
 #city-bus {
   position: fixed;
   bottom: 30%;
@@ -326,9 +558,128 @@ html, body {
   left: 0;
   opacity: 0;
 }
+#city-bus-inside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
 
-/* -- Shared floor line: road top at 40%, floor at 70% (bottom: 30%) --
-   Matches the jungle three-layer grid so all scenes join seamlessly. */
+/* ================================================================
+   SCENES 1–3: Jungle
+   ================================================================ */
+/* Single wide background spanning scenes 1–3 */
+#s1-s3-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+#s1-s3-bg img {
+  position: absolute;
+}
+/* Three equal-height layers stacked top to bottom (each exactly 1/3 of the viewport) — road
+   in the middle third, trees filling the top and bottom thirds. Back to plain <img> +
+   object-fit:cover (not a background-image div) — the background-image version introduced a
+   worse, unrelated left/right split bug on fresh page load, so this reverts the element type
+   while keeping the tuned overlap heights.
+   Trees are grown by a small overlap (anchored to their own edge, so they grow toward the
+   center) and sit above the road in z-index, so their canopy overlaps the road edge slightly
+   instead of a hard seam between the two.
+   The two tree source SVGs are NOT the same shape — Top trees Extended.svg is 10107x1358
+   (aspect ratio 7.44), Bottom trees Extended.svg is 9957x922 (aspect ratio 10.80, i.e. ~1.45x
+   flatter). troad/broad intentionally use DIFFERENT extra-height values (not the same number)
+   to compensate for that — this is tuned by eye/feedback, not derived from a formula, so
+   re-check both edges together if either source SVG changes. */
+.s1s3-road  { left: 0;    width: 100%; top: calc(100% / 3 + 5%);  bottom: auto; height: calc(100% / 3); object-fit: cover; object-position: center;        z-index: 1; }
+.s1s3-troad { left: -5%;  width: 105%; top: 0;                bottom: auto; height: calc(100% / 3 + 20%); object-fit: cover; object-position: bottom center; z-index: 2; }
+.s1s3-broad { left: -5%;  width: 105%; bottom: 0;              top: auto;   height: calc(100% / 3 + 4.7%); object-fit: cover; object-position: top center;    z-index: 3; }
+
+/* Scenes 1–3 background transparent so spanning bg shows through */
+.scene.jungle.scene-1,
+.scene.jungle.scene-2,
+.scene.jungle.scene-3 { background: transparent; }
+
+/* -- Jungle: three-layer zones — each image stretches to fill its container -- */
+.layer-troad { top: 0;   bottom: auto; height: 40%; overflow: hidden; }
+.layer-road  { top: 22%; bottom: auto; height: 54%; overflow: hidden; }
+.layer-broad { top: auto; bottom: 0;   height: 30%; }
+
+/* object-fit: cover fills each zone without gaps on any viewport height */
+.layer-troad img    { width: 100%; height: 100%; object-fit: cover; object-position: bottom center; top: 0; left: 0; bottom: 0; }
+.layer-road img     { width: 100%; height: 100%; object-fit: cover; object-position: center;        top: 0; left: 0; bottom: 0; }
+.layer-broad img    { width: 100%; height: 100%; object-fit: cover; object-position: top center;    top: 0; left: 0; bottom: 0; z-index: 1; }
+/* In-scene jungle matatu images hidden — replaced by #jungle-bus fixed overlay */
+.scene-1 .layer-matatu,
+.scene-2 .layer-matatu,
+.scene-3 .layer-matatu { display: none; }
+
+/* Fixed bus that travels continuously across all jungle scenes. top:55% matches the road's
+   own vertical center (.s1s3-road: top:calc(100%/3 + 5%), height:calc(100%/3) → center =
+   33.33+5 + 16.67 = 55%) — combined with the translateY(-50%) scroll.js adds to its
+   translateX each frame, this keeps the bus centered on the road regardless of the bus
+   image's own height, instead of a fixed top guess that drifts out of sync whenever the
+   road's position gets retuned. */
+#jungle-bus {
+  position: fixed;
+  top: 55%;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+}
+#jungle-bus img {
+  width: 38vw;
+  display: block;
+  will-change: transform;
+}
+
+/* Panel positions — 2 and 3 match scene 1's exact spot, same simple intro sequence.
+   Anchored from bottom (not top) so the box grows upward as content wraps, instead of down. */
+.scene-1 .text-panel,
+.scene-2 .text-panel,
+.scene-3 .text-panel { left: 22%; top: auto; bottom: 65%; }
+
+/* Scene 1 panel: mixed-case, no uppercase transform. No font-size override needed here —
+   all popup text (.text-panel h3 and p alike) is a uniform 2.2vmin now. */
+#panel-1 h3 { text-transform: none; }
+#panel-1 strong { color: #910202; }
+#panel-1 {
+  min-width: 430px;
+}
+
+/* ================================================================
+   SCENE 4: Savanna transition
+   ================================================================ */
+/* Scene 4 slides over the fixed jungle bus and overlaps scene-3 & scene-5 */
+.scene-4 { z-index: 11; overflow: visible; }
+
+/* Inner wrapper extends 20vw beyond scene-4 on both sides */
+.s4-extend {
+  position: absolute;
+  left: -20vw;
+  top: 0;
+  width: 140vw;
+  height: 100%;
+}
+
+/* Scene 4 layer stacking */
+.scene-4 .layer-s4-clouds   { z-index: 0; }
+.scene-4 .layer-s4-road     { z-index: 1; height: 41%; bottom: 0; top: auto; overflow: hidden; }
+.scene-4 .layer-s4-trees    { display: none; } /* replaced by #s4-trees fixed overlay */
+/* Attach scene 4 to scene 3: left edge fades from jungle dark so no hard seam
+   z-index 4 = above trees (z:3) so the seam stays clean */
+.scene-4::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 30%;
+  z-index: 4;
+  pointer-events: none;
+}
 
 /* -- Savanna layer sizing --
    Road layer = 30% tall div, anchored to bottom
@@ -338,6 +689,59 @@ html, body {
 .layer-s4-trees img    { width: 100%; height: auto; bottom: -66%; top: auto; left: 0; }
 .layer-s4-clouds img   { width: 100%; height: auto; top: 0; bottom: auto; left: 0; }
 .layer-s4-building img { bottom: 26%; top: auto; right: 0%; left: auto; width: auto !important; height: 100% !important; }
+
+/* Fixed scene-4 trees overlay — z:11 above #jungle-bus (z:10), below everything else.
+   Mirrors .s4-extend + .layer-s4-trees so the bus passes under the trees but stays
+   in front of scene-4's road (road is inside #pinned-wrap at z:0 in root). */
+#s4-trees {
+  position: fixed;
+  bottom: 0%;
+  left: 0;
+  width: 140vw;
+  height: 100vh;
+  overflow: visible;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+}
+#s4-trees img {
+  position: absolute;
+  width: 100%;
+  height: 155vh;
+  top: 0;
+  object-fit: cover; /* fills the entire scene 4 width/height, no gaps — bus (z:10) still passes behind the trees (z:11) */
+  object-position: left 10%; /* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
+    keep the trunk/ground flush. Pulling this down toward 50% keeps more of the canopy on-screen at the cost of
+    cropping a bit more off the bottom (trunk) instead — tune this number directly if canopy is still cut. */
+  bottom: 0;
+  left: 0;
+  display: block;
+  will-change: transform;
+}
+
+/* ================================================================
+   SCENES 5–9: City (shared spanning background + shared layer classes)
+   ================================================================ */
+/* Single wide background spanning scenes 5–8 */
+#s5-s8-bg {
+  position: absolute;
+  left: 400vw;
+  top: 0;
+  width: 400vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+#s5-s8-bg img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+.s5s8-clouds    { top: 2%;   }
+.s5s8-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
+.s5s8-road      { top: 56%;  }
+.s5s8-fence     { bottom: -13%; top: auto; left: 19% !important; height: 25% !important; }
 
 /* -- City layer sizing (scenes 5 & 6 share these classes) -- */
 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
@@ -349,97 +753,82 @@ html, body {
 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
 
+/* ---- SCENE 5: Bright Day City ---- */
+.scene-5.city {
+  background: linear-gradient(180deg, #87CEEB 0%, #c8ddf0 55%, #b8886e 100%);
+}
 /* -- Scene 5: narrower SVG (1836×1215) needs smaller width to avoid oversized height -- */
 .scene-5 .layer-city-buildings img { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
 
-/* -- Scene 6: capped at 60% to match other city scenes -- */
-.scene-6 .layer-city-buildings img { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
-
-/* -- Scene 7: independent layer overrides -- */
-.scene-7 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
-.scene-7 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
-.scene-7 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
-.scene-7 .layer-city-trees img     { width: 15%;  bottom: 0; left: 85%; top: 24%; z-index: 4; }
-
-/* -- Scene 9: same assets as scene 8, same layout -- */
-.scene-9 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
-.scene-9 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
-.scene-9 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
-
-/* ---- TEXT PANELS ---- */
-.text-panel {
-  position: absolute;
-  background: #FFFFFFF2;
-  border: 1px solid #9F2222;
-  border-radius: 10px;
-  padding: 25px 35px;
-  max-width: 500px;
-  min-width: 500px;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+/* Fixed trees overlay — rendered in root stacking context at z:16, above #city-bus (z:15).
+   Position synced to scene-5 trees via JS. This is needed because #city-bus is position:fixed
+   at z:15 in root, while everything inside #pinned-wrap paints at z:auto (0) in root —
+   so in-scene z-index changes cannot compete with the bus. */
+#city-trees-5 {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 16;
   pointer-events: none;
-  z-index: 20;
+  opacity: 0;
+}
+#city-trees-5 img {
+  width: 20vw;
+  display: block;
+  will-change: transform;
+  left: -16%;
+    position: relative;
 }
 
-.text-panel.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* #panel-5 now lives at root level, not inside .scene-5 (see index.html) — this old
+   scene-relative rule no longer applies to it. Left as documentation of the fallback left/
+   bottom values in case #panel-5 (or a future scene-5 panel) ever moves back inside the scene. */
+/* .scene-5 .text-panel { left: 43%; bottom: 60%; } */
 
-/* Pop variant — spring scale-in used for scene 3 */
-.text-panel.pop {
-  transform: scale(0.7);
-  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* #panel-5 width: auto instead of the shared .text-panel fixed 37.5rem, so it sizes to its
+   own (short) content instead of matching every other popup's width. Position: fixed (not the
+   shared .text-panel absolute) because scroll.js now repositions it every frame in viewport
+   (px) coordinates, tracking the bus's live getBoundingClientRect() — see the "#panel-5: track
+   bus position" block in frame(). Initial left/top before that JS first runs come from this
+   rule's absence of any position — falls back to the browser default (top-left, 0,0) for one
+   frame, which is harmless since opacity is 0 until PANEL_TIMING's `show` flips it on. */
+#panel-5 {
+  position: fixed;
+  width: auto;
+  min-width: 0;
+  max-width: 26rem;
+  overflow: visible; /* lets the arrow tail below render outside the box edge */
 }
-.text-panel.pop.visible {
-  opacity: 1;
-  transform: scale(1);
+/* Diagonal bubble tail toward the bus driver — the exact SVG-tail technique originally
+   shared (polygon + seam-line + outline path), not the rotated CSS border-triangle (too easy
+   to get the border-box/content-box math wrong across two nested layers). Mirrored horizontally
+   from the original (which pointed left) since the bus/driver sits to the RIGHT of this popup.
+   Anchored via `bottom` (not `top`, unlike the original) with the tail's own points already
+   based at y:0, so it stays flush with the bubble's real bottom edge no matter how tall the
+   popup renders — the original assumed a fixed ~91.5px bubble height, ours is auto/dynamic. */
+#panel-5 .bubble__tail {
+  position: absolute;
+  left: 66%;
+  top: 100%;
+    width: 67% !important;
+    height: 68% !important;
+    bottom: -1px;
+    overflow: visible;
+    pointer-events: none;
 }
-
-/* s8-pop: spring scale-in for scene-8 / scene-13 popups (aeons, draw, Algorithm Ave) */
-.text-panel.s8-pop {
-  transform: scale(0.85);
-  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+#panel-5 .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-5 .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
 }
-.text-panel.s8-pop.visible {
-  opacity: 1;
-  transform: scale(1);
+/* Hides the bubble's own border across the tail opening */
+#panel-5 .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
 }
-
-.text-panel h3 {
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
-  color: #9F2222;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0;
-  line-height: 1.2;
-}
-
-.text-panel p {
-  font-family: 'Noto Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  color: #9F2222;
-  line-height: 1.2;
-  letter-spacing: 0;
-  margin-bottom: 20px;
-}
-.text-panel p:last-child {
-  margin-bottom: 0;
-}
-
-/* Panel positions per scene */
-.scene-1 .text-panel { left: 52%; top: 28%; }
-.scene-2 .text-panel { left: 52%; top: 28%; }
-.scene-3 .text-panel { left: 52%; top: 28%; }
-.scene-5 .text-panel { right: 5%;  top: 20%; }
-.scene-6 .text-panel { right: 3%;  top: 20%; }
-/* Panels 7 & 9 live inside their fixed overlays */
-#city-overlay-7 .text-panel { right: 3%; top: 20%; }
 
 /* Scene-5 driver popup — fixed so it stays anchored near the bus driver window */
 #panel-5-driver {
@@ -452,9 +841,158 @@ html, body {
   transition: none;
 }
 
-/* Scene 1 panel: mixed-case, no uppercase transform */
-#panel-1 h3 { text-transform: none; }
-#panel-1 strong { color: #910202; }
+/* ---- SCENE 6: Night City (overrides shared .city) ---- */
+.scene-6.city {
+  /* background: linear-gradient(180deg, #060d16 0%, #0d1b2a 40%, #1a2a3a 70%, #0a0905 100%); */
+}
+
+.scene-6 .layer img {
+  /* filter: brightness(0.55) saturate(0.65); */
+}
+
+/* Road keeps its original sandy colour — only sky/buildings get the night tint */
+.scene-6 .layer-city-road img {
+  filter: none;
+}
+
+.scene-6 .layer-city-clouds img {
+  /* filter: brightness(0.35) saturate(0.4) hue-rotate(200deg); */
+}
+
+/* -- Scene 6: capped at 60% to match other city scenes -- */
+.scene-6 .layer-city-buildings img { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
+
+.scene-6 .text-panel { right: 3%;  top: 20%; }
+
+/* Scene 6 text panel: matches global big-popup spec */
+.scene-6 .text-panel {
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+}
+.scene-6 .text-panel h3 {
+  color: #9F2222;
+}
+.scene-6 .text-panel p {
+  color: #9F2222;
+}
+
+/* ---- SCENES 7 & 8: Fixed character + tree overlays ---- */
+/* These are in root stacking context (z:16) — above #pinned-wrap (z:0 in root),
+   so they always paint in front of the bus regardless of its in-wrap z-index.
+   Shared by scenes 7, 8, 9, and 12 (city-overlay-12 reuses the char-wrap>img rule). */
+#city-overlay-7,
+#city-overlay-8,
+#city-overlay-9 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* char imgs fill their wrapper — wrapper div holds the absolute position */
+#city-overlay-7 .char-wrap > img,
+#city-overlay-8 .char-wrap > img,
+#city-overlay-12 .char-wrap > img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+}
+
+/* -- Scene 7 independent layer overrides -- */
+.scene-7 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
+.scene-7 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
+.scene-7 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
+.scene-7 .layer-city-trees img     { width: 15%;  bottom: 0; left: 85%; top: 24%; z-index: 4; }
+
+/* ---- Scene 7 people — edit left / bottom / height to reposition ---- */
+/* Bus parks at left ~8%, spans ~8%–60% of viewport width               */
+.char-s7-red-girl   { height: 28vh; left:  25%; bottom: 0%; }
+.char-s7-granny     { height: 26vh; left: 40%; bottom: 24%; }
+.char-s7-orange-man { height: 23vh; left: 57%; bottom: 0%; }
+.char-s7-green-man  { height: 30vh; left: 65%; bottom: 0%; }
+
+/* Per-character face positions — right-facing (default right side) */
+.char-s7-red-girl .cross-btn   { top: 8%;  }
+.char-s7-granny .cross-btn     { top: 6%;  }
+
+/* Left-facing characters — button flips to left side */
+.char-s7-orange-man .cross-btn,
+.char-s7-green-man .cross-btn {
+  right: auto;
+  left: 0;
+  transform: translate(-30%, -30%);
+}
+.char-s7-orange-man .cross-btn:hover,
+.char-s7-green-man .cross-btn:hover { transform: translate(-30%, -30%) scale(1.15); }
+
+.char-s7-orange-man .cross-btn { top: 10%; }
+.char-s7-green-man .cross-btn  { top: 6%;  }
+
+/* Scene 7 text panel: bottom-left speech style */
+.scene-7 .text-panel {
+  left: 4%;
+  top: auto;
+  bottom: 6%;
+  max-width: 300px;
+  min-width: 0; /* base .text-panel sets min-width:37.5rem (and 55.56vmin on desktop), which
+    beats this max-width since min-width wins when the two conflict — was forcing this bubble
+    to ~600px wide regardless of its short dialogue text. That's the "extra space." */
+}
+/* Panel 7 lives inside its fixed overlay */
+#city-overlay-7 .text-panel { right: 3%; top: 20%; }
+
+/* ---- SCENE 8: City – Problem Plaza ---- */
+/* ---- Scene 8 people — edit left / bottom / height to reposition ---- */
+/* Bus stays parked at left ~8%, spans ~8%–60% of viewport width         */
+.char-s8-purple-man { height: 54vh; left: 26%; bottom: -21%; }
+.char-s8-blue-girl  { height: 36vh; left: 46%; bottom: -5%; }
+.char-s8-lime-man   { height: 32vh; left: 71%; bottom: 14%; }
+.char-s8-green-man  { height: 38vh; left: 37%; bottom: 5%; }
+
+/* Transition lets JS-driven opacity + blur animate smoothly instead of snapping */
+.char-s8-purple-man,
+.char-s8-blue-girl,
+.char-s8-lime-man,
+.char-s8-green-man {
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+.char-s8-purple-man .cross-btn { top: 5%;  }
+.char-s8-lime-man .cross-btn   { top: 10%; }
+
+.char-s8-blue-girl .cross-btn,
+.char-s8-green-man .cross-btn {
+  right: auto;
+  left: 0;
+  transform: translate(-30%, -30%);
+}
+.char-s8-blue-girl .cross-btn:hover,
+.char-s8-green-man .cross-btn:hover { transform: translate(-30%, -30%) scale(1.15); }
+
+.char-s8-blue-girl .cross-btn  { top: 8%;  }
+.char-s8-green-man .cross-btn  { top: 6%;  }
+
+/* Scene 8 text panel: large centered PROBLEM PLAZA panel */
+.scene-8 .text-panel {
+  left: 50%;
+  top: 8%;
+  transform: translateX(-50%) translateY(8px);
+  max-width: 420px;
+  min-width: 300px;
+}
+.scene-8 .text-panel.visible {
+  transform: translateX(-50%) translateY(0);
+}
+.scene-8 .text-panel h3 {
+  /* No font-size override — inherits the uniform 2.2vmin from .text-panel h3. */
+  margin-bottom: 10px;
+}
 
 /* Panel-8 is a standalone fixed element (not inside the overlay) so the
    overlay's horizontal pan doesn't carry it off-screen */
@@ -471,8 +1009,6 @@ html, body {
   right: 89% !important;
   left: auto !important;
   top: 33% !important;
-  max-width: 500px;
-  min-width: 500px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -504,8 +1040,6 @@ html, body {
   right: 89% !important;
   left: auto !important;
   top: 33% !important;
-  max-width: 500px;
-  min-width: 500px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -534,283 +1068,13 @@ html, body {
 }
 #panel-8a h3, #panel-8b h3 { color: #9F2222; }
 #panel-8a p,  #panel-8b p  { color: #9F2222; }
-#city-overlay-9 .text-panel { left: 4%; top: 12%; max-width: 36%; }
 
-/* ---- DEBUG SCALE ---- */
-#debug-scale {
-  position: fixed;
-  bottom: 56px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  font-family: monospace;
-  font-size: 11px;
-  padding: 5px 12px;
-  border-radius: 4px;
-  z-index: 200;
-  white-space: nowrap;
-}
-#debug-scale span { opacity: 0.85; }
-#dbg-bar {
-  position: relative;
-  width: 160px;
-  height: 6px;
-  background: repeating-linear-gradient(
-    to right,
-    rgba(255,255,255,0.18) 0,
-    rgba(255,255,255,0.18) calc(100% / 8 - 1px),
-    rgba(255,255,255,0.5)  calc(100% / 8 - 1px),
-    rgba(255,255,255,0.5)  calc(100% / 8)
-  );
-  border-radius: 3px;
-  overflow: hidden;
-}
-#dbg-cursor {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 4px;
-  background: #F7904B;
-  border-radius: 2px;
-  transition: left 0.05s linear;
-}
-
-/* ---- SCROLL INDICATOR ---- */
-#scroll-hint {
-  position: fixed;
-  bottom: 24px;
-  right: 32px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #910202;
-  font-size: 13px;
-  font-weight: bold;
-  z-index: 100;
-  opacity: 1;
-  transition: opacity 0.5s;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 2px solid #910202;
-}
-
-#scroll-hint.hidden { opacity: 0; pointer-events: none; }
-
-.scroll-arrow {
-  animation: bounce-x 1s ease-in-out infinite;
-  font-size: 18px;
-}
-
-@keyframes bounce-x {
-  0%, 100% { transform: translateX(0); }
-  50%       { transform: translateX(6px); }
-}
-
-/* ---- PROGRESS BAR ---- */
-#progress-bar {
-  position: fixed;
-  top: 0; left: 0;
-  height: 4px;
-  background: #910202;
-  width: 0%;
-  transition: width 0.1s linear;
-  z-index: 100;
-}
-
-/* ---- SCENE DOTS ---- */
-#scene-dots {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 100;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(145, 2, 2, 0.3);
-  border: 2px solid #910202;
-  transition: background 0.3s, transform 0.3s;
-  cursor: pointer;
-}
-
-.dot.active {
-  background: #910202;
-  transform: scale(1.3);
-}
-
-/* ---- SCENE 5: Bright Day City ---- */
-.scene-5.city {
-  background: linear-gradient(180deg, #87CEEB 0%, #c8ddf0 55%, #b8886e 100%);
-}
-
-/* Fixed scene-4 trees overlay — z:11 above #jungle-bus (z:10), below everything else.
-   Mirrors .s4-extend + .layer-s4-trees so the bus passes under the trees but stays
-   in front of scene-4's road (road is inside #pinned-wrap at z:0 in root). */
-#s4-trees {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 140vw;
-  height: 60vh;
-  overflow: visible;
-  z-index: 11;
-  pointer-events: none;
-  opacity: 0;
-}
-#s4-trees img {
-  position: absolute;
-  width: 89%;
-  height: auto;
-  bottom: -123%;
-  left: 0;
-  display: block;
-  will-change: transform;
-}
-
-/* Fixed trees overlay — rendered in root stacking context at z:16, above #city-bus (z:15).
-   Position synced to scene-5 trees via JS. This is needed because #city-bus is position:fixed
-   at z:15 in root, while everything inside #pinned-wrap paints at z:auto (0) in root —
-   so in-scene z-index changes cannot compete with the bus. */
-#city-trees-5 {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 16;
-  pointer-events: none;
-  opacity: 0;
-}
-#city-trees-5 img {
-  width: 20vw;
-  display: block;
-  will-change: transform;
-  left: -16%;
-    position: relative;
-}
-
-/* ---- SCENE 6: Night City (overrides shared .city) ---- */
-.scene-6.city {
-  /* background: linear-gradient(180deg, #060d16 0%, #0d1b2a 40%, #1a2a3a 70%, #0a0905 100%); */
-}
-
-.scene-6 .layer img {
-  /* filter: brightness(0.55) saturate(0.65); */
-}
-
-/* Road keeps its original sandy colour — only sky/buildings get the night tint */
-.scene-6 .layer-city-road img {
-  filter: none;
-}
-
-.scene-6 .layer-city-clouds img {
-  /* filter: brightness(0.35) saturate(0.4) hue-rotate(200deg); */
-}
-
-/* Scene 6 text panel: matches global big-popup spec */
-.scene-6 .text-panel {
-  background: #FFFFFFF2;
-  border-color: #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-}
-
-.scene-6 .text-panel h3 {
-  color: #9F2222;
-}
-
-.scene-6 .text-panel p {
-  color: #9F2222;
-}
-
-/* ---- SCENES 7 & 8: Fixed character + tree overlays ---- */
-/* These are in root stacking context (z:16) — above #pinned-wrap (z:0 in root),
-   so they always paint in front of the bus regardless of its in-wrap z-index. */
-#city-overlay-7,
-#city-overlay-8,
-#city-overlay-9 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 100;
-  pointer-events: none;
-  opacity: 0;
-}
-
-/* char imgs fill their wrapper — wrapper div holds the absolute position */
-#city-overlay-7 .char-wrap > img,
-#city-overlay-8 .char-wrap > img,
-#city-overlay-12 .char-wrap > img {
-  display: block;
-  height: 100%;
-  width: auto;
-  max-width: none;
-}
-
-/* Character wrapper — takes absolute position; cross button positions relative to this */
-.char-wrap { position: absolute; }
-
-/* ---- Scene 7 people — edit left / bottom / height to reposition ---- */
-/* Bus parks at left ~8%, spans ~8%–60% of viewport width               */
-.char-s7-red-girl   { height: 28vh; left:  25%; bottom: 0%; }
-.char-s7-granny     { height: 26vh; left: 40%; bottom: 24%; }
-.char-s7-orange-man { height: 23vh; left: 57%; bottom: 0%; }
-.char-s7-green-man  { height: 30vh; left: 65%; bottom: 0%; }
-
-/* ---- Scene 8 people — edit left / bottom / height to reposition ---- */
-/* Bus stays parked at left ~8%, spans ~8%–60% of viewport width         */
-.char-s8-purple-man { height: 54vh; left: 26%; bottom: -21%; }
-.char-s8-blue-girl  { height: 36vh; left: 46%; bottom: -5%; }
-.char-s8-lime-man   { height: 32vh; left: 71%; bottom: 14%; }
-.char-s8-green-man  { height: 38vh; left: 37%; bottom: 5%; }
-
-/* Transition lets JS-driven opacity + blur animate smoothly instead of snapping */
-.char-s8-purple-man,
-.char-s8-blue-girl,
-.char-s8-lime-man,
-.char-s8-green-man {
-  transition: opacity 0.35s ease, filter 0.35s ease;
-}
-
-/* Scene 7 text panel: bottom-left speech style */
-.scene-7 .text-panel {
-  left: 4%;
-  top: auto;
-  bottom: 6%;
-  max-width: 300px;
-}
-
-/* Scene 8 text panel: large centered PROBLEM PLAZA panel */
-.scene-8 .text-panel {
-  left: 50%;
-  top: 8%;
-  transform: translateX(-50%) translateY(8px);
-  max-width: 420px;
-  min-width: 300px;
-}
-.scene-8 .text-panel.visible {
-  transform: translateX(-50%) translateY(0);
-}
-.scene-8 .text-panel h3 {
-  font-size: clamp(14px, 2vw, 22px);
-  margin-bottom: 10px;
-}
-.scene-8 .text-panel p {
-  font-size: clamp(11px, 1.3vw, 15px);
-}
-
-/* ---- Scene 9 placeholder — unused, kept out of flex flow ---- */
+/* ---- SCENE 9: City – Language Reveal (bus zoom); placeholder, kept out of flex flow ---- */
 .scene-9 { display: none; }
+.scene-9 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
+.scene-9 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
+.scene-9 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
+#city-overlay-9 .text-panel { left: 4%; top: 12%; max-width: 36%; }
 
 /* ================================================================
    SCENE 11: City – final arrival
@@ -845,10 +1109,17 @@ html, body {
   pointer-events: none;
   opacity: 0;
 }
-/* char-wrap imgs: see shared rule above near overlay-7 */
+/* char-wrap imgs: see shared rule near #city-overlay-7 above */
 .char-s12-green-man  { height: 30vh; bottom: 13%; left: 64%; }
 .char-s12-blue-man   { height: 37vh; bottom: 8%;  left: 15%; }
 .char-s12-pink-lady  { height: 32vh; bottom: 4%;  left: 27%; }
+
+.char-s12-green-man .cross-btn {
+  right: auto;
+  left: 0;
+  transform: translate(-30%, -30%);
+}
+.char-s12-green-man .cross-btn:hover { transform: translate(-30%, -30%) scale(1.15); }
 
 /* Scene 12 popup — standalone root-level fixed element, fully viewport-locked */
 #panel-12 {
@@ -857,8 +1128,6 @@ html, body {
   bottom: auto;
   left: 2%;
   right: auto;
-  max-width: 900px;
-  min-width: unset;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -867,6 +1136,15 @@ html, body {
 #panel-12 p {
   color: #9F2222;
 }
+
+/* ================================================================
+   SCENE 13: Algorithm Avenue bus stop
+   Layers (back→front): bg frame → clouds → buildings → tree
+   ================================================================ */
+.layer-s13-bg img        { width: 110%; left: -5%; top: 60%; bottom: auto; height: auto; z-index: 0; }
+.layer-s13-clouds img    { width: 120%; top: 2%; left: -8%; bottom: auto; z-index: 1; }
+.layer-s13-buildings img { bottom: 26%; top: auto; left: 0; width: auto !important; height: 100% !important; z-index: 2; mix-blend-mode: multiply; }
+.layer-s13-tree img      { width: 18%;  bottom: 0; left: 0; z-index: 3; }
 
 #panel-s13-1,
 #panel-s13-2,
@@ -885,16 +1163,6 @@ html, body {
 #panel-s13-1 p,
 #panel-s13-2 p,
 #panel-s13-3 p { color: #9F2222; }
-
-/* ================================================================
-   SCENE 13: Algorithm Avenue bus stop
-   Layers (back→front): bg frame → clouds → buildings → tree
-   ================================================================ */
-.layer-s13-bg img        { width: 110%; left: -5%; top: 60%; bottom: auto; height: auto; z-index: 0; }
-.layer-s13-clouds img    { width: 120%; top: 2%; left: -8%; bottom: auto; z-index: 1; }
-.layer-s13-buildings img { bottom: 26%; top: auto; left: 0; width: auto !important; height: 100% !important; z-index: 2; mix-blend-mode: multiply; }
-.layer-s13-tree img      { width: 18%;  bottom: 0; left: 0; z-index: 3; }
-
 
 /* ================================================================
    SCENE 15: Static full-scene image (single PNG, covers viewport)
@@ -953,6 +1221,68 @@ html, body {
    SCENE 21: Top-down road view — 3 vehicles in 3 lanes
    Road.svg fills the single scene; JS drives vehicles via translateX.
    ================================================================ */
+/* Scene-21 road preview — fixed behind #pinned-wrap, revealed as s12-s15-bg fades out */
+#s21-preview {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+#s21-preview img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 400vw; height: 100%;
+  object-fit: cover;
+}
+
+/* Scene-21 cloud overlays — fixed z:2 (above road, below vehicles z:3); opacity driven by JS */
+#s21-clouds {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 4;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+#s21-clouds img { position: absolute; display: block; width: 100%; height: 100%; object-fit: cover; top: 0; left: 0; }
+#s21c-regular { opacity: 0; }
+#s21c-white   { opacity: 0; }
+
+/* Scene-21 vehicle overlay — fixed z:3 (above pinned-wrap z:1); opacity driven by JS */
+#s21-vehicles {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+#s21-vehicles img,
+#s21-vehicles lottie-player {
+  position: absolute;
+  display: block;
+}
+/* All 4 vehicles in fixed overlay — all move right */
+#s21v-meta      { width: 32vw; top: 5%;  }
+#s21v-openai    { width: 32vw; top: 20%; }
+#s21v-matatu    { width: 32vw; top: 38%; }
+#s21v-google    { width: 32vw; top: 68%; left: 0%; }
+#s21v-microsoft { width: 32vw; top: 68%; left: 0;   }
+/* Lottie truck — same moving-vehicle lane pattern, own row between matatu and google */
+#s21v-truck     { width: 32vw; height: 20vh; top: 53%; }
+
+/* ---- TRUCK PLACEMENT PREVIEW ----
+   Uncomment the block below, refresh, and all trucks appear at page load so you can
+   adjust the top% values above without scrolling to scene 21.
+   Re-comment when done.
+#s21-vehicles { opacity: 1 !important; }
+#s21v-meta, #s21v-matatu, #s21v-google, #s21v-microsoft {
+  transform: translate3d(10vw, 0, 0) !important;
+}
+   ---- END PREVIEW ---- */
+
 /* Scene 21: 400vw wide (last scene) — margin-left: 65vw starts it after s12-s15-bg ends (265vw) */
 .scene.city.scene-21 { width: 400vw; background: #7B746C; z-index: 2; margin-left: 65vw; }
 
@@ -968,184 +1298,37 @@ html, body {
 /* Vehicles are in #s21-vehicles fixed overlay — see animateS21Vehicles() in scroll.js */
 
 /* ================================================================
-   CROSS BUTTONS — float near each character's head
-   ================================================================ */
-.cross-btn {
-  position: absolute;
-  top: 8%;
-  right: 0;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 10;
-  transform: translate(30%, -30%);
-  transition: transform 0.2s ease;
-}
-.cross-btn:hover { transform: translate(30%, -30%) scale(1.15); }
-
-/* Plus button — used for s26-s30 interviewee characters */
-.plus-btn {
-  position: absolute;
-  top: 8%;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 10;
-  transform: translate(40%, -40%);
-  transition: transform 0.2s ease;
-}
-.plus-btn:hover { transform: translate(40%, -40%) scale(1.2); }
-
-/* Per-character face positions — right-facing (default right side) */
-.char-s7-red-girl .cross-btn   { top: 8%;  }
-.char-s7-granny .cross-btn     { top: 6%;  }
-.char-s8-purple-man .cross-btn { top: 5%;  }
-.char-s8-lime-man .cross-btn   { top: 10%; }
-
-/* Left-facing characters — button flips to left side */
-.char-s7-orange-man .cross-btn,
-.char-s7-green-man .cross-btn,
-.char-s8-blue-girl .cross-btn,
-.char-s8-green-man .cross-btn,
-.char-s12-green-man .cross-btn {
-  right: auto;
-  left: 0;
-  transform: translate(-30%, -30%);
-}
-.char-s7-orange-man .cross-btn:hover,
-.char-s7-green-man .cross-btn:hover,
-.char-s8-blue-girl .cross-btn:hover,
-.char-s8-green-man .cross-btn:hover,
-.char-s12-green-man .cross-btn:hover { transform: translate(-30%, -30%) scale(1.15); }
-
-.char-s7-orange-man .cross-btn { top: 10%; }
-.char-s7-green-man .cross-btn  { top: 6%;  }
-.char-s8-blue-girl .cross-btn  { top: 8%;  }
-.char-s8-green-man .cross-btn  { top: 6%;  }
-
-/* Override position:absolute set by overlay/layer img rules */
-#city-overlay-7 .cross-btn img,
-#city-overlay-8 .cross-btn img,
-#city-overlay-12 .cross-btn img,
-#city-overlay-26 .plus-btn img,
-.layer .cross-btn img {
-  position: static;
-  display: block;
-  width: 15px;
-  height: 15px;
-  max-width: none;
-}
-
-/* ================================================================
-   CHARACTER SPEECH BUBBLE — appears next to the cross icon
-   ================================================================ */
-#char-bubble {
-  position: fixed;
-  z-index: 500;
-  background: #000000;
-  border-radius: 8px;
-  padding: 20px;
-  width: 255px;
-  display: none;
-  flex-direction: column;
-  gap: 2px;
-  pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-}
-#char-bubble.visible { display: flex; }
-
-/* Left-pointing tail */
-#char-bubble::before {
-  content: '';
-  position: absolute;
-  left: -9px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 7px 9px 7px 0;
-  border-style: solid;
-  border-color: transparent #000000 transparent transparent;
-}
-
-.char-bubble-stat {
-  font-family: 'Noto Sans Ethiopic', sans-serif;
-  font-weight: 900;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  color: #fff;
-  white-space: normal;
-}
-
-.char-bubble-lang {
-  font-family: 'Noto Sans Ethiopic', sans-serif;
-  font-weight: 900;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  color: #fff;
-  white-space: normal;
-}
-
-/* Dialogue mode — scene-7 speech bubbles */
-#char-bubble.dialogue {
-  background: #FFFFFFF2;
-  width: 900px;
-  max-width: 900px;
-  min-width: 900px;
-  padding: 45px 55px;
-  border: 1px solid #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-}
-/* Border layer of arrow (red, slightly larger) */
-#char-bubble.dialogue::before {
-  left: -11px;
-  border-width: 8px 11px 8px 0;
-  border-color: transparent #9F2222 transparent transparent;
-}
-/* Fill layer of arrow (white, sits on top of border layer) */
-#char-bubble.dialogue::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 7px 9px 7px 0;
-  border-style: solid;
-  border-color: transparent #FFFFFFF2 transparent transparent;
-}
-
-/* Pop-left: bubble opens to the left — arrows flip to right side */
-#char-bubble.pop-left::before {
-  left: auto;
-  right: -11px;
-  border-width: 8px 0 8px 11px;
-  border-color: transparent transparent transparent #000000;
-}
-#char-bubble.dialogue.pop-left::before {
-  border-color: transparent transparent transparent #9F2222;
-}
-#char-bubble.dialogue.pop-left::after {
-  left: auto;
-  right: -8px;
-  border-width: 7px 0 7px 9px;
-  border-color: transparent transparent transparent #FFFFFFF2;
-}
-
-/* ================================================================
    SCENES 26–30: Street interviewees
    Wide background (600vw) — absolute in scroll-x at DOM pos 1465vw.
    Overlay (#city-overlay-26) is 500vw wide and translates with strip.
    ================================================================ */
+/* Single wide background spanning scenes 12–13 (starts at 800vw = after 8 scenes, 200vw covers scenes 12+13 only) */
+#s12-s15-bg {
+  position: absolute;
+  left: 800vw;
+  top: 0;
+  width: 265vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #6FBAE3;
+  pointer-events: none;
+  z-index: 1;
+}
+#s12-s15-bg img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+.s1215-clouds    { top: 2vh; }
+.s1215-buildings { bottom: 34vh; top: auto; width: auto !important; height: 80vh !important; left: 5vw !important; }
+.s1215-road      { top: 65vh; }
+.s1215-trees     { bottom: -29vh; top: auto; height: 100vh !important; width: 100% !important; z-index: 3; left: -80vw !important; }
+
+/* Scenes 12–15 transparent so the spanning bg shows through */
+.scene.city.scene-12,
+.scene.city.scene-13 { background: transparent; }
+
 #s26-s30-bg {
   position: absolute;
   left: 1465vw;
@@ -1190,6 +1373,17 @@ html, body {
 .scene.city.scene-30 { background: transparent; }
 
 /* Scene-26 overlay — 500vw wide (5 scenes × 100vw), fixed, translates with strip */
+/* Same size/pan-sync as #city-overlay-26 (see animateS26S30), but z-index 4 — below
+   #city-bus's z-index:5, so the bus always renders on top of the fruit-lady lottie. */
+#city-overlay-26-behind {
+  position: fixed;
+  top: 0; left: 0;
+  width: 500vw;
+  height: 100vh;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+}
 #city-overlay-26 {
   position: fixed;
   top: 0; left: 0;
@@ -1221,6 +1415,28 @@ html, body {
   top: auto;
   left: 46vw;
   width: 18vw; }
+/* Lottie animation (not an <img>, so not covered by the #city-overlay-26 > img rule
+   above) — same absolute positioning within the 0-100vw scene-26 slot. */
+.char-s26-fruitlady {
+display: block;
+    position: absolute;
+    bottom: 43vh;
+    top: auto;
+    left: 47vw;
+    width: 20vw;
+    height: 27vh;
+}
+/* Same animation, second instance nearby, flipped horizontally */
+.char-s26-fruitlady2 {
+display: block;
+    position: absolute;
+    bottom: 43vh;
+    top: auto;
+    left: 70vw;
+    width: 20vw;
+    height: 27vh;
+    transform: scaleX(-1);
+}
 
 /* Scene-27: Asmelash Teka Hadgu & Away Ly */
 .char-s27-asmelash   { width: 5vw;   height: auto; bottom: 12vh; top: auto; left: 106vw; }
@@ -1242,20 +1458,874 @@ html, body {
 
 /* Scene-30: Matatu with all interviewees aboard (400–500vw in overlay) */
 .char-s30-matatu     { height: 58vh; bottom: 10vh; top: auto; left: 415vw; }
-#char-bubble.dialogue .char-bubble-stat {
-  display: none;
+
+/* Awa Ly inside the matatu-inside reveal — starts standing, crossfades to holding the
+   ceiling handle (see the scene-30 zoom block in animateCityBus). Lives in its own
+   root-level #s30-zoom-people overlay (not inside #city-bus), so positions are
+   viewport-relative — first pass converted from the old 50vw-box-relative values,
+   tune left/bottom once previewed. */
+#s30-zoom-people {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 20;
+  pointer-events: none;
 }
-#char-bubble.dialogue .char-bubble-lang {
-  font-family: 'Noto Sans', sans-serif;
-  font-weight: 500;
-  font-size: 32px;
-  line-height: 1.2;
-  letter-spacing: 0;
-  color: #9F2222;
-  white-space: normal;
+/* Ceiling handle strip Awa Ly is reaching up to grab — placed behind her (earlier in
+   DOM order) near the top, roughly above where her raised hand is. First-pass position,
+   tune once previewed. Fades in/out with her (see cityAwayStand/cityAwayHandle opacity
+   in the scene-30 zoom block — this rides the same eff/busFadeT via its own opacity). */
+#city-bus-handle-prop {
+  position: absolute;
+  width: 30vw;
+  top: 8vh;
+  left: 45vw;
+  opacity: 0;
+}
+#city-awayly-stand {
+  position: absolute;
+  width: 8vw !important;
+  bottom: 0vh;
+  top: auto;
+  left: 51vw;
+  opacity: 0;
+}
+#city-awayly-handle {
+  position: absolute;
+  width: 17vw !important;
+  bottom: 0vh;
+  top: auto;
+  left: 54vw;
+  opacity: 0;
 }
 
-/* ---- NAVBAR ---- */
+/* Scene-30 zoom popup — Awa Ly's message, standalone fixed element (see #panel-12 for
+   the same pattern). Shown/hidden directly in animateCityBus, synced to the zoom hold. */
+#panel-30-awayly {
+  position: fixed;
+  top: auto;
+  bottom: 60%;
+  right: 5%;
+  left: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-30-awayly p { color: #9F2222; }
+
+/* Left-pointing tail — connects the panel back to Awa Ly, who sits to its left.
+   Same double-layer (red border + white fill) technique as #char-bubble.dialogue. */
+#panel-30-awayly::before {
+  content: '';
+  position: absolute;
+  left: -11px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 11px 8px 0;
+  border-style: solid;
+  border-color: transparent #9F2222 transparent transparent;
+}
+#panel-30-awayly::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 7px 9px 7px 0;
+  border-style: solid;
+  border-color: transparent #FFFFFFF2 transparent transparent;
+}
+
+/* ================================================================
+   SCENES 32–43: Inside the matatu — ambient passengers, no popups.
+   Wide background (1300vw) — absolute in scroll-x at DOM pos 1965vw.
+   Overlay (#city-overlay-32) is 1300vw wide and translates with strip.
+   FIRST-PASS LAYOUT — tune widths/left/bottom once previewed.
+   ================================================================ */
+#s32-s43-bg {
+  position: absolute;
+  left: 1965vw; /* real scroll-math position where scene-32 begins — must match S3243_BG_LEFT_VW in scroll.js. Was 2007vw (a 42vw gap from the true position), which showed as a left-edge gap once the scene-32 zoom drew attention to that slice of the viewport. */
+  top: 0;
+  width: 450vw; /* must reach at least 2365vw (1965 + this) to cover scene-44's frozen viewport
+    (stripX(19)=2265vw to +100vw=2365vw) with real margin — 380 was cut too close and gapped
+    on the right during scene 44. Must match S3243_BG_WIDTH_VW in scroll.js. */
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  /* transform-origin is set from JS every frame (animateS32S43), not fixed here — it has
+     to track the currently-visible slice of this 1300vw div so the zoom always scales
+     from the center of the viewport instead of drifting as the strip pans. */
+}
+#s32-s43-bg img { position: absolute; left: 0; }
+.s3243-interior { top: 0;    height: 100vh; width: auto; z-index: 1; }
+/* Tiled, not stretched: repeats the handle graphic across the full 1300vw interior
+   instead of one image stretched the whole way (which would distort it). */
+.s3243-handles {
+  position: absolute;
+  left: 0;
+  top: 14vh;
+  height: 28vh;
+  width: 100%;
+  z-index: 3;
+  background-image: url('assets/s32-s43/Bus%20handle.svg');
+  background-repeat: repeat-x;
+  background-size: auto 29.3vh;
+}
+.s3243-seats {
+    bottom: 7vh;
+    top: auto;
+    height: 40vh;
+    width: auto;
+    z-index: 2;
+}
+/* Scenes 32–34 transparent so s32-s43-bg shows through — end of the journey for now,
+   more scenes to be introduced later. */
+.scene.city.scene-32,
+.scene.city.scene-33,
+.scene.city.scene-34 { background: transparent; }
+
+/* Scene-32–34 overlay — 322vw wide, fixed, translates with strip */
+#city-overlay-32 {
+  position: fixed;
+  top: 0; left: 0;
+  width: 380vw;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Ambient passengers wrapper — same 322vw coordinate space as #city-overlay-32 itself
+   (no extra offset), scaled from JS (animateS32S43) in sync with #s32-s43-bg's seats. */
+#s32-people {
+  position: absolute;
+  top: 0; left: 0;
+  width: 380vw;
+  height: 100vh;
+}
+#s32-people > img { position: absolute; display: block; height: auto; }
+
+/* ================================================================
+   SCENE 44 — slides down from the top over scene-34 instead of panning
+   in horizontally. transform is set from JS (animateS44) every frame,
+   based on scene-44's own local (0 = fully off-screen above, 1 = fully covering).
+   ================================================================ */
+#s44-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 120;
+  pointer-events: none;
+  transform: translateY(-100%);
+  background: #1C2A15;
+  overflow: hidden;
+}
+.s44-bg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Small vehicle seen through the front windshield — explicit fade-in (see animateS44 in
+   scroll.js) rather than relying on its raw position within the sliding overlay: it sits near
+   the top of the overlay, and since the overlay slides down from above, content near its top
+   is the last part to arrive, which made it appear to lag behind the popup below it. */
+.s44-toto-moto {
+  position: absolute;
+  top: 30vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20vw;
+  max-height: 40vh;
+  height: auto;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.s44-toto-moto.visible {
+  opacity: 1;
+}
+/* Ceiling handles, tiled across the top like the earlier bus-interior scenes */
+.s44-handles {
+  position: absolute;
+  top: 4vh;
+  left: 0;
+  width: 100%;
+  height: 14vh;
+  object-fit: cover;
+  z-index: 3;
+}
+#panel-44-1 {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+#panel-44-1 p { color: #9F2222; }
+
+/* ================================================================
+   SCENES 45–48: Inside the matatu, continued — same ambient-interior pattern as 32–43,
+   just self-contained (background + passengers together) since these don't need a zoom
+   sequence or above-#city-bus stacking. Wide background (520vw), absolute in scroll-x
+   right where scene-44 ends (left:2365vw). Unlike #s32-s43-bg (which could get away with
+   less because scenes 16/17/19 have wall-clock freezes capping the pan short of its full
+   range), scenes 45-48 pan continuously with no freeze — so at the very last scene's
+   local=100%, the viewport genuinely reaches stripX(scene-48) + 200vw (400vw real scene
+   span + 100vw viewport-width look-ahead), requiring the full 500vw plus a small margin.
+   One character per scene, no empty tail stretch.
+   ================================================================ */
+.scene.city.scene-45,
+.scene.city.scene-46,
+.scene.city.scene-47,
+.scene.city.scene-48 { background: transparent; }
+
+#s45-s48-bg {
+  position: absolute;
+  left: 2298vw;
+  top: 0;
+  width: 520vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2; /* explicitly above #s32-s43-bg (z-index:1) — their territories overlap
+    (#s32-s43-bg now reaches 2415vw, #s45-s48-bg starts at 2298vw), so this must win the
+    overlap outright instead of relying on DOM order with an equal z-index. */
+}
+/* Background art + character sprites — the scene-46 pin-zoom (animateS45S48) scales this
+   wrapper alone, not #s45-s48-bg itself, so the popups/nameplates (siblings, outside this
+   wrapper) stay normal-sized and correctly positioned instead of stretching with the zoom. */
+#s45-s48-visual {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Interior backdrop and seats — one copy each (no repeat, no seams), stretched to exactly
+   fill the strip instead of cropped (cover cut through content) or tiled (visible repeat
+   seam) — a single scaled image, fit to cover the whole width and height. */
+.s4548-interior {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+  background-image: url('assets/s45-s52/Interior%20bg.svg');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.s4548-seats {
+  position: absolute;
+  left: 0;
+  bottom: 7vh;
+  top: auto;
+  width: 100%;
+  height: 40vh;
+  z-index: 2;
+  background-image: url('assets/s45-s52/Seats%20extended.svg');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+/* Ceiling handles — same asset + tiling technique as #s32-s43-bg's .s3243-handles, repeats
+   across the full strip instead of stretching one image. */
+.s4548-handles {
+  position: absolute;
+  left: 0;
+  top: 14vh;
+  height: 28vh;
+  width: 100%;
+  z-index: 3;
+  background-image: url('assets/s32-s43/Bus%20handle.svg');
+  background-repeat: repeat-x;
+  background-size: auto 29.3vh;
+}
+
+/* One ambient passenger per scene slot — same "plain scroll-position fade" pattern as
+   scenes 32–34's ambient characters — see animateS45S48 in scroll.js. */
+.char-s45-kathleen,
+.char-s45-totomoto,
+.char-s45-redlady,
+.char-s45-wheelchair {
+  position: absolute;
+  bottom: 0;
+  top: auto;
+  height: auto;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.char-s45-kathleen.visible,
+.char-s45-totomoto.visible,
+.char-s45-redlady.visible,
+.char-s45-wheelchair.visible {
+  opacity: 1;
+}
+.char-s45-kathleen   { left: 153vw;  width: 10vw; }
+.char-s45-totomoto  { left: 168vw; width: 8vw; }
+.char-s45-redlady    { left: 189vw; width: 9.3vw; }
+.char-s45-wheelchair { left: 240vw; width: 21vw; }
+
+/* Kathleen Siminyu's quote popup + name plate. The popup's `left`/`transform` are set by JS
+   every frame (see positionCenteredPopup() in scroll.js) so it always stays centered on the
+   viewport, matching the "all text boxes stay centred to the screen" convention used
+   everywhere else on the site — #s45-s48-bg is 520vw wide, so a single static left:Xvw value
+   only looks centered at one exact scroll position and drifts everywhere else. Only the
+   nameplate (fixed near her, not required to be screen-centered) keeps a static left. */
+#panel-45-kathleen {
+  position: absolute;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-45-kathleen p { color: #9F2222; }
+#sound-caption-kathleen {
+  bottom: 54vh;
+  left: 133vw;
+}
+
+/* Toto moto's name plate — same pill, no sound icon, so no need for the button's overlap
+   padding (.sound-caption-s32 reserves padding-right:50px for the icon). */
+.sound-caption-no-icon {
+  padding-right: 18px;
+}
+#sound-caption-totomoto {
+  bottom: 62vh;
+  left: 168vw;
+}
+#panel-45-totomoto {
+  position: absolute;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-45-totomoto p { color: #9F2222; }
+#panel-45-redlady {
+  position: absolute;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-45-redlady p { color: #9F2222; }
+
+/* Wheelchair man's two quotes, both scene 46 — Huniki shows first, then fades out and Big
+   Tech queues in behind it (wall-clock timed, see S46_HUNIKI_MS in animateS45S48), so only
+   one is ever visible at a time. `left`/`transform` are JS-driven (see
+   positionCenteredPopup()) so they stay centered on screen instead of drifting with the pan. */
+#panel-46-huniki,
+#panel-46-bigtech {
+  position: absolute;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-46-huniki p,
+#panel-46-bigtech p { color: #9F2222; }
+
+/* Chris Emezue + the last red-topped woman — baked into the seat art itself (not a movable
+   sprite). `left`/`transform` are JS-driven (see positionCenteredPopup() in scroll.js) so
+   the popup stays centered on screen through its whole scene-47 display window instead of
+   drifting off-center as the strip keeps panning underneath it. */
+#panel-47-chris {
+  position: absolute;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-47-chris p { color: #9F2222; }
+#sound-caption-chris {
+  bottom: 54vh;
+  left: 253vw;
+}
+
+/* ================================================================
+   SCENES 55–58 — street scene, matatu parked outside the Municipal
+   Federation building (scroll indices 24–27). FIRST DRAFT: all
+   left/width/bottom values below are a starting guess from the
+   reference screenshot, not yet confirmed against the live page —
+   expect to retune every number here once it's actually on screen.
+   ================================================================ */
+.scene.city.scene-55,
+.scene.city.scene-56,
+.scene.city.scene-57,
+.scene.city.scene-58 { background: transparent; }
+
+#s55-s58-bg {
+  position: absolute;
+  left: 2400vw; /* scene-55 is the 25th scene div (index 24) in normal flow: 24 * 100vw */
+  top: 0;
+  width: 420vw; /* 4 scenes (400vw) + a little lead room */
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Sky/clouds — spans the FULL wrapper width, always behind everything. Street elements
+   below only occupy the first ~300vw, so once the strip pans past that (scene 58) this is
+   all that's left visible — the "clouds only" frame from the reference, no fade needed. */
+.s5558-sky {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 65vh;
+  background-image: url('assets/s55-s58/Clouds%20Sailing.svg');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  z-index: 0;
+}
+
+.s5558-road {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 300vw;
+  height: 16vh;
+  object-fit: cover;
+  z-index: 1;
+}
+.s5558-railing {
+  position: absolute;
+  left: 0;
+  bottom: 14vh;
+  width: 300vw;
+  height: 6vh;
+  background-image: url('assets/s55-s58/footpath%20railing.svg');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  z-index: 2;
+}
+.s5558-building {
+  position: absolute;
+  left: 230vw;
+  bottom: 14vh;
+  width: 16vw;
+  height: auto;
+  z-index: 1;
+}
+.s5558-cones {
+  position: absolute;
+  left: 95vw;
+  bottom: 14vh;
+  width: 4vw;
+  height: auto;
+  z-index: 3;
+}
+.s5558-toyota {
+  position: absolute;
+  left: 8vw;
+  bottom: 12vh;
+  width: 14vw;
+  height: auto;
+  z-index: 3;
+}
+.s5558-hondafit {
+  position: absolute;
+  left: 150vw;
+  bottom: 12vh;
+  width: 16vw;
+  height: auto;
+  z-index: 3;
+}
+.s5558-pedestrians {
+  position: absolute;
+  left: 120vw;
+  bottom: 14vh;
+  width: 8vw;
+  height: auto;
+  z-index: 3;
+}
+.s5558-seller {
+  position: absolute;
+  left: 68vw;
+  bottom: 14vh;
+  width: 7vw;
+  height: auto;
+  z-index: 3;
+}
+.s5558-bus {
+  position: absolute;
+  left: 20vw;
+  bottom: 10vh;
+  width: 60vw;
+  height: auto;
+  z-index: 4;
+}
+
+/* Popups — same style/tail convention as #panel-45-kathleen/#panel-47-chris. `left` values
+   are LOCAL to #s55-s58-bg (they're nested inside it, not siblings of it) — see index.html. */
+#panel-55 {
+  position: absolute;
+  left: 35vw;
+  bottom: 60vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-56 {
+  position: absolute;
+  left: 60vw;
+  bottom: 58vh;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-57 {
+  position: absolute;
+  left: 50vw;
+  bottom: 55vh;
+  max-width: 32rem; /* the "bigger" third popup, per the reference */
+  min-width: 0; /* base .text-panel's min-width:37.5rem (600px) beats a smaller max-width —
+    same bug as the scene-7 popup earlier in this file — this makes 32rem actually apply. */
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-55 p, #panel-56 p, #panel-57 p { color: #9F2222; }
+
+/* One ambient passenger roughly centred in each 100vw scene slot (0–800vw used; 800–1300vw
+   left empty — pure interior/seats — so the ride doesn't feel over-crowded at the end) */
+/* Hidden until the scene-32 zoom, then revealed with a plain fade-in in place (no
+   movement/scale) — see the zoomT-driven opacity set in animateS32S43. Same
+   scroll-driven window as the background zoom (S32_ZOOM_TRIGGER -> S32_ZOOM_HOLD in
+   scroll.js), not a one-shot: scroll back and they fade out again too. */
+.char-s32-oldlady,
+.char-s33-girlphone,
+.char-s39-samuel,
+.char-s37-asmelash,
+.char-s37-asmelash2,
+.char-s35-pregnant,
+.char-s32-sadik {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.char-s32-oldlady   { width: 13vw;  bottom: 0vh; top: auto; left: 85vw;  }
+.char-s33-girlphone { width: 7vw;   bottom: 0vh; top: auto; left: 96vw; }
+.char-s34-kid1       { width: 7vw;   bottom: 8vh;  top: auto; left: 280vw; }
+/* Repositioned near the 7th/8th popups (was left:340vw, scene-35's slot) — appears here,
+   fading in after the flipped Asmelash sequence, timed in animateS32S43. */
+.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 230vw; }
+/* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. */
+.char-s32-sadik      { width: 13vw;  bottom: 0vh; top: auto; left: 253vw; }
+.char-s36-kid2       { width: 4vw;   bottom: 8vh;  top: auto; left: 440vw; }
+/* Repositioned near panel-32-lesan (was left:540vw, scene-37's slot) — appears here,
+   fading in alongside the 4th popup (Lesan AI), timed in animateS32S43. */
+.char-s37-asmelash   {     width: 12vw;
+    bottom: -1vh;
+    top: auto;
+    left: 164vw; }
+/* Same asset as .char-s37-asmelash, mirrored (facing right instead of left) and further
+   along the strip — shown after the 5th popup hides, see animateS32S43 in scroll.js. */
+.char-s37-asmelash2 {
+    width: 12vw;
+    bottom: -1vh;
+    top: auto;
+    left: calc(200vw + 100px);
+    transform: scaleX(-1);
+}
+.char-s38-awayly     { width: 7vw;   bottom: 10vh; top: auto; left: 640vw; }
+/* Repositioned near the zoom-out point (was left:740vw, scene-39's slot) — appears here
+   with the same fade-in as old lady/girl-with-phone, timed after the zoom-out finishes. */
+.char-s39-samuel     { width: 12vw;   bottom: 0vh; top: auto; left: 114vw; }
+
+/* Scene-32 intro popup — lives inside #city-overlay-32 now (not standalone/fixed), so it
+   pans with the scene instead of staying pinned on screen as you keep scrolling.
+   top/left are vw/vh here (not %, since the container is 1300vw wide, not 100vw) —
+   left:22vw places it within scene-32's own 0–100vw slot. Shown/hidden in animateS32S43. */
+#panel-32-intro {
+  position: absolute;
+  top: auto;
+  bottom: 58vh;
+  left: 55vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-intro p { color: #9F2222; }
+
+/* Digital Umuganda popup — positioned near old lady / girl-with-phone, shown before the
+   zoom finishes. Same vw/vh coordinate space as #panel-32-intro (relative to the
+   1300vw #city-overlay-32), not a % of viewport. */
+#panel-32-umuganda {
+  position: absolute;
+  top: auto;
+  bottom: 55vh;
+  left: 90vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-umuganda p { color: #9F2222; }
+
+/* Lesan AI / community-centred practices — 4th popup, shown after Samuel's quote (3rd)
+   hides (local 0.85+). Positioned further along the strip than the other scene-32
+   popups so it's on-screen for that later local range. */
+#panel-32-lesan {
+  position: absolute;
+  top: auto;
+  bottom: 45vh;
+  left: 159vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-lesan p { color: #9F2222; }
+
+/* 5th popup — near Asmelash's head (he's at left:164vw), shown one scroll after he
+   becomes visible — see animateS32S43. */
+#panel-32-asmelash {
+  position: absolute;
+  top: auto;
+  bottom: 57vh;
+  left: 175vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-asmelash p { color: #9F2222; }
+
+/* 6th popup — near the flipped Asmelash (char-s37-asmelash2), shown after the 5th
+   popup hides, see animateS32S43. */
+#panel-32-asmelash2 {
+  position: absolute;
+  top: auto;
+  bottom: 55vh;
+  left: calc(210vw + 100px);
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-asmelash2 p { color: #9F2222; }
+
+/* 7th popup — above the pregnant woman (bg stays put, no zoom this time), shown first. */
+#panel-32-pregnant-up {
+  position: absolute;
+  top: auto;
+  bottom: 60vh;
+  left: 235vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-pregnant-up p { color: #9F2222; }
+
+/* 8th popup — below the pregnant woman, shown after scrolling past the 7th. */
+#panel-32-pregnant-down {
+  position: absolute;
+  top: auto;
+  bottom: 10vh;
+  left: 235vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-pregnant-down p { color: #9F2222; }
+
+/* 9th popup — near Sadik, the last man in this sequence, shown after the zoom-out
+   finishes. */
+#panel-32-sadik {
+  position: absolute;
+  top: auto;
+  bottom: 55vh;
+  left: 272vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-sadik p { color: #9F2222; }
+
+/* Speech-bubble tails — SVG polygons (see the <svg class="popup-tail..."> markup inside
+   each popup in index.html), not CSS border-triangles. A polygon can have a proper
+   stroke on the diagonal edges and point its apex anywhere just by changing coordinates,
+   so an angled tail (Asmelash's) doesn't need any CSS rotation/pivot math at all. */
+.popup-tail {
+  position: absolute;
+  left: 32px;
+  top: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.popup-tail-angled {
+  position: absolute;
+  left: 10px;
+  top: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Digital Umuganda founders quote — positioned near Samuel Rutunda (left:130vw), shown
+   after he fades in post zoom-out. Same coordinate space as the other scene-32 popups. */
+#panel-32-samuel {
+  position: absolute;
+  top: auto;
+  bottom: 70vh;
+  left: 120vw;
+  right: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-32-samuel p { color: #9F2222; }
+
+/* Name plate — pans with the strip (same vw/vh coordinate space as #panel-32-samuel,
+   sits directly under it), not a separate fixed/footer element. Red "name" segment +
+   white "role" segment + circular sound-icon button, all one continuous pill. */
+.sound-caption-s32 {
+  position: absolute;
+  bottom: 58vh;
+  left: 130vw;
+  display: flex;
+  align-items: stretch;
+  border-radius: 24px;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+  border: 1px solid #9F2222;
+  background: #FFF;
+  padding-right: 50px;
+  /* Ancestor #city-overlay-32 has pointer-events:none — override it here too (not just
+     on the button) so nothing in this subtree accidentally inherits none from above. */
+  pointer-events: auto;
+}
+.sound-caption-s32-name {
+  color: #9F2222;
+  font-family: 'thunderhouse-pro', 'Noto Sans', sans-serif;
+  font-size: 2.5rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  letter-spacing: 0.5px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  border-radius: 24px 0 0 24px;
+}
+.sound-caption-s32-role {
+  color: #9F2222;
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: bold;
+  font-size: 1.25rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
+  padding: 10px 12px 10px 16px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  border-radius: 0 24px 24px 0;
+}
+.sound-icon-s32 {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  /* box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+  /* #city-overlay-32 (ancestor) has pointer-events:none so it doesn't block clicks
+     meant for the pinned strip behind it — this button needs its own override or
+     clicks pass straight through it. */
+  pointer-events: auto;
+}
+/* Three stacked icon states (landing/play/pause) — crossfaded via opacity based on the
+   button's data-sound-state attribute, set in scroll.js, so the user can always see
+   which state the icon is in instead of it just silently changing. */
+.sound-icon-state {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #F2994A;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.sound-icon-s32[data-sound-state="landing"] .sound-icon-landing,
+.sound-icon-s32[data-sound-state="play"] .sound-icon-play,
+.sound-icon-s32[data-sound-state="pause"] .sound-icon-pause {
+  opacity: 1;
+}
+
+/* Asmelash's name plate — same style as Samuel's (.sound-caption-s32), just repositioned
+   under panel-32-asmelash instead. */
+#sound-caption-asmelash {
+  bottom: 45vh;
+  left: 176vw;
+}
+
+/* Asmelash's sound icon — independent size/placement override, separate from Samuel's
+   (.sound-icon-s32 sets the shared defaults; tweak size/position/offsets here instead
+   of touching the shared class). */
+.sound-icon-asmelash {
+  width: 60px;
+  height: 60px;
+  top: -40px;
+  left: 50%;
+}
+.sound-icon-asmelash .sound-icon-state {
+  width: 60px;
+  height: 60px;
+}
+
+/* Sadik's name plate — same style as Samuel's/Asmelash's, positioned near panel-32-sadik. */
+#sound-caption-sadik {
+  bottom: 43vh;
+  left: 272vw;
+}
+.sound-icon-sadik {
+  width: 60px;
+  height: 60px;
+  top: -40px;
+  left: 50%;
+}
+.sound-icon-sadik .sound-icon-state {
+  width: 60px;
+  height: 60px;
+}
+
+/* ================================================================
+   GLOBAL — navbar
+   ================================================================ */
 #navbar-wrap {
   position: fixed;
   top: 56px;
@@ -1269,12 +2339,14 @@ html, body {
   position: relative;
   overflow: hidden;
   width: 100%;
+  height: 44px;
+  box-sizing: border-box;
   background: var(--pill-bg);
   border-radius: 40px;
   box-shadow: var(--pill-shadow);
   display: flex;
   align-items: center;
-  padding: 14px 24px;
+  padding: 4px 24px; /* top/bottom trimmed from 14px so the 36px brand icon still fits inside the fixed 44px height */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -1315,7 +2387,7 @@ html, body {
 .brand-name {
   font-family: 'Noto Sans', sans-serif;
   font-weight: 700;
-  font-size: 31.98px;
+  font-size: 2rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
   line-height: 1;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -1343,10 +2415,10 @@ html, body {
   color: var(--maroon);
   border: none;
   border-radius: 24px;
-  padding: 12px 26px;
+  padding: 12px 10px;
   font-family: 'Noto Sans', sans-serif;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 1.25rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
   line-height: 1;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -1363,7 +2435,12 @@ html, body {
   gap: 8px;
 }
 .lang-btn .caret {
-  font-size: 11px;
+  display: inline-block;
+  width: 2vmin;
+  height: 2vmin;
+  background-color: var(--maroon);
+  -webkit-mask: url('assets/drop-arrow.svg') center / contain no-repeat;
+  mask: url('assets/drop-arrow.svg') center / contain no-repeat;
   margin-top: 1px;
   transition: transform 0.2s ease;
 }
@@ -1373,7 +2450,7 @@ html, body {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #ffffff;
+  background: #FFFFFF73;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
   padding: 8px;
@@ -1391,16 +2468,40 @@ html, body {
   text-align: left;
   padding: 10px 14px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 1rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */
   font-weight: 600;
-  color: var(--maroon);
+  color: #30151240;
   cursor: pointer;
   white-space: nowrap;
 }
-.lang-option:hover  { background: var(--pill-bg); }
-.lang-option.active { background: var(--btn-bg); color: #fff; }
+.lang-option.active { color: #301512; }
 
-/* ---- MOBILE ---- */
+/* ---- ABOVE-IPAD (min-width:1025px): pure vmin sizing, no px at all, no clamp() range —
+   a single value each, computed to equal the original px spec exactly at a 1920x1080
+   reference viewport (vmin = 1080 there). Below this breakpoint each rule above already has
+   a plain rem value as its base/fallback, which stays in effect on phones/tablets (including
+   iPad landscape at 1024px). ---- */
+@media (min-width: 1025px) {
+  .text-panel h3, .text-panel p           { font-size: 2.2vmin; } /* all popup text, one uniform size */
+  .char-bubble-stat, .char-bubble-lang    { font-size: 2.22vmin; }
+  #char-bubble.dialogue .char-bubble-lang { font-size: 2.96vmin; }
+  .sound-caption-s32-name                 { font-size: 3.7vmin; }
+  .sound-caption-s32-role                 { font-size: 1.85vmin; }
+  .brand-name                             { font-size: 2.96vmin; }
+  .nav-btn                                { font-size: 1.9vmin; }
+  .lang-option                            { font-size: 1.9vmin; }
+  .sr-only-focusable button,
+  .sr-only-focusable-link                 { font-size: 1.3vmin; }
+  #debug-scale                            { font-size: 1.02vmin; }
+  #scroll-hint                            { font-size: 1.2vmin; }
+  .scroll-arrow                           { font-size: 1.67vmin; }
+  .text-panel {
+    max-width: 55.56vmin; /* 600px equivalent at a 1920x1080 reference */
+    min-width: 55.56vmin;
+  }
+}
+
+/* ---- MOBILE (must stay last — overrides earlier rules by cascade order) ---- */
 @media (max-width: 768px) {
   .layer-matatu img         { width: 55%; top: 47%; left: 0; }
   .layer-troad img          { width: 100%; }
@@ -1413,14 +2514,15 @@ html, body {
 
   .text-panel {
     max-width: 180px;
+    min-width: unset;
     padding: 10px 12px;
   }
 
   .scene-1 .text-panel,
   .scene-2 .text-panel,
-  .scene-3 .text-panel { left: auto; right: 4%; top: 20%; }
+  .scene-3 .text-panel { left: auto; right: 4%; bottom: 20%; }
   .scene-5 .text-panel { right: 3%; top: 10%; }
   .scene-6 .text-panel { right: 3%; top: 10%; }
 
-  #scroll-hint { right: 16px; bottom: 16px; font-size: 11px; }
+  #scroll-hint { right: 16px; bottom: 16px; font-size: 0.6875rem; }
 }
