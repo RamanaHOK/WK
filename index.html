@@ -392,6 +392,14 @@
       <img class="s5558-road"      src="assets/s55-s58/road%20extended%20%284%29.svg" alt="">
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
       <img class="s5558-cones"      src="assets/s55-s58/Traffic%20cones.svg"    alt="">
+
+      <!-- Scenes 55-57 popups — content comes from panels.panel-55/56/57 in i18n/<lang>.json
+           (see .text-panel[id] auto-wiring in i18n.js), shown/hidden by PANEL_TIMING in
+           scroll.js. These were missing entirely before — CSS/JS/i18n content all existed
+           but there was no actual element in the DOM for any of it to attach to. -->
+      <div class="text-panel" id="panel-55" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-56" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-57" aria-hidden="true"></div>
     </div>
 
   </div><!-- /scroll-x -->

@@ -956,9 +956,12 @@ function frame(ts) {
     6: { start: 0.3, end: 0.92 },
     7: { start: 0.3, end: 0.92 },
     9: { start: 0.3, end: 0.92 },
-    24: { start: 0.05, end: 0.92 }, // panel-55, scene-55 — opens right as the bus starts driving in (see animateCityBus scene===23 block), not after it's already parked
-    25: { start: 0.15, end: 0.92 }, // panel-56, scene-56
-    26: { start: 0.15, end: 0.92 }, // panel-57, scene-57
+    // panel-55/56/57 (keys 24/25/26) are NOT here — they're handled separately below via
+    // positionCenteredPopup, not this generic left-fixed-in-CSS toggle. Reason: they live
+    // inside #s55-s58-bg, which pans on a slow/nonlinear curve during the 55-57 hold (see
+    // the S5557 blend in this function's effectiveTx block) — a static CSS `left` tuned for
+    // a normal linear pan drifts off-screen once the curve isn't linear anymore. Same fix
+    // already used for scenes 45-48's popups (see animateS45S48/positionCenteredPopup).
   };
   Object.keys(PANEL_TIMING).forEach(key => {
     const n = Number(key);
@@ -970,6 +973,22 @@ function frame(ts) {
     panels[n].style.opacity = show ? '1' : '0';
     panels[n].classList.toggle('visible', show);
   });
+
+  // -- Scenes 55-57 popups: kept centered on screen via dynamic `left`, recomputed every
+  // frame from the live pan — see the comment above for why a static CSS left doesn't work
+  // here anymore. S5558_BG_LEFT_VW must match #s55-s58-bg's `left` in style.css.
+  if (SCROLL_MAP[23]) {
+    const S5558_BG_LEFT_VW = 2665;
+    const vwPx = _vw / 100;
+    const viewportCenterVw = -effectiveTx / vwPx + 50;
+    const popupCenterVw = viewportCenterVw - S5558_BG_LEFT_VW;
+    const show55 = currentScene === 23 && sceneLocal > 0.05 && sceneLocal < 0.92;
+    const show56 = currentScene === 24 && sceneLocal > 0.15 && sceneLocal < 0.92;
+    const show57 = currentScene === 25 && sceneLocal > 0.15 && sceneLocal < 0.92;
+    positionCenteredPopup(panels[24], show55, popupCenterVw);
+    positionCenteredPopup(panels[25], show56, popupCenterVw);
+    positionCenteredPopup(panels[26], show57, popupCenterVw);
+  }
 
   // #panel-5: track bus position — now `position: fixed` (see style.css), so it moves in
   // step with the bus's own drive-in animation instead of sitting at a static scene-relative
