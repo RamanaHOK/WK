@@ -1870,12 +1870,25 @@ display: block;
   position: absolute;
   left: 2765vw; /* scene-55 (index 24): 24*100vw + 365vw (scene-21 extra width shift) */
   top: 0;
-  width: 420vw; /* 4 scenes (400vw) + a little lead room */
+  width: 200vw; /* two screens like scenes 5-8 */
   height: 100vh;
+  background-color: #EFB99B;
   overflow: hidden;
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
+
+#s55-s58-bg img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+
+/* Match scenes 5-8 layout: clouds top, buildings middle, road bottom */
+.s5558-clouds    { top: 2%;   }
+.s5558-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
+.s5558-road      { top: 56%;  }
 
 /* Sky/clouds — spans the FULL wrapper width, always behind everything. Street elements
    below only occupy the first ~300vw, so once the strip pans past that (scene 58) this is
