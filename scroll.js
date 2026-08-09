@@ -956,7 +956,7 @@ function frame(ts) {
     6: { start: 0.3, end: 0.92 },
     7: { start: 0.3, end: 0.92 },
     9: { start: 0.3, end: 0.92 },
-    24: { start: 0.15, end: 0.92 }, // panel-55, scene-55
+    24: { start: 0.05, end: 0.92 }, // panel-55, scene-55 — opens right as the bus starts driving in (see animateCityBus scene===23 block), not after it's already parked
     25: { start: 0.15, end: 0.92 }, // panel-56, scene-56
     26: { start: 0.15, end: 0.92 }, // panel-57, scene-57
   };
