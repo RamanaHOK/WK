@@ -87,6 +87,12 @@ const S45_STICKY_RANGE = 1.0;
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
 const S46_HOLD_START = 0.45;
 const S46_HOLD_END = 0.8;
+// Scenes 55-57 (street/bus-parked hold): pan speed as a fraction of normal (see frame()'s
+// effectiveTx block) — slow, not frozen, so scroll input always visibly moves something.
+// S5557_RELEASE_START is the fraction into scene 57 (index 25) where it eases back up to
+// normal pan speed, landing exactly at the natural position by scene 57's end.
+const S5557_PAN_SPEED = 0.12;
+const S5557_RELEASE_START = 0.8;
 // The zoom-in itself is wall-clock timed, not scroll-driven — once the pan settles him into
 // center (S46_HOLD_START), it plays out on its own like a video over S46_ZOOM_MS, no further
 // scrolling needed, then stays zoomed for the rest of scene 46 (see _s46ZoomT0 in frame()).
@@ -727,21 +733,27 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
-  } else if ((currentScene === 23 || currentScene === 24 || currentScene === 25) && SCROLL_MAP[23]) {
-    // Scenes 55-57: street stays a static backdrop for the whole hold — the bus/car
-    // (independent fixed elements, see animateCityBus) drive in, park and sit through the
-    // popups on top of it, but the strip itself doesn't pan underneath them. Without this,
-    // the background (buildings/road/seller/pedestrians) kept sliding past the "parked"
-    // bus/car for the full 55-57 scroll length, which is what put the seller under the car.
-    // Stateless (pure function of SCROLL_MAP[23], no captured tx) so it's exactly the same
-    // position regardless of scroll direction.
-    effectiveTx = -SCROLL_MAP[23].stripX;
-  } else if (currentScene === 26 && sceneLocal < 0.15 && SCROLL_MAP[23]) {
-    // Scene 58: bridge from the frozen scene-55/56/57 position back to natural pan over the
-    // first 15% of local so there's no jump the instant the freeze releases.
-    const freezeX = -SCROLL_MAP[23].stripX;
-    const bridgeT = easeInOutCubic(sceneLocal / 0.15);
-    effectiveTx = freezeX + bridgeT * (tx - freezeX);
+  } else if (
+    (currentScene === 23 || currentScene === 24 || (currentScene === 25 && sceneLocal < S5557_RELEASE_START))
+    && SCROLL_MAP[23]
+  ) {
+    // Scenes 55-57: street pans at a small fraction of normal speed (not a hard freeze —
+    // see the scene-45 block above for why: a hard freeze stops responding to scroll input
+    // entirely, which reads as the page being stuck). This still moves continuously and
+    // proportionally to scroll, just slowly, so the seller/pedestrians drift past the
+    // parked bus/car gradually instead of either zipping past at full speed (the original
+    // overlap bug) or standing dead still regardless of how much you scroll (felt frozen).
+    // Stateless — pure function of SCROLL_MAP[23] + combined local, no captured tx — so
+    // it's exactly reversible scrolling either direction.
+    const combinedLocal = (currentScene - 23) + sceneLocal; // 0 at scene-55 start .. ~3 at scene-57 end
+    effectiveTx = -(SCROLL_MAP[23].stripX + combinedLocal * S5557_PAN_SPEED * _vw);
+  } else if (currentScene === 25 && sceneLocal >= S5557_RELEASE_START && SCROLL_MAP[23]) {
+    // Last stretch of scene 57: bridge from the slow pan back to normal speed so the two
+    // meet exactly by scene-57's end — no jump crossing into scene 58.
+    const combinedLocalAtRelease = 2 + S5557_RELEASE_START;
+    const slowTx = -(SCROLL_MAP[23].stripX + combinedLocalAtRelease * S5557_PAN_SPEED * _vw);
+    const bridgeT = easeInOutCubic((sceneLocal - S5557_RELEASE_START) / (1 - S5557_RELEASE_START));
+    effectiveTx = slowTx + bridgeT * (tx - slowTx);
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
