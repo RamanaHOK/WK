@@ -30,10 +30,13 @@ const SCENE_SCROLL = [
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
   1.5,  // 21 → scene-46 (red lady with bag ambient)
   1.5,  // 22 → scene-47 (wheelchair man ambient)
-  1.5,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
-  1.5,  // 24 → scene-56 (second popup)
-  1.5,  // 25 → scene-57 (third, bigger popup)
-  1.2,  // 26 → scene-58 (pans past the street into clear sky)
+  0.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  0.4,  // 24 → scene-56 (second popup)
+  0.4,  // 25 → scene-57 (third, bigger popup)
+  0.3,  // 26 → scene-58 (pans past the street into clear sky)
+  // Total 1.5 viewport-widths, matching #s55-s58-bg's new 150vw width (was 5.7/400vw) — no
+  // dead scroll past where the content actually ends. Next background set picks up right
+  // after this.
 ];
 
 // ---- Per-scene configuration ----
