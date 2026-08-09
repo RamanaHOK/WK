@@ -115,9 +115,9 @@ const panels = {
   8: document.getElementById('panel-8'),
   9: document.getElementById('panel-9'),
   10: document.getElementById('panel-12'),  // panel-12 popup shown at scroll index 9 (new scene-13)
-  25: document.getElementById('panel-55'),  // scroll index 24 (scene-55)
-  26: document.getElementById('panel-56'),  // scroll index 25 (scene-56)
-  27: document.getElementById('panel-57'),  // scroll index 26 (scene-57)
+  24: document.getElementById('panel-55'),  // scroll index 23 (scene-55) — was 25/index24 before scene-48 was removed
+  25: document.getElementById('panel-56'),  // scroll index 24 (scene-56)
+  26: document.getElementById('panel-57'),  // scroll index 25 (scene-57)
 };
 const panel5Driver = document.getElementById('panel-5-driver');
 const popup8a    = document.getElementById('panel-8a');
@@ -727,6 +727,21 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
+  } else if ((currentScene === 23 || currentScene === 24 || currentScene === 25) && SCROLL_MAP[23]) {
+    // Scenes 55-57: street stays a static backdrop for the whole hold — the bus/car
+    // (independent fixed elements, see animateCityBus) drive in, park and sit through the
+    // popups on top of it, but the strip itself doesn't pan underneath them. Without this,
+    // the background (buildings/road/seller/pedestrians) kept sliding past the "parked"
+    // bus/car for the full 55-57 scroll length, which is what put the seller under the car.
+    // Stateless (pure function of SCROLL_MAP[23], no captured tx) so it's exactly the same
+    // position regardless of scroll direction.
+    effectiveTx = -SCROLL_MAP[23].stripX;
+  } else if (currentScene === 26 && sceneLocal < 0.15 && SCROLL_MAP[23]) {
+    // Scene 58: bridge from the frozen scene-55/56/57 position back to natural pan over the
+    // first 15% of local so there's no jump the instant the freeze releases.
+    const freezeX = -SCROLL_MAP[23].stripX;
+    const bridgeT = easeInOutCubic(sceneLocal / 0.15);
+    effectiveTx = freezeX + bridgeT * (tx - freezeX);
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -893,7 +908,7 @@ function frame(ts) {
   const busVw      = _inJungle
     ? interpolateKeyframes(JUNGLE_KF, junglePhase).toFixed(0)
     : '–';
-  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,48,55,56,57,58];
+  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58];
   const _sceneLabel  = SCENE_LABELS[currentScene] ?? (currentScene + 1);
   if (dbgScene)  dbgScene.textContent  = `scene ${_sceneLabel}  ${_scenePct}%`;
   if (dbgTime)   dbgTime.textContent   = `${secs}s`;
@@ -922,9 +937,9 @@ function frame(ts) {
     6: { start: 0.3, end: 0.92 },
     7: { start: 0.3, end: 0.92 },
     9: { start: 0.3, end: 0.92 },
-    25: { start: 0.15, end: 0.92 }, // panel-55, scene-55
-    26: { start: 0.15, end: 0.92 }, // panel-56, scene-56
-    27: { start: 0.15, end: 0.92 }, // panel-57, scene-57
+    24: { start: 0.15, end: 0.92 }, // panel-55, scene-55
+    25: { start: 0.15, end: 0.92 }, // panel-56, scene-56
+    26: { start: 0.15, end: 0.92 }, // panel-57, scene-57
   };
   Object.keys(PANEL_TIMING).forEach(key => {
     const n = Number(key);
