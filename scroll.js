@@ -1302,12 +1302,19 @@ function animateCityBus(scene, local, opacity) {
         carX   = CAR_FAR_ENTRY + tCar * (CENTER + CAR_AHEAD - CAR_FAR_ENTRY);
         carEff = opacity * Math.min(1, local / 0.05); // fades in sooner than the bus (0.08)
       } else if (scene <= 25) {
-        carX   = CENTER + CAR_AHEAD;
+        // Scenes 56-57: bus sits fully still, but the car gets its own subtle idle sway
+        // (continuous phase across both scenes) so the two don't read as perfectly locked
+        // together during the hold.
+        const holdPhase = (scene - 24) + local; // 0..2 across scenes 56-57
+        const sway = Math.sin(holdPhase * Math.PI * 1.5) * 0.015 * vw;
+        carX   = CENTER + CAR_AHEAD + sway;
         carEff = opacity;
       } else {
-        const tCar = easeInOutCubic(Math.min(1, local / 0.6));
-        carX   = CENTER + CAR_AHEAD + tCar * 1.4 * vw;
-        carEff = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
+        // Scene 58: car pulls away faster and earlier than the bus (own 0.4 window vs the
+        // bus's 0.6) so it's already gone before the bus finishes its own exit.
+        const tCar = easeInOutCubic(Math.min(1, local / 0.4));
+        carX   = CENTER + CAR_AHEAD + tCar * 1.6 * vw;
+        carEff = opacity * (1 - Math.max(0, (local - 0.4) / 0.3));
       }
       s5558Car.style.opacity   = carEff.toFixed(3);
       s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
