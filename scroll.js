@@ -1364,18 +1364,12 @@ function animateCityBus(scene, local, opacity) {
       // Scenes 56-57: stays parked
       busX = CENTER;
     } else {
-      // Scene 58: drives off right and fades as the street pans into clear sky — spread
-      // across most of the scene (was finishing by local 0.2, way too fast) so it reads as
-      // a normal, unhurried drive-off instead of a sudden dash.
-      const t = easeInOutCubic(Math.min(1, local / 0.7));
-      busX = CENTER + t * 1.4 * vw;
-      // Eased fade (not linear) so the bus dissolves smoothly into the clouds+birds
-      // transition frame instead of dimming at a constant rate.
-      const busFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.7) / 0.3)));
-      eff  = opacity * (1 - busFadeT);
-      // #s5558-transition-frame-front no longer fades here — it's a real pan-synced
-      // background element now (see frame()'s sync block), so it hides the bus by sliding
-      // over it, not by a scripted opacity ramp tied to this scene.
+      // Scene 58: the clouds+birds transition frame (#s5558-transition-frame-front) already
+      // wipes across and hides the bus during scenes 56-57 (its own pan-synced position, see
+      // frame()'s sync block) — no separate drive-off/fade needed here anymore, the bus is
+      // simply gone once the birds have passed over it.
+      busX = CENTER;
+      eff  = 0;
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.
@@ -1398,14 +1392,10 @@ function animateCityBus(scene, local, opacity) {
         carX   = CENTER + CAR_AHEAD + sway;
         carEff = opacity;
       } else {
-        // Scene 58: car pulls away a little sooner than the bus (own 0.5 window vs the
-        // bus's 0.7) so it's gone shortly before the bus finishes, without either being a
-        // sudden dash — same "spread across most of the scene" fix as the bus above.
-        const tCar = easeInOutCubic(Math.min(1, local / 0.5));
-        carX   = CENTER + CAR_AHEAD + tCar * 1.6 * vw;
-        // Eased fade, same reasoning as the bus above.
-        const carFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.5) / 0.35)));
-        carEff = opacity * (1 - carFadeT);
+        // Scene 58: same reasoning as the bus above — the transition frame already hid it
+        // during scenes 56-57, no separate drive-off/fade needed.
+        carX   = CENTER + CAR_AHEAD;
+        carEff = 0;
       }
       s5558Car.style.opacity   = carEff.toFixed(3);
       s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
