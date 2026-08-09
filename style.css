@@ -1891,11 +1891,13 @@ display: block;
   height: auto;
 }
 
-/* Match scenes 5-8 layout exactly: clouds top, buildings middle, road bottom
-   (values copied verbatim from .layer-city-road/.layer-city-buildings img, style.css:753,759) */
+/* Match scenes 5-8 layout exactly (values copied verbatim from #s5-s8-bg's
+   .s5s8-clouds/.s5s8-buildings/.s5s8-road — same 400vw wide-strip pattern as this
+   wrapper, NOT .layer-city-road/.layer-city-buildings which are scene-8's single-viewport
+   zoom layer and use a different width — see style.css:747-749). */
 .s5558-clouds    { top: 2%;   }
 .s5558-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
-.s5558-road      { width: 110% !important; top: 60%; bottom: auto; }
+.s5558-road      { top: 56%;  }
 
 /* Sky/clouds — spans the FULL wrapper width, always behind everything. Street elements
    below only occupy the first ~300vw, so once the strip pans past that (scene 58) this is
