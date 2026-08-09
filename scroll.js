@@ -1272,9 +1272,14 @@ function animateCityBus(scene, local, opacity) {
     if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
     if (cityBusS55)   cityBusS55.style.opacity   = '1';
     if (scene === 23) {
-      // Drive in from off-screen left, parked by local 0.2
+      // Drive in from further off-screen (like the scene-4 savanna entry) instead of the
+      // near-visible ENTRY point, so it reads as a continuous drive sliding in from under
+      // the previous scene rather than popping in already mostly on-screen. Opacity ramps
+      // in over the same window so it fades up while it's still off-screen, not a hard cut.
+      const FAR_ENTRY = -0.6 * vw;
       const t = easeInOutCubic(Math.min(1, local / 0.2));
-      busX = ENTRY + t * (CENTER - ENTRY);
+      busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
+      eff  = opacity * Math.min(1, local / 0.08);
     } else if (scene <= 25) {
       // Scenes 56-57: stays parked
       busX = CENTER;
