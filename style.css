@@ -1961,7 +1961,7 @@ display: block;
   left: 104vw !important;
   bottom: 2vh;
   top: auto !important;
-  width: 4vw !important;
+  width: 9vw !important;
   height: auto;
   z-index: 3;
 }
@@ -1997,7 +1997,7 @@ display: block;
   top: auto !important;
   width: 7vw !important;
   height: auto;
-  z-index: 999;
+  z-index: 3; /* below #city-bus (z:5) and #s5558-car (z:6) so the vehicles pass in front */
 }
 .s5558-bus {
   position: absolute;
