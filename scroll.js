@@ -1298,10 +1298,12 @@ function animateCityBus(scene, local, opacity) {
       // near-visible ENTRY point, so it reads as a continuous drive sliding in from under
       // the previous scene rather than popping in already mostly on-screen. Opacity ramps
       // in over the same window so it fades up while it's still off-screen, not a hard cut.
+      // Spread across most of the scene — same pacing as the scene-58 exit below, so the
+      // bus moves at the same speed coming in as it does leaving, not fast-in/slow-out.
       const FAR_ENTRY = -0.6 * vw;
-      const t = easeInOutCubic(Math.min(1, local / 0.2));
+      const t = easeInOutCubic(Math.min(1, local / 0.7));
       busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
-      eff  = opacity * Math.min(1, local / 0.08);
+      eff  = opacity * Math.min(1, local / 0.3);
     } else if (scene <= 25) {
       // Scenes 56-57: stays parked
       busX = CENTER;
@@ -1319,10 +1321,12 @@ function animateCityBus(scene, local, opacity) {
       const CAR_AHEAD = 0.15 * vw; // parked position: ahead of the bus, not behind
       let carX, carEff;
       if (scene === 23) {
+        // Same "spread across most of the scene" pacing as everywhere else, just a touch
+        // ahead of the bus's own window (0.5 vs 0.7) so it leads in, not miles faster.
         const CAR_FAR_ENTRY = -0.75 * vw; // further back than the bus's own FAR_ENTRY
-        const tCar = easeInOutCubic(Math.min(1, local / 0.14)); // finishes entry sooner than the bus (0.2)
+        const tCar = easeInOutCubic(Math.min(1, local / 0.5));
         carX   = CAR_FAR_ENTRY + tCar * (CENTER + CAR_AHEAD - CAR_FAR_ENTRY);
-        carEff = opacity * Math.min(1, local / 0.05); // fades in sooner than the bus (0.08)
+        carEff = opacity * Math.min(1, local / 0.2);
       } else if (scene <= 25) {
         // Scenes 56-57: bus sits fully still, but the car gets its own subtle idle sway
         // (continuous phase across both scenes) so the two don't read as perfectly locked
