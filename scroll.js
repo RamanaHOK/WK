@@ -152,7 +152,7 @@ const cityBusS26     = document.getElementById('city-bus-s26');
 const cityBusInside  = document.getElementById('city-bus-inside');
 const cityBusS55     = document.getElementById('city-bus-s55');
 const s5558Car        = document.getElementById('s5558-car');
-const s5558TransitionCover = document.getElementById('s5558-transition-cover');
+const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -789,6 +789,19 @@ function frame(ts) {
     s5558SellerFront.style.transform = `translateX(${sellerVx.toFixed(1)}px)`;
   }
 
+  // -- Scenes 55-58 clouds+birds transition frame: synced to its 122vw slot inside
+  // #s55-s58-bg, same reasoning as the seller above — rendered root-level so its z-index
+  // (12) genuinely beats #city-bus/#s5558-car/#s5558-seller-front instead of being trapped
+  // inside #s55-s58-bg's stacking context. It's full-viewport width, so it fully covers/
+  // hides them right as it passes centered (frameVx=0); opacity ramps smoothly (0->1->0) as
+  // it slides in from the right and back out to the left, instead of a hard on/off cut. --
+  if (s5558TransitionFrameFront && SCROLL_MAP[23]) {
+    const frameVx = SCROLL_MAP[23].stripX + 1.22 * _vw + effectiveTx;
+    const frameOpacity = Math.max(0, 1 - Math.abs(frameVx) / _vw);
+    s5558TransitionFrameFront.style.opacity   = (currentScene >= 23 && currentScene <= 26) ? frameOpacity.toFixed(3) : '0';
+    s5558TransitionFrameFront.style.transform = `translateX(${frameVx.toFixed(1)}px)`;
+  }
+
   // -- Scene-5 trees overlay: sync to scene-5 viewport position so it sits above city-bus --
   if (cityTrees5 && SCROLL_MAP[4]) {
     const s5vx = SCROLL_MAP[4].stripX + effectiveTx;
@@ -1116,7 +1129,6 @@ function animateCityBus(scene, local, opacity) {
   if (cityBusInside)  cityBusInside.style.opacity  = '0';
   if (cityBusS55)     cityBusS55.style.opacity     = '0';
   if (s5558Car)        s5558Car.style.opacity        = '0';
-  if (s5558TransitionCover) s5558TransitionCover.style.opacity = '0';
   if (cityAwayStand)  cityAwayStand.style.opacity  = '0';
   if (cityAwayHandle) cityAwayHandle.style.opacity = '0';
   if (cityBusHandleProp) cityBusHandleProp.style.opacity = '0';
@@ -1358,14 +1370,9 @@ function animateCityBus(scene, local, opacity) {
       // transition frame instead of dimming at a constant rate.
       const busFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.7) / 0.3)));
       eff  = opacity * (1 - busFadeT);
-      // Cover starts bringing in as soon as scene 58 begins (right after the last popup
-      // closes, back in scene 57) and grows across the WHOLE scene, fully overlapping the
-      // main screen by the time scene 58 — and the story — ends, not just tucked into the
-      // bus's own fade-out tail.
-      if (s5558TransitionCover) {
-        const coverT = easeInOutCubic(local);
-        s5558TransitionCover.style.opacity = (opacity * coverT).toFixed(3);
-      }
+      // #s5558-transition-frame-front no longer fades here — it's a real pan-synced
+      // background element now (see frame()'s sync block), so it hides the bus by sliding
+      // over it, not by a scripted opacity ramp tied to this scene.
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.

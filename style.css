@@ -599,18 +599,21 @@ html, body {
   opacity: 0;
 }
 
-/* Scene 58 cover — root-level fixed, full-viewport, above #city-bus (z:5)/#s5558-car (z:6)/
-   #s5558-seller-front (z:7) so it can actually cover them. Opacity driven from JS, synced to
-   the bus/car's own fade-out (see busFadeT/carFadeT in animateCityBus's scene===26 block). */
-#s5558-transition-cover {
+/* Clouds+birds transition frame — root-level fixed, full-viewport, above #city-bus (z:5)/
+   #s5558-car (z:6)/#s5558-seller-front (z:7) so it can actually cover them, unlike the old
+   in-background .s5558-transition-frame (trapped inside #s55-s58-bg's stacking context).
+   Position (translateX) synced every frame in JS to its 122vw slot inside #s55-s58-bg, so
+   it slides across with the pan like a normal background element — opacity fades in/out as
+   it enters/exits the viewport (see frame() in scroll.js). */
+#s5558-transition-frame-front {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  background-color: #EFB99B; /* same bg as #s55-s58-bg — fills the SVG's transparent areas
-    instead of whatever's rendered behind it (was showing through as dark green) */
+  background-color: #EFB99B; /* fills the SVG's transparent areas instead of whatever's
+    rendered behind it (was showing through as dark green before this was added) */
   z-index: 12;
   pointer-events: none;
   opacity: 0;
@@ -1944,16 +1947,10 @@ display: block;
 .s5558-buildings { bottom: 37%; top: auto; width: auto !important; height: 100% !important; }
 .s5558-road      { top: 60%; width: auto !important; height: auto !important; }
 
-/* Scene 58's own frame — sits in its own 100vw slot (300-400vw of the 400vw wrapper),
-   full-viewport width like a normal single-scene background, above the plain sailing-clouds
-   tile behind it. First-draft top/height — retune once seen on screen. */
-.s5558-transition-frame {
-  left: 122vw !important;
-  top: 0 !important;
-  width: 100vw !important;
-  height: auto !important;
-  z-index: 2;
-}
+/* .s5558-transition-frame moved out to root-level #s5558-transition-frame-front — see the
+   comment there for why (needed to render above #city-bus/#s5558-car, which this in-background
+   position could never do). Its 122vw local position now lives in the JS sync (frame() in
+   scroll.js), not here. */
 
 /* Sky/clouds — spans the FULL wrapper width, always behind everything. Street elements
    below only occupy the first ~300vw, so once the strip pans past that (scene 58) this is

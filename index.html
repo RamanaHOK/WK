@@ -393,11 +393,6 @@
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
       <img class="s5558-cones"      src="assets/s55-s58/Traffic%20cones.svg"    alt="">
 
-      <!-- Scene 58: clouds + birds transition frame — sits in scene-58's own 100vw slot
-           (300-400vw within this 400vw wrapper), so it's what's on screen once the pan
-           moves past the street and into clear sky. -->
-      <img class="s5558-transition-frame" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="">
-
       <!-- Scenes 55-57 popups — content comes from panels.panel-55/56/57 in i18n/<lang>.json
            (see .text-panel[id] auto-wiring in i18n.js), shown/hidden by PANEL_TIMING in
            scroll.js. These were missing entirely before — CSS/JS/i18n content all existed
@@ -434,11 +429,14 @@
        pattern as #city-bus, transform driven in sync with it (see animateCityBus). -->
   <lottie-player id="s5558-car" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
 
-  <!-- Scene 58 cover — root-level fixed overlay (NOT the in-background .s5558-transition-frame,
-       which is trapped inside #s55-s58-bg's stacking context and can never render above
-       #city-bus/#s5558-car, same issue as the seller earlier). Fades in exactly as the bus/car
-       fade out (see busFadeT in animateCityBus), so it covers/hides them as they disappear. -->
-  <img id="s5558-transition-cover" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
+  <!-- Clouds+birds transition frame — root-level fixed element, NOT a child of #s55-s58-bg
+       (that wrapper has its own lower stacking context, so a child's z-index can never
+       render above #city-bus/#s5558-car — same issue as the seller earlier). Position
+       synced every frame to its 122vw slot inside #s55-s58-bg (see frame() in scroll.js),
+       so it still slides across with the pan exactly like an in-background element would,
+       but its z-index now genuinely sits above the bus/car/seller — full viewport width,
+       so there's a point in its transit where it fully covers/hides them. -->
+  <img id="s5558-transition-frame-front" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
 
 </div><!-- /pinned-wrap -->
 
