@@ -1868,7 +1868,7 @@ display: block;
 
 #s55-s58-bg {
   position: absolute;
-  left: 2365vw; /* scene-55 (index 23 after scene-48 removal): 23*100vw + 365vw (scene-21 extra width shift) */
+  left: 2665vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
   top: 0;
   width: 400vw; /* 4 scenes (55-58) × 100vw each */
   height: 100vh;
