@@ -1958,9 +1958,10 @@ display: block;
 }
 .s5558-cones {
   position: absolute;
-  left: 95vw;
+  left: 95vw !important;
   bottom: 14vh;
-  width: 4vw;
+  top: auto !important;
+  width: 4vw !important;
   height: auto;
   z-index: 3;
 }
