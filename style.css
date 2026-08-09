@@ -576,10 +576,10 @@ html, body {
    vehicle. Transform/opacity driven from JS in sync with the bus (see animateCityBus). */
 #s5558-car {
   position: fixed;
-  bottom: 24%;
+  bottom: 5%;
   left: 0;
-  width: 16vw;
-  height: 10vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
+  width: 36vw;
+  height: 20vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
   z-index: 6; /* above #city-bus (z:5) — car leads in front, not tucked behind */
   pointer-events: none;
   opacity: 0;
@@ -1982,17 +1982,19 @@ display: block;
 }
 .s5558-pedestrians {
   position: absolute;
-  left: 120vw;
+  left: 120vw !important;
   bottom: 14vh;
-  width: 8vw;
+  top: auto !important;
+  width: 8vw !important;
   height: auto;
   z-index: 3;
 }
 .s5558-seller {
   position: absolute;
-  left: 68vw;
+  left: 68vw !important;
   bottom: 14vh;
-  width: 7vw;
+  top: auto !important;
+  width: 7vw !important;
   height: auto;
   z-index: 3;
 }
