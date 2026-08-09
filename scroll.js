@@ -795,14 +795,26 @@ function frame(ts) {
   // -- Scenes 55-58 clouds+birds transition frame: synced to its 122vw slot inside
   // #s55-s58-bg, same reasoning as the seller above — rendered root-level so its z-index
   // (12) genuinely beats #city-bus/#s5558-car/#s5558-seller-front instead of being trapped
-  // inside #s55-s58-bg's stacking context. It's full-viewport width, so it fully covers/
-  // hides them right as it passes centered (frameVx=0); opacity ramps smoothly (0->1->0) as
-  // it slides in from the right and back out to the left, instead of a hard on/off cut. --
+  // inside #s55-s58-bg's stacking context. Slides in and fades 0->1 as it approaches center,
+  // then FREEZES there fully opaque (not a pass-through wipe that fades back out) — it
+  // covers the bus/car and stays covering them for the rest of the scene, ending the
+  // sequence on the birds instead of revealing empty background again. Still exactly
+  // reversible scrolling backward: frameVx is recomputed live every frame, so scrolling up
+  // naturally un-freezes it (frameVx goes positive again) and it slides back out. --
   if (s5558TransitionFrameFront && SCROLL_MAP[23]) {
     const frameVx = SCROLL_MAP[23].stripX + 1.22 * _vw + effectiveTx;
-    const frameOpacity = Math.max(0, 1 - Math.abs(frameVx) / _vw);
-    s5558TransitionFrameFront.style.opacity   = (currentScene >= 23 && currentScene <= 26) ? frameOpacity.toFixed(3) : '0';
-    s5558TransitionFrameFront.style.transform = `translateX(${frameVx.toFixed(1)}px)`;
+    if (currentScene >= 23 && currentScene <= 26) {
+      if (frameVx <= 0) {
+        s5558TransitionFrameFront.style.opacity   = '1';
+        s5558TransitionFrameFront.style.transform = 'translateX(0px)';
+      } else {
+        const frameOpacity = Math.max(0, 1 - frameVx / _vw);
+        s5558TransitionFrameFront.style.opacity   = frameOpacity.toFixed(3);
+        s5558TransitionFrameFront.style.transform = `translateX(${frameVx.toFixed(1)}px)`;
+      }
+    } else {
+      s5558TransitionFrameFront.style.opacity = '0';
+    }
   }
 
   // -- Scene-5 trees overlay: sync to scene-5 viewport position so it sits above city-bus --
