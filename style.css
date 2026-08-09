@@ -1924,7 +1924,9 @@ display: block;
   position: absolute;
   left: 2665vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
   top: 0;
-  width: 400vw; /* 4 scenes (55-58) × 100vw each */
+  width: 150vw; /* only the street content (buildings/road/pedestrians/seller/cones) needs
+    real width — everything past it is picked up by #s5558-transition-frame-front (root-level,
+    unaffected by this wrapper's width) and whatever set comes next after the fade */
   height: 100vh;
   background-color: #EFB99B;
   overflow: hidden;
