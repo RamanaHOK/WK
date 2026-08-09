@@ -1868,7 +1868,7 @@ display: block;
 
 #s55-s58-bg {
   position: absolute;
-  left: 2400vw; /* scene-55 is the 25th scene div (index 24) in normal flow: 24 * 100vw */
+  left: 2765vw; /* scene-55 (index 24): 24*100vw + 365vw (scene-21 extra width shift) */
   top: 0;
   width: 420vw; /* 4 scenes (400vw) + a little lead room */
   height: 100vh;
