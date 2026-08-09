@@ -584,6 +584,29 @@ html, body {
   pointer-events: none;
   opacity: 0;
 }
+/* Two more cars — same lottie asset as #s5558-car, own timing/position (see driveCar() in
+   animateCityBus). Slightly smaller + set further back (lower bottom%) to read as further
+   away / a different lane, not a stacked duplicate of the first car. */
+#s5558-car2 {
+  position: fixed;
+  bottom: 3%;
+  left: 0;
+  width: 30vw;
+  height: 17vh;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+}
+#s5558-car3 {
+  position: fixed;
+  bottom: 4%;
+  left: 0;
+  width: 32vw;
+  height: 18vh;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+}
 
 /* Seller — root-level fixed element synced to the pan via JS (see frame() in scroll.js),
    NOT a child of #s55-s58-bg — see the HTML comment for why that's required. Same

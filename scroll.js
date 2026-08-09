@@ -155,6 +155,8 @@ const cityBusS26     = document.getElementById('city-bus-s26');
 const cityBusInside  = document.getElementById('city-bus-inside');
 const cityBusS55     = document.getElementById('city-bus-s55');
 const s5558Car        = document.getElementById('s5558-car');
+const s5558Car2       = document.getElementById('s5558-car2');
+const s5558Car3       = document.getElementById('s5558-car3');
 const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
@@ -1144,6 +1146,8 @@ function animateCityBus(scene, local, opacity) {
   if (cityBusInside)  cityBusInside.style.opacity  = '0';
   if (cityBusS55)     cityBusS55.style.opacity     = '0';
   if (s5558Car)        s5558Car.style.opacity        = '0';
+  if (s5558Car2)       s5558Car2.style.opacity       = '0';
+  if (s5558Car3)       s5558Car3.style.opacity       = '0';
   if (cityAwayStand)  cityAwayStand.style.opacity  = '0';
   if (cityAwayHandle) cityAwayHandle.style.opacity = '0';
   if (cityBusHandleProp) cityBusHandleProp.style.opacity = '0';
@@ -1385,35 +1389,39 @@ function animateCityBus(scene, local, opacity) {
       busX = CENTER;
       eff  = 0;
     }
-    // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
-    // than the bus's so it's already rolling into frame before the bus catches up.
-    if (s5558Car) {
-      const CAR_AHEAD = 0.15 * vw; // parked position: ahead of the bus, not behind
+    // Companion cars — same drive-in/hold-sway/hide pattern, own timing per car so they
+    // don't read as three identical clones moving in lockstep. entryWindow/fadeInWindow
+    // control speed/fade-in like the bus's own window above; ahead offsets their parked X
+    // so they don't all stack on the same spot; swayPhase offsets the idle sway so they
+    // drift independently during the hold.
+    function driveCar(el, { farEntry, ahead, entryWindow, fadeInWindow, swayPhase, swayAmp }) {
+      if (!el) return;
       let carX, carEff;
       if (scene === 23) {
-        // Same "spread across most of the scene" pacing as everywhere else, just a touch
-        // ahead of the bus's own window (0.5 vs 0.7) so it leads in, not miles faster.
-        const CAR_FAR_ENTRY = -0.75 * vw; // further back than the bus's own FAR_ENTRY
-        const tCar = easeInOutCubic(Math.min(1, local / 0.5));
-        carX   = CAR_FAR_ENTRY + tCar * (CENTER + CAR_AHEAD - CAR_FAR_ENTRY);
-        carEff = opacity * Math.min(1, local / 0.2);
+        const t = easeInOutCubic(Math.min(1, local / entryWindow));
+        carX   = farEntry + t * (CENTER + ahead - farEntry);
+        carEff = opacity * Math.min(1, local / fadeInWindow);
       } else if (scene <= 25) {
-        // Scenes 56-57: bus sits fully still, but the car gets its own subtle idle sway
-        // (continuous phase across both scenes) so the two don't read as perfectly locked
-        // together during the hold.
-        const holdPhase = (scene - 24) + local; // 0..2 across scenes 56-57
-        const sway = Math.sin(holdPhase * Math.PI * 1.5) * 0.015 * vw;
-        carX   = CENTER + CAR_AHEAD + sway;
+        const holdPhase = (scene - 24) + local + swayPhase;
+        const sway = Math.sin(holdPhase * Math.PI * 1.5) * swayAmp;
+        carX   = CENTER + ahead + sway;
         carEff = opacity;
       } else {
         // Scene 58: same reasoning as the bus above — the transition frame already hid it
         // during scenes 56-57, no separate drive-off/fade needed.
-        carX   = CENTER + CAR_AHEAD;
+        carX   = CENTER + ahead;
         carEff = 0;
       }
-      s5558Car.style.opacity   = carEff.toFixed(3);
-      s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
+      el.style.opacity   = carEff.toFixed(3);
+      el.style.transform = `translateX(${carX.toFixed(1)}px)`;
     }
+    // Leads ahead of the bus, a little earlier than it so it's already rolling into frame
+    // before the bus catches up.
+    driveCar(s5558Car,  { farEntry: -0.75 * vw, ahead:  0.15 * vw, entryWindow: 0.5,  fadeInWindow: 0.2,  swayPhase: 0,   swayAmp: 0.015 * vw });
+    // Trails further back and enters slower — reads as a second car catching up from behind.
+    driveCar(s5558Car2, { farEntry: -0.95 * vw, ahead: -0.35 * vw, entryWindow: 0.65, fadeInWindow: 0.3,  swayPhase: 0.4, swayAmp: 0.02  * vw });
+    // Quick little car darting in ahead of both, own independent sway phase.
+    driveCar(s5558Car3, { farEntry: -0.55 * vw, ahead:  0.55 * vw, entryWindow: 0.4,  fadeInWindow: 0.15, swayPhase: 0.8, swayAmp: 0.018 * vw });
   }
 
   // Apply cursor parallax across all city scenes (5–19, 55–58); frozen only during bus close-up

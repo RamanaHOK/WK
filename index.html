@@ -429,6 +429,11 @@
        pattern as #city-bus, transform driven in sync with it (see animateCityBus). -->
   <lottie-player id="s5558-car" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
 
+  <!-- Two more cars — same lottie asset, own staggered timing (see driveCar() in
+       animateCityBus), so the street has a bit more passing traffic. -->
+  <lottie-player id="s5558-car2" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
+  <lottie-player id="s5558-car3" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
+
   <!-- Clouds+birds transition frame — root-level fixed element, NOT a child of #s55-s58-bg
        (that wrapper has its own lower stacking context, so a child's z-index can never
        render above #city-bus/#s5558-car — same issue as the seller earlier). Position
