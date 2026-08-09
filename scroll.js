@@ -1291,12 +1291,26 @@ function animateCityBus(scene, local, opacity) {
       busX = CENTER + t * 1.4 * vw;
       eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
     }
-    // Companion car (#s5558-car) trails the bus at a fixed gap, sharing its opacity/timing
-    // so it drives in, sits parked, and drives off together with it.
+    // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
+    // than the bus's so it's already rolling into frame before the bus catches up.
     if (s5558Car) {
-      const carOffset = -0.30 * vw;
-      s5558Car.style.opacity   = eff.toFixed(3);
-      s5558Car.style.transform = `translateX(${(busX + carOffset).toFixed(1)}px)`;
+      const CAR_AHEAD = 0.35 * vw; // parked position: ahead of the bus, not behind
+      let carX, carEff;
+      if (scene === 23) {
+        const CAR_FAR_ENTRY = -0.75 * vw; // further back than the bus's own FAR_ENTRY
+        const tCar = easeInOutCubic(Math.min(1, local / 0.14)); // finishes entry sooner than the bus (0.2)
+        carX   = CAR_FAR_ENTRY + tCar * (CENTER + CAR_AHEAD - CAR_FAR_ENTRY);
+        carEff = opacity * Math.min(1, local / 0.05); // fades in sooner than the bus (0.08)
+      } else if (scene <= 25) {
+        carX   = CENTER + CAR_AHEAD;
+        carEff = opacity;
+      } else {
+        const tCar = easeInOutCubic(Math.min(1, local / 0.6));
+        carX   = CENTER + CAR_AHEAD + tCar * 1.4 * vw;
+        carEff = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
+      }
+      s5558Car.style.opacity   = carEff.toFixed(3);
+      s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
     }
   }
 

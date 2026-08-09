@@ -580,7 +580,7 @@ html, body {
   left: 0;
   width: 16vw;
   height: 10vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
-  z-index: 4;
+  z-index: 6; /* above #city-bus (z:5) — car leads in front, not tucked behind */
   pointer-events: none;
   opacity: 0;
 }
