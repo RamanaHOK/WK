@@ -552,8 +552,8 @@ window.addEventListener('wheel', e => {
 }, { passive: false });
 
 // ---- Bus opacity: hidden until first scroll, then fades in ----
-let busOpacity  = 0;    // lerps 0 → 1 once scrolling starts
-let hasScrolled = false;
+let busOpacity  = 1;    // bus visible from scroll position 0
+let hasScrolled = true;
 
 // ---- Continuous animation loop ----
 let lastTs = 0;
