@@ -1354,12 +1354,14 @@ function animateCityBus(scene, local, opacity) {
       // near-visible ENTRY point, so it reads as a continuous drive sliding in from under
       // the previous scene rather than popping in already mostly on-screen. Opacity ramps
       // in over the same window so it fades up while it's still off-screen, not a hard cut.
-      // Spread across most of the scene — same pacing as the scene-58 exit below, so the
-      // bus moves at the same speed coming in as it does leaving, not fast-in/slow-out.
+      // Spread across the FULL scene (was 0.7, sped up once SCENE_SCROLL[23] got cut to
+      // 0.4 for the 150vw-wide background — same local fraction now means much less actual
+      // scroll, so it read as fast) — this is the slowest it can be within that unchanged
+      // scroll budget, not a scroll-length change.
       const FAR_ENTRY = -0.6 * vw;
-      const t = easeInOutCubic(Math.min(1, local / 0.7));
+      const t = easeInOutCubic(Math.min(1, local / 1.0));
       busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
-      eff  = opacity * Math.min(1, local / 0.3);
+      eff  = opacity * Math.min(1, local / 0.4);
     } else if (scene <= 25) {
       // Scenes 56-57: stays parked
       busX = CENTER;
