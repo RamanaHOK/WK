@@ -982,9 +982,15 @@ function frame(ts) {
     const vwPx = _vw / 100;
     const viewportCenterVw = -effectiveTx / vwPx + 50;
     const popupCenterVw = viewportCenterVw - S5558_BG_LEFT_VW;
-    const show55 = currentScene === 23 && sceneLocal > 0.3 && sceneLocal < 0.92;
-    const show56 = currentScene === 24 && sceneLocal > 0.15 && sceneLocal < 0.92;
-    const show57 = currentScene === 25 && sceneLocal > 0.15 && sceneLocal < 0.92;
+    // combinedLocal: 0 at scene-55 start .. 3 at scene-57 end (same combined scale as the
+    // pan-speed blend above). Used so panel-55/56 can overlap (both open together for a
+    // stretch) instead of being strictly one-scene-each — 56 opens before 55 closes, then
+    // 56 closes exactly as 57 opens (no overlap there, a clean handoff).
+    const inHoldRange = currentScene >= 23 && currentScene <= 25;
+    const combinedLocal = inHoldRange ? (currentScene - 23) + sceneLocal : -1;
+    const show55 = inHoldRange && combinedLocal > 0.4 && combinedLocal < 1.3;
+    const show56 = inHoldRange && combinedLocal > 1.0 && combinedLocal < 2.0;
+    const show57 = inHoldRange && combinedLocal > 2.0 && combinedLocal < 2.92;
     positionCenteredPopup(panels[24], show55, popupCenterVw);
     positionCenteredPopup(panels[25], show56, popupCenterVw);
     positionCenteredPopup(panels[26], show57, popupCenterVw);
