@@ -988,9 +988,9 @@ function frame(ts) {
     // 56 closes exactly as 57 opens (no overlap there, a clean handoff).
     const inHoldRange = currentScene >= 23 && currentScene <= 25;
     const combinedLocal = inHoldRange ? (currentScene - 23) + sceneLocal : -1;
-    const show55 = inHoldRange && combinedLocal > 0.4 && combinedLocal < 1.3;
-    const show56 = inHoldRange && combinedLocal > 1.0 && combinedLocal < 2.0;
-    const show57 = inHoldRange && combinedLocal > 2.0 && combinedLocal < 2.92;
+    const show55 = inHoldRange && combinedLocal > 0.4 && combinedLocal < 0.9;
+    const show56 = inHoldRange && combinedLocal > 0.6 && combinedLocal < 0.9;
+    const show57 = inHoldRange && combinedLocal > 0.9 && combinedLocal < 1.2;
     positionCenteredPopup(panels[24], show55, popupCenterVw);
     positionCenteredPopup(panels[25], show56, popupCenterVw);
     positionCenteredPopup(panels[26], show57, popupCenterVw);
@@ -1352,7 +1352,10 @@ function animateCityBus(scene, local, opacity) {
       // a normal, unhurried drive-off instead of a sudden dash.
       const t = easeInOutCubic(Math.min(1, local / 0.7));
       busX = CENTER + t * 1.4 * vw;
-      eff  = opacity * (1 - Math.max(0, (local - 0.7) / 0.3));
+      // Eased fade (not linear) so the bus dissolves smoothly into the clouds+birds
+      // transition frame instead of dimming at a constant rate.
+      const busFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.7) / 0.3)));
+      eff  = opacity * (1 - busFadeT);
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.
@@ -1380,7 +1383,9 @@ function animateCityBus(scene, local, opacity) {
         // sudden dash — same "spread across most of the scene" fix as the bus above.
         const tCar = easeInOutCubic(Math.min(1, local / 0.5));
         carX   = CENTER + CAR_AHEAD + tCar * 1.6 * vw;
-        carEff = opacity * (1 - Math.max(0, (local - 0.5) / 0.35));
+        // Eased fade, same reasoning as the bus above.
+        const carFadeT = easeInOutCubic(Math.min(1, Math.max(0, (local - 0.5) / 0.35)));
+        carEff = opacity * (1 - carFadeT);
       }
       s5558Car.style.opacity   = carEff.toFixed(3);
       s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
