@@ -3,7 +3,7 @@
    Continuous rAF engine: scroll-driven + time-based motion
    ============================================ */
 
-const SCENES = 28; // ends after scene-58
+const SCENES = 34; // ends after scene-58 (scenes 1-48 + 49-58 = 58 total, but indices 0-33 = 34)
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
@@ -30,11 +30,17 @@ const SCENE_SCROLL = [
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
   1.5,  // 21 → scene-46 (red lady with bag ambient)
   1.5,  // 22 → scene-47 (wheelchair man ambient)
-  1.5,  // 23 → scene-48 (toto moto ambient)
-  1.5,  // 24 → scene-55 (street scene — matatu parked outside Municipal Federation building)
-  1.5,  // 25 → scene-56 (second popup)
-  1.5,  // 26 → scene-57 (third, bigger popup)
-  1.2,  // 27 → scene-58 (pans past the street into clear sky)
+  0.0,  // 23 → scene-48 (toto moto ambient) — reduced to 0 so scene 48 ends at Chris popup
+  1.0,  // 24 → scene-49 (filler/transition)
+  1.0,  // 25 → scene-50 (filler/transition)
+  1.0,  // 26 → scene-51 (filler/transition)
+  1.0,  // 27 → scene-52 (filler/transition)
+  1.0,  // 28 → scene-53 (filler/transition)
+  1.0,  // 29 → scene-54 (filler/transition)
+  1.5,  // 30 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  1.5,  // 31 → scene-56 (second popup)
+  1.5,  // 32 → scene-57 (third, bigger popup)
+  1.2,  // 33 → scene-58 (pans past the street into clear sky)
 ];
 
 // ---- Per-scene configuration ----
