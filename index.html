@@ -434,6 +434,12 @@
        pattern as #city-bus, transform driven in sync with it (see animateCityBus). -->
   <lottie-player id="s5558-car" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
 
+  <!-- Scene 58 cover — root-level fixed overlay (NOT the in-background .s5558-transition-frame,
+       which is trapped inside #s55-s58-bg's stacking context and can never render above
+       #city-bus/#s5558-car, same issue as the seller earlier). Fades in exactly as the bus/car
+       fade out (see busFadeT in animateCityBus), so it covers/hides them as they disappear. -->
+  <img id="s5558-transition-cover" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
+
 </div><!-- /pinned-wrap -->
 
 <!-- Scene-30 zoom "come and go" people — separate overlay from #city-bus so it can hold
