@@ -3,7 +3,7 @@
    Continuous rAF engine: scroll-driven + time-based motion
    ============================================ */
 
-const SCENES = 28; // ends after scene-58
+const SCENES = 27; // ends after scene-58 (removed scene-48 which had 0.0 scroll time)
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
@@ -30,11 +30,10 @@ const SCENE_SCROLL = [
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
   1.5,  // 21 → scene-46 (red lady with bag ambient)
   1.5,  // 22 → scene-47 (wheelchair man ambient)
-  0.0,  // 23 → scene-48 (toto moto ambient) — reduced to 0 so scene 48 ends at Chris popup
-  1.5,  // 24 → scene-55 (street scene — matatu parked outside Municipal Federation building)
-  1.5,  // 25 → scene-56 (second popup)
-  1.5,  // 26 → scene-57 (third, bigger popup)
-  1.2,  // 27 → scene-58 (pans past the street into clear sky)
+  1.5,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  1.5,  // 24 → scene-56 (second popup)
+  1.5,  // 25 → scene-57 (third, bigger popup)
+  1.2,  // 26 → scene-58 (pans past the street into clear sky)
 ];
 
 // ---- Per-scene configuration ----
