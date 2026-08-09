@@ -30,10 +30,10 @@ const SCENE_SCROLL = [
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
   1.5,  // 21 → scene-46 (red lady with bag ambient)
   1.5,  // 22 → scene-47 (wheelchair man ambient)
-  1.5,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
-  1.5,  // 24 → scene-56 (second popup)
-  1.5,  // 25 → scene-57 (third, bigger popup)
-  1.2,  // 26 → scene-58 (pans past the street into clear sky)
+  3.0,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building) — doubled so bus/car drive-in plays at half speed
+  3.0,  // 24 → scene-56 (second popup) — doubled to match, keeps the parked hold in proportion
+  3.0,  // 25 → scene-57 (third, bigger popup) — doubled to match
+  2.4,  // 26 → scene-58 (pans past the street into clear sky) — doubled so bus/car drive-off plays at half speed
 ];
 
 // ---- Per-scene configuration ----
@@ -1287,14 +1287,14 @@ function animateCityBus(scene, local, opacity) {
       busX = CENTER;
     } else {
       // Scene 58: drives off right and fades as the street pans into clear sky
-      const t = easeInOutCubic(Math.min(1, local / 0.6));
+      const t = easeInOutCubic(Math.min(1, local / 0.2));
       busX = CENTER + t * 1.4 * vw;
-      eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
+      eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.3));
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.
     if (s5558Car) {
-      const CAR_AHEAD = 0.35 * vw; // parked position: ahead of the bus, not behind
+      const CAR_AHEAD = 0.15 * vw; // parked position: ahead of the bus, not behind
       let carX, carEff;
       if (scene === 23) {
         const CAR_FAR_ENTRY = -0.75 * vw; // further back than the bus's own FAR_ENTRY
