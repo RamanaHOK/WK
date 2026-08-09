@@ -197,6 +197,10 @@ const char32Sadik      = document.querySelector('.char-s32-sadik');
 const s4TreesOverlay = document.getElementById('s4-trees');
 // Fixed trees overlay for scene 5 — sits above #city-bus in root stacking context
 const cityTrees5    = document.getElementById('city-trees-5');
+// Fixed seller overlay for scenes 55-58 — sits above #s5558-car in root stacking context
+// (see the HTML/CSS comments on #s5558-seller-front for why this can't just be a z-index
+// bump on the in-background .s5558-* version)
+const s5558SellerFront = document.getElementById('s5558-seller-front');
 // Fixed character + tree overlays for scenes 7, 8 & 9
 const cityOverlay7  = document.getElementById('city-overlay-7');
 const cityOverlay8  = document.getElementById('city-overlay-8');
@@ -772,6 +776,16 @@ function frame(ts) {
     const s4vx = SCROLL_MAP[3].stripX + effectiveTx - 0.20 * _vw;
     s4TreesOverlay.style.opacity   = (s4vx < _vw && s4vx > -1.40 * _vw) ? '1' : '0';
     s4TreesOverlay.style.transform = `translateX(${s4vx.toFixed(1)}px)`;
+  }
+
+  // -- Scene 55-58 seller: synced to his position (89vw) inside #s55-s58-bg so he tracks
+  // the pan exactly, but rendered as a root-level fixed element (see #s5558-seller-front)
+  // so his z-index can actually beat #s5558-car's instead of being trapped inside
+  // #s55-s58-bg's own stacking context. --
+  if (s5558SellerFront && SCROLL_MAP[23]) {
+    const sellerVx = SCROLL_MAP[23].stripX + 0.89 * _vw + effectiveTx;
+    s5558SellerFront.style.opacity   = (currentScene >= 23 && currentScene <= 26 && sellerVx < _vw && sellerVx > -0.1 * _vw) ? '1' : '0';
+    s5558SellerFront.style.transform = `translateX(${sellerVx.toFixed(1)}px)`;
   }
 
   // -- Scene-5 trees overlay: sync to scene-5 viewport position so it sits above city-bus --

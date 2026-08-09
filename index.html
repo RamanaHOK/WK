@@ -390,12 +390,19 @@
       <img class="s5558-clouds"    src="assets/s55-s58/Clouds%20Sailing.svg"         alt="">
       <img class="s5558-buildings" src="assets/s55-s58/Group%20887.svg"              alt="">
       <img class="s5558-road"      src="assets/s55-s58/road%20extended%20%284%29.svg" alt="">
-      <img class="s5558-seller"     src="assets/s55-s58/blue%20man%20seller.svg" alt="">
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
       <img class="s5558-cones"      src="assets/s55-s58/Traffic%20cones.svg"    alt="">
     </div>
 
   </div><!-- /scroll-x -->
+
+  <!-- Seller lives outside #scroll-x/#s55-s58-bg's stacking contexts entirely (both have
+       their own transform/z-index, which traps any z-index set on descendants below
+       #city-bus/#s5558-car no matter the value — a child's z-index can never escape its
+       own parent's stacking context). Same pattern as #city-trees-5: a real root-level
+       fixed element, position synced to the pan via JS (see frame()'s effectiveTx block),
+       so its z-index actually competes with the car/bus. -->
+  <img id="s5558-seller-front" src="assets/s55-s58/blue%20man%20seller.svg" alt="" aria-hidden="true">
 
   <!-- City bus lives inside #pinned-wrap so its z-index is relative to scenes.
        z:5 = above regular city scenes (z:auto) but below scene-4 savanna (z:11),

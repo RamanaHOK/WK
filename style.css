@@ -585,6 +585,20 @@ html, body {
   opacity: 0;
 }
 
+/* Seller — root-level fixed element synced to the pan via JS (see frame() in scroll.js),
+   NOT a child of #s55-s58-bg — see the HTML comment for why that's required. Same
+   bottom/width as the original in-background .s5558-seller so it lines up identically. */
+#s5558-seller-front {
+  position: fixed;
+  bottom: -10vh;
+  left: 0;
+  width: 7vw;
+  height: auto;
+  z-index: 7; /* above #s5558-car (z:6) so he stays visible when the car passes/parks over him */
+  pointer-events: none;
+  opacity: 0;
+}
+
 /* ================================================================
    SCENES 1–3: Jungle
    ================================================================ */
@@ -1989,15 +2003,6 @@ display: block;
   width: 8vw !important;
   height: auto;
   z-index: 3;
-}
-.s5558-seller {
-  position: absolute;
-  left: 89vw !important;
-  bottom: -10vh;
-  top: auto !important;
-  width: 7vw !important;
-  height: auto;
-  z-index: 7; /* above #s5558-car (z:6) — car was parking right on top of him, hiding him */
 }
 .s5558-bus {
   position: absolute;
