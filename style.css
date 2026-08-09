@@ -1897,7 +1897,7 @@ display: block;
    zoom layer and use a different width — see style.css:747-749). */
 .s5558-clouds    { top: 2%;   }
 .s5558-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
-.s5558-road      { top: 56%;  }
+.s5558-road      { top: 60%; width: auto !important; height: auto !important; }
 
 /* Sky/clouds — spans the FULL wrapper width, always behind everything. Street elements
    below only occupy the first ~300vw, so once the strip pans past that (scene 58) this is
