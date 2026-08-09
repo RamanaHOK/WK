@@ -609,6 +609,8 @@ html, body {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
+  background-color: #EFB99B; /* same bg as #s55-s58-bg — fills the SVG's transparent areas
+    instead of whatever's rendered behind it (was showing through as dark green) */
   z-index: 12;
   pointer-events: none;
   opacity: 0;
@@ -1946,7 +1948,7 @@ display: block;
    full-viewport width like a normal single-scene background, above the plain sailing-clouds
    tile behind it. First-draft top/height — retune once seen on screen. */
 .s5558-transition-frame {
-  left: 300vw !important;
+  left: 122vw !important;
   top: 0 !important;
   width: 100vw !important;
   height: auto !important;
