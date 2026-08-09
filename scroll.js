@@ -147,6 +147,7 @@ const cityBusPeople1 = document.getElementById('city-bus-people1');
 const cityBusS26     = document.getElementById('city-bus-s26');
 const cityBusInside  = document.getElementById('city-bus-inside');
 const cityBusS55     = document.getElementById('city-bus-s55');
+const s5558Car        = document.getElementById('s5558-car');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -1054,6 +1055,7 @@ function animateCityBus(scene, local, opacity) {
   if (cityBusS26)     cityBusS26.style.opacity     = '0';
   if (cityBusInside)  cityBusInside.style.opacity  = '0';
   if (cityBusS55)     cityBusS55.style.opacity     = '0';
+  if (s5558Car)        s5558Car.style.opacity        = '0';
   if (cityAwayStand)  cityAwayStand.style.opacity  = '0';
   if (cityAwayHandle) cityAwayHandle.style.opacity = '0';
   if (cityBusHandleProp) cityBusHandleProp.style.opacity = '0';
@@ -1288,6 +1290,13 @@ function animateCityBus(scene, local, opacity) {
       const t = easeInOutCubic(Math.min(1, local / 0.6));
       busX = CENTER + t * 1.4 * vw;
       eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
+    }
+    // Companion car (#s5558-car) trails the bus at a fixed gap, sharing its opacity/timing
+    // so it drives in, sits parked, and drives off together with it.
+    if (s5558Car) {
+      const carOffset = -0.30 * vw;
+      s5558Car.style.opacity   = eff.toFixed(3);
+      s5558Car.style.transform = `translateX(${(busX + carOffset).toFixed(1)}px)`;
     }
   }
 
