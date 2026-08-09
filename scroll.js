@@ -87,12 +87,10 @@ const S45_STICKY_RANGE = 1.0;
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
 const S46_HOLD_START = 0.45;
 const S46_HOLD_END = 0.8;
-// Scenes 55-57 (street/bus-parked hold): pan speed as a fraction of normal (see frame()'s
-// effectiveTx block) — slow, not frozen, so scroll input always visibly moves something.
-// S5557_RELEASE_START is the fraction into scene 57 (index 25) where it eases back up to
-// normal pan speed, landing exactly at the natural position by scene 57's end.
+// Scenes 55-57 (street/bus-parked hold): starting pan speed as a fraction of normal (see
+// frame()'s effectiveTx block) — slow, not frozen, so scroll input always visibly moves
+// something. Eases continuously up to full speed by the end of scene 57, not a late snap.
 const S5557_PAN_SPEED = 0.12;
-const S5557_RELEASE_START = 0.8;
 // The zoom-in itself is wall-clock timed, not scroll-driven — once the pan settles him into
 // center (S46_HOLD_START), it plays out on its own like a video over S46_ZOOM_MS, no further
 // scrolling needed, then stays zoomed for the rest of scene 46 (see _s46ZoomT0 in frame()).
@@ -733,27 +731,22 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
-  } else if (
-    (currentScene === 23 || currentScene === 24 || (currentScene === 25 && sceneLocal < S5557_RELEASE_START))
-    && SCROLL_MAP[23]
-  ) {
-    // Scenes 55-57: street pans at a small fraction of normal speed (not a hard freeze —
-    // see the scene-45 block above for why: a hard freeze stops responding to scroll input
-    // entirely, which reads as the page being stuck). This still moves continuously and
-    // proportionally to scroll, just slowly, so the seller/pedestrians drift past the
-    // parked bus/car gradually instead of either zipping past at full speed (the original
-    // overlap bug) or standing dead still regardless of how much you scroll (felt frozen).
-    // Stateless — pure function of SCROLL_MAP[23] + combined local, no captured tx — so
-    // it's exactly reversible scrolling either direction.
-    const combinedLocal = (currentScene - 23) + sceneLocal; // 0 at scene-55 start .. ~3 at scene-57 end
-    effectiveTx = -(SCROLL_MAP[23].stripX + combinedLocal * S5557_PAN_SPEED * _vw);
-  } else if (currentScene === 25 && sceneLocal >= S5557_RELEASE_START && SCROLL_MAP[23]) {
-    // Last stretch of scene 57: bridge from the slow pan back to normal speed so the two
-    // meet exactly by scene-57's end — no jump crossing into scene 58.
-    const combinedLocalAtRelease = 2 + S5557_RELEASE_START;
-    const slowTx = -(SCROLL_MAP[23].stripX + combinedLocalAtRelease * S5557_PAN_SPEED * _vw);
-    const bridgeT = easeInOutCubic((sceneLocal - S5557_RELEASE_START) / (1 - S5557_RELEASE_START));
-    effectiveTx = slowTx + bridgeT * (tx - slowTx);
+  } else if ((currentScene === 23 || currentScene === 24 || currentScene === 25) && SCROLL_MAP[23]) {
+    // Scenes 55-57: continuously ease from a slow pan up to full natural speed across the
+    // WHOLE hold (not flat-slow-then-sudden-catchup) — the previous version stayed pinned
+    // at 12% speed for 90% of the hold, then had to cram the whole speed difference into a
+    // narrow release window, which is exactly what read as "too fast" at the end. This
+    // blends smoothly from slowTx to natural tx as combinedLocal goes 0->3, so the speed
+    // ramps up gradually instead of jumping. At combinedLocal=0 (scene-55 start) slowTx
+    // already equals natural tx (both are SCROLL_MAP[23].stripX), and at combinedLocal=3
+    // (scene-57 end) the blend weight reaches 1 so it lands exactly on natural tx too — no
+    // jump at either end, including the handoff into scene 58's own normal panning.
+    // Stateless — pure function of SCROLL_MAP[23] + combined local + tx, no captured state —
+    // so it's exactly reversible scrolling either direction.
+    const combinedLocal = (currentScene - 23) + sceneLocal; // 0 at scene-55 start .. 3 at scene-57 end
+    const slowTx = -(SCROLL_MAP[23].stripX + combinedLocal * S5557_PAN_SPEED * _vw);
+    const w = easeInOutCubic(Math.min(1, combinedLocal / 3));
+    effectiveTx = slowTx + w * (tx - slowTx);
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -1313,10 +1306,12 @@ function animateCityBus(scene, local, opacity) {
       // Scenes 56-57: stays parked
       busX = CENTER;
     } else {
-      // Scene 58: drives off right and fades as the street pans into clear sky
-      const t = easeInOutCubic(Math.min(1, local / 0.2));
+      // Scene 58: drives off right and fades as the street pans into clear sky — spread
+      // across most of the scene (was finishing by local 0.2, way too fast) so it reads as
+      // a normal, unhurried drive-off instead of a sudden dash.
+      const t = easeInOutCubic(Math.min(1, local / 0.7));
       busX = CENTER + t * 1.4 * vw;
-      eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.3));
+      eff  = opacity * (1 - Math.max(0, (local - 0.7) / 0.3));
     }
     // Companion car (#s5558-car) leads ahead of the bus — own timing, a little earlier
     // than the bus's so it's already rolling into frame before the bus catches up.
@@ -1337,11 +1332,12 @@ function animateCityBus(scene, local, opacity) {
         carX   = CENTER + CAR_AHEAD + sway;
         carEff = opacity;
       } else {
-        // Scene 58: car pulls away faster and earlier than the bus (own 0.4 window vs the
-        // bus's 0.6) so it's already gone before the bus finishes its own exit.
-        const tCar = easeInOutCubic(Math.min(1, local / 0.4));
+        // Scene 58: car pulls away a little sooner than the bus (own 0.5 window vs the
+        // bus's 0.7) so it's gone shortly before the bus finishes, without either being a
+        // sudden dash — same "spread across most of the scene" fix as the bus above.
+        const tCar = easeInOutCubic(Math.min(1, local / 0.5));
         carX   = CENTER + CAR_AHEAD + tCar * 1.6 * vw;
-        carEff = opacity * (1 - Math.max(0, (local - 0.4) / 0.3));
+        carEff = opacity * (1 - Math.max(0, (local - 0.5) / 0.35));
       }
       s5558Car.style.opacity   = carEff.toFixed(3);
       s5558Car.style.transform = `translateX(${carX.toFixed(1)}px)`;
