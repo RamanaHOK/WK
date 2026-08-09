@@ -146,6 +146,7 @@ const cityBusFull    = document.getElementById('city-bus-full');
 const cityBusPeople1 = document.getElementById('city-bus-people1');
 const cityBusS26     = document.getElementById('city-bus-s26');
 const cityBusInside  = document.getElementById('city-bus-inside');
+const cityBusS55     = document.getElementById('city-bus-s55');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -1052,6 +1053,7 @@ function animateCityBus(scene, local, opacity) {
   if (cityBusPeople1) cityBusPeople1.style.opacity = '0';
   if (cityBusS26)     cityBusS26.style.opacity     = '0';
   if (cityBusInside)  cityBusInside.style.opacity  = '0';
+  if (cityBusS55)     cityBusS55.style.opacity     = '0';
   if (cityAwayStand)  cityAwayStand.style.opacity  = '0';
   if (cityAwayHandle) cityAwayHandle.style.opacity = '0';
   if (cityBusHandleProp) cityBusHandleProp.style.opacity = '0';
@@ -1259,10 +1261,33 @@ function animateCityBus(scene, local, opacity) {
     } else {
       if (pinnedWrap) pinnedWrap.style.transform = 'scale(1)';
     }
+  } else if (scene >= 23 && scene <= 26) {
+    // Scenes 55-58: matatu drives in and parks outside the Municipal Federation building —
+    // same drive-in-then-park pattern as scene 5 (see scene===4 block above), using the
+    // "full bus" exterior variant. Parked through 56-57, then drives off right as the
+    // street pans away into clear sky at the end of scene 58.
+    eff  = opacity;
+    zoom = 1;
+    if (cityBus) cityBus.style.transformOrigin = '50% 50%';
+    if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
+    if (cityBusS55)   cityBusS55.style.opacity   = '1';
+    if (scene === 23) {
+      // Drive in from off-screen left, parked by local 0.2
+      const t = easeInOutCubic(Math.min(1, local / 0.2));
+      busX = ENTRY + t * (CENTER - ENTRY);
+    } else if (scene <= 25) {
+      // Scenes 56-57: stays parked
+      busX = CENTER;
+    } else {
+      // Scene 58: drives off right and fades as the street pans into clear sky
+      const t = easeInOutCubic(Math.min(1, local / 0.6));
+      busX = CENTER + t * 1.4 * vw;
+      eff  = opacity * (1 - Math.max(0, (local - 0.6) / 0.4));
+    }
   }
 
-  // Apply cursor parallax across all city scenes (5–19); frozen only during bus close-up
-  const inCityBus  = scene >= 4 && scene <= 16;
+  // Apply cursor parallax across all city scenes (5–19, 55–58); frozen only during bus close-up
+  const inCityBus  = (scene >= 4 && scene <= 16) || (scene >= 23 && scene <= 26);
   const inBusClose = scene === 7 && local >= S8_EXIT;
   const bpx = (inCityBus && !inBusClose) ? prlxX2 * 12 : 0;
   const bpy = (inCityBus && !inBusClose) ? prlxY2 * 6  : 0;
