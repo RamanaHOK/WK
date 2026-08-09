@@ -982,7 +982,7 @@ function frame(ts) {
     const vwPx = _vw / 100;
     const viewportCenterVw = -effectiveTx / vwPx + 50;
     const popupCenterVw = viewportCenterVw - S5558_BG_LEFT_VW;
-    const show55 = currentScene === 23 && sceneLocal > 0.05 && sceneLocal < 0.92;
+    const show55 = currentScene === 23 && sceneLocal > 0.3 && sceneLocal < 0.92;
     const show56 = currentScene === 24 && sceneLocal > 0.15 && sceneLocal < 0.92;
     const show57 = currentScene === 25 && sceneLocal > 0.15 && sceneLocal < 0.92;
     positionCenteredPopup(panels[24], show55, popupCenterVw);
