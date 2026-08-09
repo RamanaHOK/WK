@@ -1982,8 +1982,8 @@ display: block;
 }
 .s5558-pedestrians {
   position: absolute;
-  left: 120vw !important;
-  bottom: 14vh;
+  left: 75vw !important;
+  bottom: 37vh;
   top: auto !important;
   width: 8vw !important;
   height: auto;
@@ -1991,12 +1991,12 @@ display: block;
 }
 .s5558-seller {
   position: absolute;
-  left: 68vw !important;
-  bottom: 14vh;
+  left: 89vw !important;
+  bottom: -10vh;
   top: auto !important;
   width: 7vw !important;
   height: auto;
-  z-index: 3;
+  z-index: 999;
 }
 .s5558-bus {
   position: absolute;
