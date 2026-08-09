@@ -30,10 +30,10 @@ const SCENE_SCROLL = [
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
   1.5,  // 21 → scene-46 (red lady with bag ambient)
   1.5,  // 22 → scene-47 (wheelchair man ambient)
-  3.0,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building) — doubled so bus/car drive-in plays at half speed
-  3.0,  // 24 → scene-56 (second popup) — doubled to match, keeps the parked hold in proportion
-  3.0,  // 25 → scene-57 (third, bigger popup) — doubled to match
-  2.4,  // 26 → scene-58 (pans past the street into clear sky) — doubled so bus/car drive-off plays at half speed
+  1.5,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  1.5,  // 24 → scene-56 (second popup)
+  1.5,  // 25 → scene-57 (third, bigger popup)
+  1.2,  // 26 → scene-58 (pans past the street into clear sky)
 ];
 
 // ---- Per-scene configuration ----
