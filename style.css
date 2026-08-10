@@ -644,23 +644,6 @@ html, body {
   opacity: 0;
 }
 
-/* Entrance reveal for scenes 59-73 — same fixed/full-viewport pattern as the transition
-   frame above, but this one starts opaque and fades OUT (see frame()'s sync in scroll.js),
-   so scene 59 reveals smoothly through the clouds instead of popping in right after the
-   previous chapter's cover disappears. */
-#s5973-entrance-cover {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  background-color: #A9BB5D; /* matches #s59-s73-bg's park-green fallback */
-  z-index: 12;
-  pointer-events: none;
-  opacity: 0;
-}
-
 /* ================================================================
    SCENES 1–3: Jungle
    ================================================================ */

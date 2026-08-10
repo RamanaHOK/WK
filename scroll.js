@@ -179,7 +179,6 @@ const s5558TransitionFrameFront = document.getElementById('s5558-transition-fram
 const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
 const s5973Panels = [59,60,61,62,63,64,65,66,67,68,69,70,71,72,73].map(n => document.getElementById(`panel-${n}`));
-const s5973EntranceCover = document.getElementById('s5973-entrance-cover');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -1064,21 +1063,6 @@ function frame(ts) {
       const show = currentScene === sceneIdx && sceneLocal > 0.15 && sceneLocal < 0.9;
       positionCenteredPopup(el, show, popupCenterVw2);
     });
-  }
-
-  // -- Scene 59 entrance reveal: starts fully opaque (picking up right where scene 58's own
-  // cover left off) and fades out over the first 30% of scene 59's local, instead of the
-  // previous hard cut straight to invisible the instant scene 59 began. Stateless — pure
-  // function of currentScene/sceneLocal, so it's exactly reversible scrolling either way. --
-  if (s5973EntranceCover) {
-    // Only relevant right at the scene 58/59 boundary — #s5558-transition-frame-front (see
-    // above) already covers the screen throughout scene 58 itself, so this stays hidden
-    // until scene 59 actually begins, at which point it snaps to full opacity (matching what
-    // transition-frame-front was already showing, so the handoff is invisible) and fades out.
-    const coverOpacity = currentScene === 27
-      ? Math.max(0, 1 - easeInOutCubic(Math.min(1, sceneLocal / 0.3)))
-      : 0;
-    s5973EntranceCover.style.opacity = coverOpacity.toFixed(3);
   }
 
   // #panel-5: track bus position — now `position: fixed` (see style.css), so it moves in
