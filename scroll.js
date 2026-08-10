@@ -1480,7 +1480,7 @@ function animateCityBus(scene, local, opacity) {
       const t = easeInOutCubic(Math.min(1, local / 1.0));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
-      eff  = opacity * Math.min(1, local / 0.4);
+      eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
