@@ -1474,8 +1474,9 @@ function animateCityBus(scene, local, opacity) {
     // boundary — 0 at scene-59 start, 14+local at scene-73.
     const chapterPhase = (scene - 27) + local;
     if (scene === 27) {
-      // Drive in from off-screen, same "full scene, far entry" pacing as scene 55's.
-      const FAR_ENTRY = -0.6 * vw;
+      // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
+      // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
+      const FAR_ENTRY = -0.25 * vw;
       const t = easeInOutCubic(Math.min(1, local / 1.0));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
