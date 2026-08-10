@@ -584,15 +584,17 @@ html, body {
   pointer-events: none;
   opacity: 0;
 }
-/* Two more cars — same lottie asset as #s5558-car, own timing/position (see driveCar() in
-   animateCityBus). Slightly smaller + set further back (lower bottom%) to read as further
-   away / a different lane, not a stacked duplicate of the first car. */
+/* Two more cars — static images (Honda Fit / toyota probox) already in assets/s55-s58/, own
+   timing/position (see driveCar() in animateCityBus). Slightly smaller + set further back
+   (lower bottom%) to read as further away / a different lane, not a stacked duplicate of the
+   first car. height:auto (not a fixed height like the lottie car) so these keep their own
+   natural aspect ratio instead of being stretched/distorted. */
 #s5558-car2 {
   position: fixed;
   bottom: 3%;
   left: 0;
   width: 30vw;
-  height: 17vh;
+  height: auto;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
@@ -602,7 +604,7 @@ html, body {
   bottom: 4%;
   left: 0;
   width: 32vw;
-  height: 18vh;
+  height: auto;
   z-index: 4;
   pointer-events: none;
   opacity: 0;

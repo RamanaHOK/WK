@@ -429,10 +429,11 @@
        pattern as #city-bus, transform driven in sync with it (see animateCityBus). -->
   <lottie-player id="s5558-car" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
 
-  <!-- Two more cars — same lottie asset, own staggered timing (see driveCar() in
-       animateCityBus), so the street has a bit more passing traffic. -->
-  <lottie-player id="s5558-car2" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
-  <lottie-player id="s5558-car3" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
+  <!-- Two more cars — static images already in assets/s55-s58/ (not more lottie clones),
+       own staggered timing (see driveCar() in animateCityBus), so the street has a bit more
+       passing traffic. -->
+  <img id="s5558-car2" src="assets/s55-s58/Honda%20Fit.svg" alt="" aria-hidden="true">
+  <img id="s5558-car3" src="assets/s55-s58/toyota%20probox.svg" alt="" aria-hidden="true">
 
   <!-- Clouds+birds transition frame — root-level fixed element, NOT a child of #s55-s58-bg
        (that wrapper has its own lower stacking context, so a child's z-index can never
