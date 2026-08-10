@@ -2203,35 +2203,18 @@ display: block;
   z-index: 4;
 }
 .s5973-shadow {
-  left: 60vw !important;
+  left: 450vw !important; /* pushed out of scene-59's opening view (was 60vw, showing up
+    in what should be the clean bridge/lake/palm-tree shot) — closer to scene-64's own
+    ~500vw local position, where this park-structure shape is more likely to belong */
   bottom: 10%; top: auto;
   width: 220vw !important;
   height: auto;
   opacity: 0.5;
   z-index: 1;
 }
-.s5973-prop {
-  left: 40vw !important;
-  bottom: 5%; top: auto;
-  width: 5vw !important;
-  height: auto !important;
-  z-index: 3;
-}
-/* Ambient parked/passing vehicles */
-.s5973-matatu5 {
-  left: 10vw !important;
-  bottom: 8%; top: auto;
-  width: 16vw !important;
-  height: auto !important;
-  z-index: 3;
-}
-.s5973-matatu8 {
-  left: 260vw !important;
-  bottom: 9%; top: auto;
-  width: 20vw !important;
-  height: auto !important;
-  z-index: 3;
-}
+/* .s5973-prop/.s5973-matatu5/.s5973-matatu8 rules removed along with their elements — see
+   the HTML comment near #s59-s73-bg for why (unclear/broken at this scale, not in the
+   scene-59 reference). */
 
 #panel-59 p, #panel-60 p, #panel-61 p, #panel-62 p, #panel-63 p,
 #panel-64 p, #panel-65 p, #panel-66 p, #panel-67 p, #panel-68 p,
