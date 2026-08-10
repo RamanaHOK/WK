@@ -402,6 +402,68 @@
       <div class="text-panel" id="panel-57" aria-hidden="true"></div>
     </div>
 
+    <!-- SCENES 59–73: Closing chapter — park/lake path (bridge, palm trees, ambient
+         pedestrians), the matatu driving continuously through, 15 short closing-statement
+         popups (scroll indices 27–41). One continuous #s59-s73-bg wrapper, same pattern as
+         #s55-s58-bg/#s45-s48-bg. FIRST DRAFT from the 3 reference screenshots provided
+         (scenes 59/60/64) — positions are a starting guess for all 15, expect to retune once
+         on screen. Popup text is real for panel-59/60/64 (from the references); the other 12
+         are placeholders pending real copy. -->
+    <div class="scene city scene-59"></div>
+    <div class="scene city scene-60"></div>
+    <div class="scene city scene-61"></div>
+    <div class="scene city scene-62"></div>
+    <div class="scene city scene-63"></div>
+    <div class="scene city scene-64"></div>
+    <div class="scene city scene-65"></div>
+    <div class="scene city scene-66"></div>
+    <div class="scene city scene-67"></div>
+    <div class="scene city scene-68"></div>
+    <div class="scene city scene-69"></div>
+    <div class="scene city scene-70"></div>
+    <div class="scene city scene-71"></div>
+    <div class="scene city scene-72"></div>
+    <div class="scene city scene-73"></div>
+
+    <!-- Single wide background spanning scenes 59-73 (1500vw = 15 scene-slots × 100vw each,
+         see #s59-s73-bg's width comment in style.css for why it must be that wide). Ground/
+         bridge-trees/trees-top are tiled via CSS background-repeat (divs, not <img>) since
+         there isn't enough unique art to cover 1500vw as single images without stretching. -->
+    <div id="s59-s73-bg">
+      <div class="s5973-clouds-tile"></div>
+      <img class="s5973-clouds1" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
+      <img class="s5973-clouds2" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
+      <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
+      <div class="s5973-ground"></div>
+      <img class="s5973-bridge-lake"  src="assets/s59-s73/Bridge%2Blake%2Bbottom%20trees.svg"  alt="">
+      <div class="s5973-bridge-trees"></div>
+      <div class="s5973-trees-top"></div>
+      <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
+      <img class="s5973-prop"         src="assets/s59-s73/Group%20905.svg"                     alt="">
+      <img class="s5973-matatu5"      src="assets/s59-s73/Matatu%205.svg"                      alt="">
+      <img class="s5973-matatu8"      src="assets/s59-s73/Matatu%208.svg"                      alt="">
+
+      <!-- Popups — content from panels.panel-59..panel-73 in i18n/<lang>.json, dynamically
+           centered via positionCenteredPopup (see animateS5973Popups in scroll.js), same
+           technique as scenes 45-48/55-57 (a static CSS left doesn't track the pan correctly
+           here since this wrapper is much wider than one viewport). -->
+      <div class="text-panel" id="panel-59" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-60" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-61" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-62" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-63" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-64" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-65" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-66" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-67" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-68" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-69" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-70" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-71" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-72" aria-hidden="true"></div>
+      <div class="text-panel" id="panel-73" aria-hidden="true"></div>
+    </div>
+
   </div><!-- /scroll-x -->
 
   <!-- Seller lives outside #scroll-x/#s55-s58-bg's stacking contexts entirely (both have

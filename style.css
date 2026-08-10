@@ -2100,6 +2100,143 @@ display: block;
 }
 #panel-55 p, #panel-56 p, #panel-57 p { color: #9F2222; }
 
+/* ================================================================
+   SCENES 59–73 — closing chapter: park/lake path with the matatu
+   driving through, 15 short closing-statement popups (scroll indices
+   27–41). FIRST DRAFT from the 3 reference screenshots (scenes
+   59/60/64) — every left/width/top value below is a starting guess,
+   expect to retune once this is actually on screen.
+   ================================================================ */
+.scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61,
+.scene.city.scene-62, .scene.city.scene-63, .scene.city.scene-64,
+.scene.city.scene-65, .scene.city.scene-66, .scene.city.scene-67,
+.scene.city.scene-68, .scene.city.scene-69, .scene.city.scene-70,
+.scene.city.scene-71, .scene.city.scene-72, .scene.city.scene-73 { background: transparent; }
+
+#s59-s73-bg {
+  position: absolute;
+  left: 3065vw; /* scene-59 (index 27): 27*100vw + 365vw (scene-21 extra width shift) */
+  top: 0;
+  width: 1500vw; /* 15 scene-slots × 100vw each — the pan ALWAYS advances exactly 100vw per
+    scroll index regardless of that index's own SCENE_SCROLL value (SCENE_SCROLL only
+    controls how much scrolling it takes to cover that 100vw, not the pan distance itself).
+    A narrower width here leaves a real content gap once the pan runs past its right edge,
+    not just a "less matched" scroll pace — this bit scenes 55-58 too until corrected. */
+  height: 100vh;
+  background-color: #A9BB5D; /* olive-green park fallback, matches the reference screenshots'
+    grass tone, so any gap between art layers doesn't show a jarring color */
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+#s59-s73-bg img {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+
+/* Base sky coverage across the full 1500vw strip — the 3 accent clouds below only cover the
+   first 540vw, so this tiled layer fills the rest instead of leaving empty gaps in the sky. */
+.s5973-clouds-tile {
+  position: absolute;
+  left: 0; top: 0;
+  width: 1500vw;
+  height: 40%;
+  background-image: url('assets/s59-s73/clouds%20%283%29.svg');
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-size: auto 100%;
+  opacity: 0.5;
+  z-index: 0;
+}
+.s5973-clouds1 { top: 0%; left: 0vw   !important; width: 200vw !important; z-index: 0; opacity: 0.8; }
+.s5973-clouds2 { top: 2%; left: 180vw !important; width: 200vw !important; z-index: 0; opacity: 0.7; }
+.s5973-clouds3 { top: 1%; left: 340vw !important; width: 200vw !important; z-index: 0; opacity: 0.75; }
+
+/* Big ground/backdrop composite — behind the bridge/tree layers. Tiled via background-repeat
+   (this is a <div>, not an <img> — not enough unique art to cover the full 1500vw width as
+   one stretched image without it looking distorted/empty). */
+.s5973-ground {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 1500vw;
+  height: 60%;
+  background-image: url('assets/s59-s73/Group%20900.svg');
+  background-repeat: repeat-x;
+  background-position: bottom left;
+  background-size: auto 100%;
+  z-index: 1;
+}
+/* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
+.s5973-bridge-lake {
+  left: 0vw !important;
+  bottom: 0; top: auto;
+  width: auto !important;
+  height: 85% !important;
+  z-index: 2;
+}
+/* Wider bridge+trees stretch, tiled across the rest of the strip past the lake view */
+.s5973-bridge-trees {
+  position: absolute;
+  left: 170vw; bottom: 0;
+  width: 1330vw; /* 1500vw total - 170vw already covered by .s5973-bridge-lake */
+  height: 80%;
+  background-image: url('assets/s59-s73/Bridge%20%2B%20bottom%20trees.svg');
+  background-repeat: repeat-x;
+  background-position: bottom left;
+  background-size: auto 100%;
+  z-index: 2;
+}
+/* Tree canopy overlay — tiled across the full strip, foreground layer the bus drives under */
+.s5973-trees-top {
+  position: absolute;
+  left: 0; top: 0;
+  width: 1500vw;
+  height: 18%; /* a proper top strip, not stretched to natural aspect (which scaled to
+    ~1972px tall — way past the 800px viewport — and blanketed the whole screen in canopy
+    green, hiding everything behind it) */
+  background-image: url('assets/s59-s73/Trees%20top%20layer.svg');
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-size: auto 100%;
+  z-index: 4;
+}
+.s5973-shadow {
+  left: 60vw !important;
+  bottom: 10%; top: auto;
+  width: 220vw !important;
+  height: auto;
+  opacity: 0.5;
+  z-index: 1;
+}
+.s5973-prop {
+  left: 40vw !important;
+  bottom: 5%; top: auto;
+  width: 5vw !important;
+  height: auto !important;
+  z-index: 3;
+}
+/* Ambient parked/passing vehicles */
+.s5973-matatu5 {
+  left: 10vw !important;
+  bottom: 8%; top: auto;
+  width: 16vw !important;
+  height: auto !important;
+  z-index: 3;
+}
+.s5973-matatu8 {
+  left: 260vw !important;
+  bottom: 9%; top: auto;
+  width: 20vw !important;
+  height: auto !important;
+  z-index: 3;
+}
+
+#panel-59 p, #panel-60 p, #panel-61 p, #panel-62 p, #panel-63 p,
+#panel-64 p, #panel-65 p, #panel-66 p, #panel-67 p, #panel-68 p,
+#panel-69 p, #panel-70 p, #panel-71 p, #panel-72 p, #panel-73 p { color: #9F2222; }
+
 /* One ambient passenger roughly centred in each 100vw scene slot (0–800vw used; 800–1300vw
    left empty — pure interior/seats — so the ride doesn't feel over-crowded at the end) */
 /* Hidden until the scene-32 zoom, then revealed with a plain fade-in in place (no
