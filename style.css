@@ -2170,10 +2170,11 @@ display: block;
 }
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
 .s5973-bridge-lake {
-  left: 0vw !important;
-  bottom: 0; top: auto;
+  left: 15vw !important;
+  bottom: -45vh;
+  top: auto;
   width: auto !important;
-  height: 85% !important;
+  height: 100% !important;
   z-index: 2;
 }
 /* Wider bridge+trees stretch, tiled across the rest of the strip past the lake view */
@@ -2188,16 +2189,16 @@ display: block;
   background-size: auto 100%;
   z-index: 2;
 }
-/* Tree canopy overlay — tiled across the full strip, foreground layer the bus drives under */
+/* Tree canopy overlay — foreground layer the bus drives under */
 .s5973-trees-top {
   position: absolute;
-  left: 0; top: 0;
+  left: 0.4%;
+  /* top: 0; */
+  bottom: 43% !important;
   width: 1500vw;
-  height: 18%; /* a proper top strip, not stretched to natural aspect (which scaled to
-    ~1972px tall — way past the 800px viewport — and blanketed the whole screen in canopy
-    green, hiding everything behind it) */
+  height: 68%;
   background-image: url('assets/s59-s73/Trees%20top%20layer.svg');
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
   background-position: top left;
   background-size: auto 100%;
   z-index: 4;
