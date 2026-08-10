@@ -36,7 +36,9 @@ const SCENE_SCROLL = [
   0.3,  // 26 → scene-58 (pans past the street into clear sky)
   // Total 1.5 viewport-widths, matching #s55-s58-bg's new 150vw width (was 5.7/400vw) — no
   // dead scroll past where the content actually ends.
-  0.3,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup)
+  0.7,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup) —
+    // slowed down (was 0.3): more scroll room for the bus's drive-in + zoom-out now that
+    // the background art is bigger/more zoomed in, so panning through it doesn't feel rushed
   0.3,  // 28 → scene-60 (second popup — kids playing catch on the path)
   0.3,  // 29 → scene-61
   0.3,  // 30 → scene-62
