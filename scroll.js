@@ -90,10 +90,10 @@ const S45_STICKY_RANGE = 1.0;
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
 const S46_HOLD_START = 0.45;
 const S46_HOLD_END = 0.8;
-// Scenes 55-57 (street/bus-parked hold): starting pan speed as a fraction of normal (see
-// frame()'s effectiveTx block) — slow, not frozen, so scroll input always visibly moves
-// something. Eases continuously up to full speed by the end of scene 57, not a late snap.
-const S5557_PAN_SPEED = 0.12;
+// (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
+// 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
+// against the old, much larger values and became badly mismatched once those shrank, causing
+// it to overshoot and run the background out of content too early — see #s55-s58-bg's width.)
 // The zoom-in itself is wall-clock timed, not scroll-driven — once the pan settles him into
 // center (S46_HOLD_START), it plays out on its own like a video over S46_ZOOM_MS, no further
 // scrolling needed, then stays zoomed for the rest of scene 46 (see _s46ZoomT0 in frame()).
@@ -158,6 +158,7 @@ const s5558Car        = document.getElementById('s5558-car');
 const s5558Car2       = document.getElementById('s5558-car2');
 const s5558Car3       = document.getElementById('s5558-car3');
 const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
+const s4548Bg = document.getElementById('s45-s48-bg');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -741,22 +742,6 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
-  } else if ((currentScene === 23 || currentScene === 24 || currentScene === 25) && SCROLL_MAP[23]) {
-    // Scenes 55-57: continuously ease from a slow pan up to full natural speed across the
-    // WHOLE hold (not flat-slow-then-sudden-catchup) — the previous version stayed pinned
-    // at 12% speed for 90% of the hold, then had to cram the whole speed difference into a
-    // narrow release window, which is exactly what read as "too fast" at the end. This
-    // blends smoothly from slowTx to natural tx as combinedLocal goes 0->3, so the speed
-    // ramps up gradually instead of jumping. At combinedLocal=0 (scene-55 start) slowTx
-    // already equals natural tx (both are SCROLL_MAP[23].stripX), and at combinedLocal=3
-    // (scene-57 end) the blend weight reaches 1 so it lands exactly on natural tx too — no
-    // jump at either end, including the handoff into scene 58's own normal panning.
-    // Stateless — pure function of SCROLL_MAP[23] + combined local + tx, no captured state —
-    // so it's exactly reversible scrolling either direction.
-    const combinedLocal = (currentScene - 23) + sceneLocal; // 0 at scene-55 start .. 3 at scene-57 end
-    const slowTx = -(SCROLL_MAP[23].stripX + combinedLocal * S5557_PAN_SPEED * _vw);
-    const w = easeInOutCubic(Math.min(1, combinedLocal / 3));
-    effectiveTx = slowTx + w * (tx - slowTx);
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -817,6 +802,22 @@ function frame(ts) {
     } else {
       s5558TransitionFrameFront.style.opacity = '0';
     }
+  }
+
+  // -- Fade out #s45-s48-bg once scene 55 begins. It's 520vw wide (2298vw-2818vw), which
+  // overlaps well into #s55-s58-bg's own territory (2665vw-2815vw) — normally invisible
+  // because scenes 55-58 used to have a long scroll runway that panned well clear of the
+  // overlap before the street content came on screen. Now that that scroll length is much
+  // shorter (compressed to match #s55-s58-bg's smaller 150vw width), the pan doesn't clear
+  // it in time, so #s45-s48-bg (z-index:2, above #s55-s58-bg's z-index:1) was still visibly
+  // covering/patchworking with the street scene. Explicit fade instead of relying on pan
+  // position to clear it. Starts easing out during scene 47's last 30% for a smooth handoff.
+  if (s4548Bg) {
+    let s4548Opacity;
+    if (currentScene < 22) s4548Opacity = 1;
+    else if (currentScene === 22) s4548Opacity = 1 - easeInOutCubic(Math.max(0, sceneLocal - 0.7) / 0.3);
+    else s4548Opacity = 0;
+    s4548Bg.style.opacity = s4548Opacity.toFixed(3);
   }
 
   // -- Scene-5 trees overlay: sync to scene-5 viewport position so it sits above city-bus --
