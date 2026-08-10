@@ -2159,13 +2159,14 @@ display: block;
    one stretched image without it looking distorted/empty). */
 .s5973-ground {
   position: absolute;
-  left: 0; bottom: 0;
-  width: 1500vw;
-  height: 60%;
+  left: 69vw;
+  bottom: -20vh;
+  width: 132vw;
+  height: 121%;
   background-image: url('assets/s59-s73/Group%20900.svg');
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
   background-position: bottom left;
-  background-size: auto 100%;
+  background-size: auto 175%;
   z-index: 1;
 }
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
