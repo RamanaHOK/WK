@@ -40,7 +40,9 @@ const SCENE_SCROLL = [
     // slowed down further (was 0.3, then 0.7): the bus's own drive-in and the zoom-out
     // already use the full scene-local range, so more scroll room is the only way to make
     // both play out more gradually — same lever for "bus speed" and "scroll speed" here
-  0.3,  // 28 → scene-60 (second popup — kids playing catch on the path)
+  1.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
+    // zoom-out-leaving-scene-59 transition, was 0.3 — much more scroll room so it plays out
+    // slowly and smoothly instead of snapping through in a fraction of a scroll)
   0.3,  // 29 → scene-61
   0.3,  // 30 → scene-62
   0.3,  // 31 → scene-63
@@ -1076,7 +1078,7 @@ function frame(ts) {
     if (s5973BgArt) {
       if (currentScene === 28) {
         const tZoom = easeInOutCubic(Math.min(1, sceneLocal / 1.0));
-        const bgScale = 1 - 0.15 * tZoom;
+        const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2 across the whole scene (was 1.0->0.85)
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
       } else {
@@ -1511,7 +1513,7 @@ function animateCityBus(scene, local, opacity) {
       busY = Math.sin(chapterPhase * Math.PI * 4) * 2;
       busX = CENTER + bob;
       const tOut = easeInOutCubic(Math.min(1, local / 1.0));
-      zoom = 1 - 0.15 * tOut;
+      zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2 across the whole scene (was 1.0->0.85)
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
