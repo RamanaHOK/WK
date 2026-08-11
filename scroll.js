@@ -1070,15 +1070,19 @@ function frame(ts) {
       positionCenteredPopup(el, show, popupCenterVw2);
     });
 
-    // -- Whole-background zoom: normal (1.0) throughout scene 59 itself, then the zoom-out
-    // transition (scaling below 1.0, a true pull-back) happens leaving it, during scene 60 —
-    // same curve/timing as the matching bus zoom above. transform-origin tracks the current
-    // viewport center (popupCenterVw2, already computed above) so it zooms from what's
-    // actually on screen instead of some fixed point on the 1500vw-wide strip. --
+    // -- Whole-background zoom: same shared phase timeline as the bus's own zoom (see
+    // ZOOM_START_PHASE/ZOOM_END_PHASE in animateCityBus's scene===27/28 block) — starts
+    // easing during scene 59's tail (70% through), fully zoomed out by scene 60's end.
+    // transform-origin tracks the current viewport center (popupCenterVw2, already computed
+    // above) so it zooms from what's actually on screen instead of some fixed point on the
+    // 1500vw-wide strip. --
     if (s5973BgArt) {
-      if (currentScene === 28) {
-        const tZoom = easeInOutCubic(Math.min(1, sceneLocal / 1.0));
-        const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2 across the whole scene (was 1.0->0.85)
+      if (currentScene === 27 || currentScene === 28) {
+        const bgChapterPhase = (currentScene - 27) + sceneLocal;
+        const ZOOM_START_PHASE = 0.7;
+        const ZOOM_END_PHASE = 2.0;
+        const tZoom = easeInOutCubic(Math.min(1, Math.max(0, (bgChapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
+        const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
       } else {
@@ -1495,6 +1499,15 @@ function animateCityBus(scene, local, opacity) {
     // Continuous phase across all 15 scenes so the bob doesn't reset/jump at each scene
     // boundary — 0 at scene-59 start, 14+local at scene-73.
     const chapterPhase = (scene - 27) + local;
+    // Zoom-out phase: shared timeline across scenes 59-60 so it can start a little early
+    // (during scene 59's own tail) instead of snapping to 1.0 right up until scene 60 begins.
+    // ZOOM_START_PHASE=0.7 -> starts at 70% through scene 59; ZOOM_END_PHASE=2.0 -> fully
+    // zoomed out by scene 60's end. Same tOut value drives both the bus and the background
+    // art (s5973BgArt below) so they stay perfectly in sync.
+    const ZOOM_START_PHASE = 0.7;
+    const ZOOM_END_PHASE = 2.0;
+    const tOut = easeInOutCubic(Math.min(1, Math.max(0, (chapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
+    zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2
     if (scene === 27) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
@@ -1503,17 +1516,11 @@ function animateCityBus(scene, local, opacity) {
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
-      zoom = 1; // normal scale throughout scene 59 itself — the zoom-out transition happens
-        // leaving it (scene 60), not during it, see the scene===28 block below
     } else if (scene === 28) {
-      // Scene 60: zoom-out transition leaving scene 59 — scale eases from normal (1.0) down
-      // to smaller (below 1.0, a true zoom-out/pull-back), not the reverse of scene 59's old
-      // "starts big, eases to normal" — this happens AFTER scene 59, not during it.
+      // Scene 60: bus keeps its idle bob/sway, zoom (tOut, computed above) continues easing.
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busY = Math.sin(chapterPhase * Math.PI * 4) * 2;
       busX = CENTER + bob;
-      const tOut = easeInOutCubic(Math.min(1, local / 1.0));
-      zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2 across the whole scene (was 1.0->0.85)
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
