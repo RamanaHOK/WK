@@ -349,6 +349,10 @@ let _s32FrozenTx  = null; // pan held stable during the initial zoom window (loc
 let _s32ZoomOutT0 = null; // wall-clock timestamp when the zoom-out + Samuel reveal started
 const S32_ZOOMOUT_MS = 1200; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 
+let _s5960ZoomT0    = null; // wall-clock timestamp when the scenes 59->60 zoom-out started
+let _s5960FrozenTx  = null; // pan held stable for the same duration, same reasoning as _s32FrozenTx
+const S5960_ZOOMOUT_MS = 1800; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
+
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
 // both pregnant-woman popups, then zooms back OUT once local reaches S33_ZOOM_HOLD
@@ -776,6 +780,22 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
+  } else if (currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE) {
+    // Auto-playing zoom-out (scenes 59->60): once scrolled to this point, position freezes
+    // exactly where it is and the whole zoom-out (bus scale + background scale, computed
+    // below from the SAME _s5960ZoomT0/S5960_ZOOMOUT_MS) plays on its own like a video — no
+    // further scroll needed. Same mechanic as the scene-32/33 auto zoom-outs above.
+    if (_s5960ZoomT0 === null) {
+      _s5960ZoomT0 = ts;
+      _scrollFreezeUntil = Date.now() + S5960_ZOOMOUT_MS;
+    }
+    if (ts - _s5960ZoomT0 < S5960_ZOOMOUT_MS) {
+      if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
+      effectiveTx = _s5960FrozenTx;
+    } else {
+      _s5960FrozenTx = null;
+      effectiveTx = tx;
+    }
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -784,6 +804,7 @@ function frame(ts) {
     _s33FrozenTx = null;
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
+    if (currentScene < 27) _s5960ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     effectiveTx = tx;
   }
 
@@ -791,6 +812,18 @@ function frame(ts) {
   if (currentScene !== 7 && currentScene !== 9 && pinnedWrap) {
     pinnedWrap.style.transform = '';
     _s13TotalScale = 1;
+  }
+
+  // Scenes 59->60 zoom-out progress (0-1), wall-clock driven once triggered above — single
+  // source of truth reused by BOTH the bus (passed into animateCityBus) and the background
+  // art zoom below, so they can't drift apart the way the old scroll-driven versions did.
+  let s5960ZoomT;
+  if (_s5960ZoomT0 !== null) {
+    s5960ZoomT = easeInOutCubic(Math.min(1, (ts - _s5960ZoomT0) / S5960_ZOOMOUT_MS));
+  } else if (currentScene >= 28) {
+    s5960ZoomT = 1; // already scrolled past (e.g. jumped via nav) without triggering here
+  } else {
+    s5960ZoomT = 0;
   }
 
   // -- Horizontal strip --
@@ -977,7 +1010,7 @@ function frame(ts) {
 
   // -- Matatu drive-in --
   animateMatatu(currentScene, sceneLocal, tx, junglePhase, busOpacity);
-  animateCityBus(currentScene, sceneLocal, busOpacity);
+  animateCityBus(currentScene, sceneLocal, busOpacity, s5960ZoomT);
   animateS21Vehicles(currentScene, sceneLocal);
   animateS26S30(currentScene, sceneLocal, effectiveTx);
   animateS32S43(currentScene, sceneLocal, effectiveTx, ts);
@@ -1078,17 +1111,15 @@ function frame(ts) {
       positionCenteredPopup(el, show, popupCenterVw2);
     });
 
-    // -- Whole-background zoom: same shared phase timeline as the bus's own zoom (see
-    // ZOOM_START_PHASE/ZOOM_END_PHASE in animateCityBus's scene===27/28 block) — starts
-    // easing during scene 59's tail (70% through), fully zoomed out by scene 60's end.
-    // transform-origin tracks the current viewport center (popupCenterVw2, already computed
-    // above) so it zooms from what's actually on screen instead of some fixed point on the
-    // 1500vw-wide strip. --
+    // -- Whole-background zoom: auto-playing, wall-clock driven by s5960ZoomT (computed once,
+    // shared with the bus's own zoom in animateCityBus — see the freeze branch above and
+    // where s5960ZoomT is computed, right after the effectiveTx chain). transform-origin
+    // tracks the current viewport center (popupCenterVw2, already computed above) so it
+    // zooms from what's actually on screen instead of some fixed point on the 1500vw-wide
+    // strip. --
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
-        const bgChapterPhase = (currentScene - 27) + sceneLocal;
-        const tZoom = easeInOutCubic(Math.min(1, Math.max(0, (bgChapterPhase - S5960_ZOOM_START_PHASE) / (S5960_ZOOM_END_PHASE - S5960_ZOOM_START_PHASE))));
-        const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2
+        const bgScale = 1 - 0.8 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
       } else {
@@ -1198,7 +1229,7 @@ function animateMatatu(scene, local, tx, junglePhase, opacity) {
 }
 
 // ---- City bus: starts entering when 30% of scene 4 (savanna) has passed ----
-function animateCityBus(scene, local, opacity) {
+function animateCityBus(scene, local, opacity, s5960ZoomT) {
   if (!cityBus) return;
   const vw     = window.innerWidth;
   const vh     = window.innerHeight;
@@ -1505,33 +1536,28 @@ function animateCityBus(scene, local, opacity) {
     // Continuous phase across all 15 scenes so the bob doesn't reset/jump at each scene
     // boundary — 0 at scene-59 start, 14+local at scene-73.
     const chapterPhase = (scene - 27) + local;
-    // Zoom-out phase: shared timeline across scenes 59-60 (S5960_ZOOM_START_PHASE/
-    // S5960_ZOOM_END_PHASE, declared once near the top of the file) so it can start a little
-    // early (during scene 59's own tail) instead of snapping to 1.0 right up until scene 60
-    // begins. Same tOut value drives both the bus and the background art (s5973BgArt) so
-    // they stay perfectly in sync — this used to be a locally-redeclared copy here, which is
-    // exactly how it drifted out of sync with the background's own copy before.
-    const tOut = easeInOutCubic(Math.min(1, Math.max(0, (chapterPhase - S5960_ZOOM_START_PHASE) / (S5960_ZOOM_END_PHASE - S5960_ZOOM_START_PHASE))));
-    zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2
-    if (scene === 27 && chapterPhase < S5960_ZOOM_START_PHASE) {
+    // Zoom scale driven by s5960ZoomT (passed in from frame() — wall-clock/auto-playing, see
+    // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
+    // a locally-redeclared scroll-driven copy here, which is exactly how it drifted out of
+    // sync with the background's own copy before.
+    zoom = 1 - 0.8 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
+    if (scene === 27 && s5960ZoomT === 0) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
-      // Reaches CENTER exactly by S5960_ZOOM_START_PHASE — the moment the zoom-out begins is
-      // also the moment the drive-in finishes, so the two hand off cleanly into each other.
+      // Still scroll-driven (local) — this part happens BEFORE the auto-play zoom triggers.
       const FAR_ENTRY = -0.25 * vw;
-      const t = easeInOutCubic(Math.min(1, chapterPhase / S5960_ZOOM_START_PHASE));
+      const t = easeInOutCubic(Math.min(1, local / S5960_ZOOM_START_PHASE));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
     } else if (scene === 27 || scene === 28) {
-      // From the instant the zoom-out starts (chapterPhase>=S5960_ZOOM_START_PHASE, whether
-      // still in scene 59's tail or into scene 60) the bus is basically parked — just a small
-      // fast shake/jitter instead of driving, since the zoom itself (tOut, computed above) is
-      // the main motion now. Shake fades out and fully stops 0.6 phase-units after it starts.
-      const shakePhase = chapterPhase - S5960_ZOOM_START_PHASE; // 0 right when the zoom begins
-      const shakeFade = 1 - easeInOutCubic(Math.min(1, shakePhase / 0.6));
-      const shakeX = Math.sin(shakePhase * Math.PI * 5) * 0.0015 * vw * shakeFade;
-      busY = Math.sin(shakePhase * Math.PI * 6) * 1.2 * shakeFade;
+      // From the instant the zoom-out starts, the bus is basically parked — just a small
+      // fast shake/jitter that fades out, driven by s5960ZoomT (wall-clock) instead of scroll
+      // position, since scroll is frozen/blocked for the whole auto-play duration (a
+      // scroll-driven shake wouldn't animate at all while scroll itself isn't moving).
+      const shakeFade = 1 - s5960ZoomT;
+      const shakeX = Math.sin(s5960ZoomT * Math.PI * 10) * 0.0015 * vw * shakeFade;
+      busY = Math.sin(s5960ZoomT * Math.PI * 12) * 1.2 * shakeFade;
       busX = CENTER + shakeX;
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
