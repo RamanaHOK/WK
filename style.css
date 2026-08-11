@@ -2169,19 +2169,19 @@ display: block;
 .s5973-ground {
   position: absolute;
   left: 69vw;
-  bottom: -20vh;
+  bottom: 0; /* was -20vh — pushed the image down almost a fifth of the viewport, cropping it */
   width: 132vw;
-  height: 121%;
+  height: 100%; /* was 121% */
   background-image: url('assets/s59-s73/Group%20900.svg');
   background-repeat: no-repeat;
   background-position: bottom left;
-  background-size: auto 175%;
+  background-size: auto 100%; /* was 175% — that's what made it look "zoomed" */
   z-index: 1;
 }
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
 .s5973-bridge-lake {
   left: 15vw !important;
-  bottom: -45vh;
+  bottom: 0; /* was -45vh — pushed nearly half the viewport height down, cropping most of it */
   top: auto;
   width: auto !important;
   height: 100% !important;
