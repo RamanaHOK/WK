@@ -2115,7 +2115,8 @@ display: block;
 
 #s59-s73-bg {
   position: absolute;
-  left: 3065vw; /* scene-59 (index 27): 27*100vw + 365vw (scene-21 extra width shift) */
+  left: 3089vw; /* user-tuned (was 3065vw, the math-derived 27*100vw+365vw) — must stay in
+    sync with S5973_BG_LEFT_VW in scroll.js (popup centering + zoom-out transform-origin) */
   top: 0;
   width: 1500vw; /* 15 scene-slots × 100vw each — the pan ALWAYS advances exactly 100vw per
     scroll index regardless of that index's own SCENE_SCROLL value (SCENE_SCROLL only

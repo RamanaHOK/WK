@@ -1058,7 +1058,7 @@ function frame(ts) {
   // middle 75% of its own scene's local range. S5973_BG_LEFT_VW must match #s59-s73-bg's
   // `left` in style.css. --
   if (SCROLL_MAP[27]) {
-    const S5973_BG_LEFT_VW = 3065;
+    const S5973_BG_LEFT_VW = 3089; // must match #s59-s73-bg's `left` in style.css (user-tuned)
     const vwPx2 = _vw / 100;
     const viewportCenterVw2 = -effectiveTx / vwPx2 + 50;
     const popupCenterVw2 = viewportCenterVw2 - S5973_BG_LEFT_VW;
