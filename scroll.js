@@ -1520,8 +1520,11 @@ function animateCityBus(scene, local, opacity) {
       // Scene 60: bus is basically parked — just a small fast shake/jitter instead of the
       // wide, slow driving sway used elsewhere, since the zoom-out (tOut, computed above) is
       // the main motion here. Higher frequency, much smaller amplitude than the normal bob.
-      const shakeX = Math.sin(chapterPhase * Math.PI * 14) * 0.0015 * vw;
-      busY = Math.sin(chapterPhase * Math.PI * 18) * 1.2;
+      // Shake fades out and fully stops by local:0.6 — settles early instead of shaking
+      // through the whole scene.
+      const shakeFade = 1 - easeInOutCubic(Math.min(1, local / 0.6));
+      const shakeX = Math.sin(chapterPhase * Math.PI * 14) * 0.0015 * vw * shakeFade;
+      busY = Math.sin(chapterPhase * Math.PI * 18) * 1.2 * shakeFade;
       busX = CENTER + shakeX;
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
