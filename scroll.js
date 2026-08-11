@@ -113,6 +113,14 @@ const S45_STICKY_RANGE = 1.0;
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
 const S46_HOLD_START = 0.45;
 const S46_HOLD_END = 0.8;
+// Scenes 59-60 zoom-out: shared timeline for BOTH the bus (animateCityBus) and the whole
+// background art (#s5973-bg-art, in frame()) — single source of truth so the two can't
+// drift apart (they did once: the background had its own separately-typed copy of
+// ZOOM_START_PHASE that got out of sync with the bus's). combinedPhase = (scene-27)+local,
+// 0 at scene-59 start .. 2 at scene-60 end. Starts easing at 70% through scene 59, fully
+// zoomed out (scale 0.2) by scene 60's end.
+const S5960_ZOOM_START_PHASE = 0.7;
+const S5960_ZOOM_END_PHASE = 2.0;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
 // against the old, much larger values and became badly mismatched once those shrank, causing
@@ -1079,9 +1087,7 @@ function frame(ts) {
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
         const bgChapterPhase = (currentScene - 27) + sceneLocal;
-        const ZOOM_START_PHASE = 0.1;
-        const ZOOM_END_PHASE = 2.0;
-        const tZoom = easeInOutCubic(Math.min(1, Math.max(0, (bgChapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
+        const tZoom = easeInOutCubic(Math.min(1, Math.max(0, (bgChapterPhase - S5960_ZOOM_START_PHASE) / (S5960_ZOOM_END_PHASE - S5960_ZOOM_START_PHASE))));
         const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
@@ -1499,31 +1505,30 @@ function animateCityBus(scene, local, opacity) {
     // Continuous phase across all 15 scenes so the bob doesn't reset/jump at each scene
     // boundary — 0 at scene-59 start, 14+local at scene-73.
     const chapterPhase = (scene - 27) + local;
-    // Zoom-out phase: shared timeline across scenes 59-60 so it can start a little early
-    // (during scene 59's own tail) instead of snapping to 1.0 right up until scene 60 begins.
-    // ZOOM_START_PHASE=0.7 -> starts at 70% through scene 59; ZOOM_END_PHASE=2.0 -> fully
-    // zoomed out by scene 60's end. Same tOut value drives both the bus and the background
-    // art (s5973BgArt below) so they stay perfectly in sync.
-    const ZOOM_START_PHASE = 0.7;
-    const ZOOM_END_PHASE = 2.0;
-    const tOut = easeInOutCubic(Math.min(1, Math.max(0, (chapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
+    // Zoom-out phase: shared timeline across scenes 59-60 (S5960_ZOOM_START_PHASE/
+    // S5960_ZOOM_END_PHASE, declared once near the top of the file) so it can start a little
+    // early (during scene 59's own tail) instead of snapping to 1.0 right up until scene 60
+    // begins. Same tOut value drives both the bus and the background art (s5973BgArt) so
+    // they stay perfectly in sync — this used to be a locally-redeclared copy here, which is
+    // exactly how it drifted out of sync with the background's own copy before.
+    const tOut = easeInOutCubic(Math.min(1, Math.max(0, (chapterPhase - S5960_ZOOM_START_PHASE) / (S5960_ZOOM_END_PHASE - S5960_ZOOM_START_PHASE))));
     zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2
-    if (scene === 27 && chapterPhase < ZOOM_START_PHASE) {
+    if (scene === 27 && chapterPhase < S5960_ZOOM_START_PHASE) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
-      // Reaches CENTER exactly by ZOOM_START_PHASE — the moment the zoom-out begins is also
-      // the moment the drive-in finishes, so the two hand off cleanly into each other.
+      // Reaches CENTER exactly by S5960_ZOOM_START_PHASE — the moment the zoom-out begins is
+      // also the moment the drive-in finishes, so the two hand off cleanly into each other.
       const FAR_ENTRY = -0.25 * vw;
-      const t = easeInOutCubic(Math.min(1, chapterPhase / ZOOM_START_PHASE));
+      const t = easeInOutCubic(Math.min(1, chapterPhase / S5960_ZOOM_START_PHASE));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
     } else if (scene === 27 || scene === 28) {
-      // From the instant the zoom-out starts (chapterPhase>=ZOOM_START_PHASE, whether still
-      // in scene 59's tail or into scene 60) the bus is basically parked — just a small fast
-      // shake/jitter instead of driving, since the zoom itself (tOut, computed above) is the
-      // main motion now. Shake fades out and fully stops 0.6 phase-units after it starts.
-      const shakePhase = chapterPhase - ZOOM_START_PHASE; // 0 right when the zoom begins
+      // From the instant the zoom-out starts (chapterPhase>=S5960_ZOOM_START_PHASE, whether
+      // still in scene 59's tail or into scene 60) the bus is basically parked — just a small
+      // fast shake/jitter instead of driving, since the zoom itself (tOut, computed above) is
+      // the main motion now. Shake fades out and fully stops 0.6 phase-units after it starts.
+      const shakePhase = chapterPhase - S5960_ZOOM_START_PHASE; // 0 right when the zoom begins
       const shakeFade = 1 - easeInOutCubic(Math.min(1, shakePhase / 0.6));
       const shakeX = Math.sin(shakePhase * Math.PI * 5) * 0.0015 * vw * shakeFade;
       busY = Math.sin(shakePhase * Math.PI * 6) * 1.2 * shakeFade;
