@@ -2171,7 +2171,8 @@ display: block;
   position: absolute;
   left: 0vw; /* was 69vw — left a gap of bare sky at the left edge of the screen */
   bottom: -20vh;
-  width: 132vw;
+  width: 300vw; /* was 132vw — too narrow a box for the 175%-scaled image, cropping it off
+    on the sides; same background-size/zoom level, just more room for it to render into */
   height: 121%;
   background-image: url('assets/s59-s73/Group%20900.svg');
   background-repeat: no-repeat;
