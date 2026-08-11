@@ -2168,7 +2168,7 @@ display: block;
    one stretched image without it looking distorted/empty). */
 .s5973-ground {
   position: absolute;
-  left: 69vw;
+  left: 0vw; /* was 69vw — left a gap of bare sky at the left edge of the screen */
   bottom: -20vh;
   width: 132vw;
   height: 121%;
@@ -2180,7 +2180,7 @@ display: block;
 }
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
 .s5973-bridge-lake {
-  left: 15vw !important;
+  left: 0vw !important; /* was 15vw — left a gap of bare sky at the left edge of the screen */
   bottom: -45vh;
   top: auto;
   width: auto !important;
