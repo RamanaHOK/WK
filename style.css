@@ -783,7 +783,8 @@ html, body {
   pointer-events: none;
   opacity: 0;
 }
-#s4-trees img {
+#s4-trees img,
+#s4-trees lottie-player {
   position: absolute;
   width: 100%;
   height: 155vh;
