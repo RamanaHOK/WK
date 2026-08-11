@@ -785,15 +785,15 @@ html, body {
 }
 #s4-trees img,
 #s4-trees lottie-player {
-  position: absolute;
-  width: 140vw;
-  height: 195vh;
-  top: 0;
-  object-fit: cover; /* fills the entire scene 4 width/height, no gaps — bus (z:10) still passes behind the trees (z:11) */
-  object-position: left 40%; /* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
+ position: absolute;
+    width: 134vw;
+    height: 195vh;
+    top: 0;
+    object-fit: cover;
+    object-position: left 20%;
+    bottom: 0%;/* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
     keep the trunk/ground flush. Pulling this down toward 50% keeps more of the canopy on-screen at the cost of
     cropping a bit more off the bottom (trunk) instead — tune this number directly if canopy is still cut. */
-  bottom: -10%;
   left: 0;
   display: block;
   will-change: transform;
@@ -831,7 +831,7 @@ html, body {
   left: 0; bottom: 0;
   width: 400vw;
   height: 22%;
-  background-image: url('assets/s5/trees.svg');
+  /* background-image: url('assets/s5-s8/trees.svg'); */
   background-repeat: repeat-x;
   background-position: bottom left;
   background-size: auto 100%;
@@ -863,16 +863,21 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
+  width: 100vw; /* was unset — with a position:absolute-only child (out of flow), this
+    collapsed to 0 width, which made the child's left:-15% resolve to 0px regardless of the
+    percentage (percentage-of-zero), silently no-opping that property. */
+  height: 100vh; /* same issue for bottom:-57% resolving against height */
   z-index: 16;
   pointer-events: none;
   opacity: 0;
 }
 #city-trees-5 img {
-  width: 20vw;
-  display: block;
-  will-change: transform;
-  left: -16%;
-    position: relative;
+    width: 84vw;
+    display: block;
+    will-change: transform;
+    left: -15%;
+    position: absolute;
+    bottom: -57% !important;
 }
 
 /* #panel-5 now lives at root level, not inside .scene-5 (see index.html) — this old
