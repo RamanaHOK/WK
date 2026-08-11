@@ -739,7 +739,7 @@ html, body {
 /* Inner wrapper extends 20vw beyond scene-4 on both sides */
 .s4-extend {
   position: absolute;
-  left: -20vw;
+  left: -0vw;
   top: 0;
   width: 140vw;
   height: 100%;
@@ -777,7 +777,7 @@ html, body {
   bottom: 0%;
   left: 0;
   width: 140vw;
-  height: 100vh;
+  height: 150vh;
   overflow: visible;
   z-index: 11;
   pointer-events: none;
@@ -786,14 +786,14 @@ html, body {
 #s4-trees img,
 #s4-trees lottie-player {
   position: absolute;
-  width: 100%;
-  height: 155vh;
+  width: 140vw;
+  height: 195vh;
   top: 0;
   object-fit: cover; /* fills the entire scene 4 width/height, no gaps — bus (z:10) still passes behind the trees (z:11) */
-  object-position: left 10%; /* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
+  object-position: left 40%; /* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
     keep the trunk/ground flush. Pulling this down toward 50% keeps more of the canopy on-screen at the cost of
     cropping a bit more off the bottom (trunk) instead — tune this number directly if canopy is still cut. */
-  bottom: 0;
+  bottom: -10%;
   left: 0;
   display: block;
   will-change: transform;
@@ -822,6 +822,21 @@ html, body {
 .s5s8-buildings { bottom: 26%; top: auto; width: auto !important; height: 100% !important; }
 .s5s8-road      { top: 56%;  }
 .s5s8-fence     { bottom: -13%; top: auto; left: 19% !important; height: 25% !important; }
+/* Tiled trees across the full 400vw wrapper — a <div> with background-repeat (not an <img>)
+   since trees.svg is a single tree (793x1402, tall/narrow), not a scene-spanning composite;
+   tiling gives coverage across scenes 6/7/8 too, not just scene 5 (#city-trees-5 already
+   handles scene 5 specifically, unchanged, still in front of the bus). */
+.s5s8-trees {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 400vw;
+  height: 22%;
+  background-image: url('assets/s5/trees.svg');
+  background-repeat: repeat-x;
+  background-position: bottom left;
+  background-size: auto 100%;
+  z-index: 4;
+}
 
 /* -- City layer sizing (scenes 5 & 6 share these classes) -- */
 .layer-city-road img      { width: 110%; top: 60%; bottom: auto; z-index: 3; }
