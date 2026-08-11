@@ -117,9 +117,10 @@ const S46_HOLD_END = 0.8;
 // background art (#s5973-bg-art, in frame()) — single source of truth so the two can't
 // drift apart (they did once: the background had its own separately-typed copy of
 // ZOOM_START_PHASE that got out of sync with the bus's). combinedPhase = (scene-27)+local,
-// 0 at scene-59 start .. 2 at scene-60 end. Starts easing at 70% through scene 59, fully
-// zoomed out (scale 0.2) by scene 60's end.
-const S5960_ZOOM_START_PHASE = 0.7;
+// 0 at scene-59 start .. 2 at scene-60 end. Starts right at scene 59's own end (1.0 — bus
+// drives/plays normally through all of scene 59, only stops+zooms once scene 60 begins),
+// fully zoomed out (scale 0.2) by scene 60's end.
+const S5960_ZOOM_START_PHASE = 1.0;
 const S5960_ZOOM_END_PHASE = 2.0;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
