@@ -1508,23 +1508,25 @@ function animateCityBus(scene, local, opacity) {
     const ZOOM_END_PHASE = 2.0;
     const tOut = easeInOutCubic(Math.min(1, Math.max(0, (chapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
     zoom = 1 - 0.8 * tOut; // dramatic pull-back: 1.0 -> 0.2
-    if (scene === 27) {
+    if (scene === 27 && chapterPhase < ZOOM_START_PHASE) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
+      // Reaches CENTER exactly by ZOOM_START_PHASE — the moment the zoom-out begins is also
+      // the moment the drive-in finishes, so the two hand off cleanly into each other.
       const FAR_ENTRY = -0.25 * vw;
-      const t = easeInOutCubic(Math.min(1, local / 1.0));
+      const t = easeInOutCubic(Math.min(1, chapterPhase / ZOOM_START_PHASE));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
-    } else if (scene === 28) {
-      // Scene 60: bus is basically parked — just a small fast shake/jitter instead of the
-      // wide, slow driving sway used elsewhere, since the zoom-out (tOut, computed above) is
-      // the main motion here. Higher frequency, much smaller amplitude than the normal bob.
-      // Shake fades out and fully stops by local:0.6 — settles early instead of shaking
-      // through the whole scene.
-      const shakeFade = 1 - easeInOutCubic(Math.min(1, local / 0.6));
-      const shakeX = Math.sin(chapterPhase * Math.PI * 5) * 0.0015 * vw * shakeFade;
-      busY = Math.sin(chapterPhase * Math.PI * 6) * 1.2 * shakeFade;
+    } else if (scene === 27 || scene === 28) {
+      // From the instant the zoom-out starts (chapterPhase>=ZOOM_START_PHASE, whether still
+      // in scene 59's tail or into scene 60) the bus is basically parked — just a small fast
+      // shake/jitter instead of driving, since the zoom itself (tOut, computed above) is the
+      // main motion now. Shake fades out and fully stops 0.6 phase-units after it starts.
+      const shakePhase = chapterPhase - ZOOM_START_PHASE; // 0 right when the zoom begins
+      const shakeFade = 1 - easeInOutCubic(Math.min(1, shakePhase / 0.6));
+      const shakeX = Math.sin(shakePhase * Math.PI * 5) * 0.0015 * vw * shakeFade;
+      busY = Math.sin(shakePhase * Math.PI * 6) * 1.2 * shakeFade;
       busX = CENTER + shakeX;
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
