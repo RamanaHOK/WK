@@ -430,19 +430,24 @@
          bridge-trees/trees-top are tiled via CSS background-repeat (divs, not <img>) since
          there isn't enough unique art to cover 1500vw as single images without stretching. -->
     <div id="s59-s73-bg">
-      <div class="s5973-clouds-tile"></div>
-      <img class="s5973-clouds1" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
-      <img class="s5973-clouds2" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
-      <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
-      <div class="s5973-ground"></div>
-      <img class="s5973-bridge-lake"  src="assets/s59-s73/Bridge%2Blake%2Bbottom%20trees.svg"  alt="">
-      <div class="s5973-bridge-trees"></div>
-      <div class="s5973-trees-top"></div>
-      <!-- Group904/905/Matatu5/8 removed for now — rendered unclear/broken at this scale
-           (a smudged prop, an oddly-skinned ambient bus) and weren't in the clean scene-59
-           reference (just bridge/lake/palm trees/grass). Re-add once we know which later
-           scene they actually belong to and how they should look there. -->
-      <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
+      <!-- Background art only, NOT the popups below — this inner wrapper is what scales for
+           the scene-59 zoom-out (see #s5973-bg-art in scroll.js/style.css). Kept separate so
+           the popup text never gets scaled/distorted by it. -->
+      <div id="s5973-bg-art">
+        <div class="s5973-clouds-tile"></div>
+        <img class="s5973-clouds1" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
+        <img class="s5973-clouds2" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
+        <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
+        <div class="s5973-ground"></div>
+        <img class="s5973-bridge-lake"  src="assets/s59-s73/Bridge%2Blake%2Bbottom%20trees.svg"  alt="">
+        <div class="s5973-bridge-trees"></div>
+        <div class="s5973-trees-top"></div>
+        <!-- Group904/905/Matatu5/8 removed for now — rendered unclear/broken at this scale
+             (a smudged prop, an oddly-skinned ambient bus) and weren't in the clean scene-59
+             reference (just bridge/lake/palm trees/grass). Re-add once we know which later
+             scene they actually belong to and how they should look there. -->
+        <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
+      </div>
 
       <!-- Popups — content from panels.panel-59..panel-73 in i18n/<lang>.json, dynamically
            centered via positionCenteredPopup (see animateS5973Popups in scroll.js), same

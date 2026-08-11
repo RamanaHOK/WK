@@ -2135,6 +2135,15 @@ display: block;
   width: 100%;
   height: auto;
 }
+/* Matches #s59-s73-bg's own coordinate space exactly (same width/height), so every child's
+   existing left/bottom/etc values behave identically to before — this is purely a scale
+   target for the scene-59 zoom-out (see frame() in scroll.js), not a repositioning wrapper.
+   transform-origin is set dynamically in JS each frame to track the current pan. */
+#s5973-bg-art {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+}
 
 /* Base sky coverage across the full 1500vw strip — the 3 accent clouds below only cover the
    first 540vw, so this tiled layer fills the rest instead of leaving empty gaps in the sky. */

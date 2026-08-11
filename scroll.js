@@ -181,6 +181,7 @@ const s5558TransitionFrameFront = document.getElementById('s5558-transition-fram
 const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
 const s5973Panels = [59,60,61,62,63,64,65,66,67,68,69,70,71,72,73].map(n => document.getElementById(`panel-${n}`));
+const s5973BgArt = document.getElementById('s5973-bg-art');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -1065,6 +1066,22 @@ function frame(ts) {
       const show = currentScene === sceneIdx && sceneLocal > 0.15 && sceneLocal < 0.9;
       positionCenteredPopup(el, show, popupCenterVw2);
     });
+
+    // -- Scene 59 whole-background zoom-out: the art wrapper (#s5973-bg-art, NOT the popups
+    // above — they're siblings so text never scales) starts larger and eases down to normal
+    // size, same curve as the bus's own zoom. transform-origin tracks the current viewport
+    // center (popupCenterVw2, already computed above) so it zooms out from what's actually
+    // on screen instead of some fixed point on the 1500vw-wide strip. --
+    if (s5973BgArt) {
+      if (currentScene === 27) {
+        const tZoom = easeInOutCubic(Math.min(1, sceneLocal / 1.0));
+        const bgScale = 1.15 - 0.15 * tZoom;
+        s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
+        s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
+      } else {
+        s5973BgArt.style.transform = 'scale(1)';
+      }
+    }
   }
 
   // #panel-5: track bus position — now `position: fixed` (see style.css), so it moves in
