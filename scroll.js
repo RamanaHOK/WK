@@ -1079,7 +1079,7 @@ function frame(ts) {
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
         const bgChapterPhase = (currentScene - 27) + sceneLocal;
-        const ZOOM_START_PHASE = 0.7;
+        const ZOOM_START_PHASE = 0.1;
         const ZOOM_END_PHASE = 2.0;
         const tZoom = easeInOutCubic(Math.min(1, Math.max(0, (bgChapterPhase - ZOOM_START_PHASE) / (ZOOM_END_PHASE - ZOOM_START_PHASE))));
         const bgScale = 1 - 0.8 * tZoom; // dramatic pull-back: 1.0 -> 0.2
@@ -1517,10 +1517,12 @@ function animateCityBus(scene, local, opacity) {
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
     } else if (scene === 28) {
-      // Scene 60: bus keeps its idle bob/sway, zoom (tOut, computed above) continues easing.
-      const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
-      busY = Math.sin(chapterPhase * Math.PI * 4) * 2;
-      busX = CENTER + bob;
+      // Scene 60: bus is basically parked — just a small fast shake/jitter instead of the
+      // wide, slow driving sway used elsewhere, since the zoom-out (tOut, computed above) is
+      // the main motion here. Higher frequency, much smaller amplitude than the normal bob.
+      const shakeX = Math.sin(chapterPhase * Math.PI * 14) * 0.0015 * vw;
+      busY = Math.sin(chapterPhase * Math.PI * 18) * 1.2;
+      busX = CENTER + shakeX;
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
