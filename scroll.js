@@ -36,7 +36,7 @@ const SCENE_SCROLL = [
   0.3,  // 26 → scene-58 (pans past the street into clear sky)
   // Total 1.5 viewport-widths, matching #s55-s58-bg's new 150vw width (was 5.7/400vw) — no
   // dead scroll past where the content actually ends.
-  1.3,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup) —
+  1,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup) —
     // slowed down further (was 0.3, then 0.7): the bus's own drive-in and the zoom-out
     // already use the full scene-local range, so more scroll room is the only way to make
     // both play out more gradually — same lever for "bus speed" and "scroll speed" here
@@ -1523,8 +1523,8 @@ function animateCityBus(scene, local, opacity) {
       // Shake fades out and fully stops by local:0.6 — settles early instead of shaking
       // through the whole scene.
       const shakeFade = 1 - easeInOutCubic(Math.min(1, local / 0.6));
-      const shakeX = Math.sin(chapterPhase * Math.PI * 14) * 0.0015 * vw * shakeFade;
-      busY = Math.sin(chapterPhase * Math.PI * 18) * 1.2 * shakeFade;
+      const shakeX = Math.sin(chapterPhase * Math.PI * 5) * 0.0015 * vw * shakeFade;
+      busY = Math.sin(chapterPhase * Math.PI * 6) * 1.2 * shakeFade;
       busX = CENTER + shakeX;
     } else {
       // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
