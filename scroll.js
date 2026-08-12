@@ -804,7 +804,10 @@ function frame(ts) {
     _s33FrozenTx = null;
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
-    if (currentScene < 27) _s5960ZoomT0 = null; // scrolled back out — reset so re-entering replays it
+    _s5960ZoomT0 = null; // scrolled back out (or back below the trigger point within scene 59) —
+      // reset unconditionally, same as s32/s33 above, so scrolling backward past the trigger
+      // reverses the zoom back to scale 1 instead of staying stuck zoomed out.
+    _s5960FrozenTx = null;
     effectiveTx = tx;
   }
 
