@@ -805,15 +805,22 @@ function frame(ts) {
     const wantOut = sceneLocal >= S5960_ZOOM_START_PHASE;
     const targetVal = wantOut ? 1 : 0;
     const dur = wantOut ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
-    // Only (re)trigger the tween if the clouds waterfall hasn't already taken over below —
-    // once that starts, _s5960ZoomTo/targetVal both stay 1 forever (nothing changes sceneLocal
-    // while scroll is frozen), so this condition would otherwise never fire again anyway, but
-    // being explicit here avoids relying on that.
-    if (_s6061FreezeT0 === null && (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal)) {
+    if (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal) {
       _s5960ZoomFrom = _s5960ZoomCur;
       _s5960ZoomTo = targetVal;
       _s5960ZoomT0 = ts;
       _scrollFreezeUntil = Date.now() + dur;
+      if (targetVal === 0) {
+        // Reversing back to normal after the clouds waterfall already fired (its own
+        // _s6061FreezeT0 never got reset just from scrolling back within scene 59 — only
+        // fully leaving the scene did, in the fallback branch below) — cancel it here too,
+        // otherwise scrolling back below the trigger stayed stuck at the zoomed/covered state
+        // (targetVal flips to 0 but the chain-into-waterfall branch below still fired since
+        // it only checked _s6061FreezeT0, not direction) instead of reversing smoothly, and a
+        // subsequent forward pass needs this cleared to replay the waterfall from scratch.
+        _s6061FreezeT0 = null;
+        _s6061ScrollJumped = false;
+      }
     }
     if (ts - _s5960ZoomT0 < dur) {
       if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
