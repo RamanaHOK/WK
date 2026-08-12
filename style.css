@@ -644,6 +644,25 @@ html, body {
   opacity: 0;
 }
 
+/* Scene 60->61 clouds-only transition — same root-level-fixed reasoning as the frame above
+   (z-index 20, beats #city-bus/#s5973-bg-art/#city-trees-5 so it can fully cover the whole
+   frozen zoomed-out scene). Opacity/transform driven every frame by the S6061_* wall-clock
+   sequence in scroll.js: slides in from the right, fully covers, holds, then scales up while
+   fading to reveal scene 61 behind it. background-color fills the gaps between this cloud
+   art's soft blurred puffs so it reads as a solid cloud cover, not scattered clumps. */
+#s6061-clouds-transition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background-color: #F5F5EF;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+}
+
 /* ================================================================
    SCENES 1–3: Jungle
    ================================================================ */
@@ -2204,10 +2223,10 @@ display: block;
    class rule on specificity regardless of source order — same reason every sibling layer
    below (.s5973-bridge-lake etc.) also has !important on left/width. */
 .s5973-prop905 {
-    left: 90vw !important;
-    bottom: -2vh;
+     left: 201vw !important;
+    bottom: 58vh;
     top: auto;
-    width: 14vw !important;
+    width: 25vw !important;
     height: auto;
     z-index: 3;
 }

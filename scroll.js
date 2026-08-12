@@ -193,6 +193,7 @@ const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
 const s5973Panels = [59,60,61,62,63,64,65,66,67,68,69,70,71,72,73].map(n => document.getElementById(`panel-${n}`));
 const s5973BgArt = document.getElementById('s5973-bg-art');
+const s6061CloudsTransition = document.getElementById('s6061-clouds-transition');
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -362,6 +363,21 @@ let _s5960ZoomCur   = 0;    // last committed progress value, read by a new trig
 let _s5960FrozenTx  = null; // pan held stable for the same duration, same reasoning as _s32FrozenTx
 const S5960_ZOOMOUT_MS = 2500; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 const S5960_ZOOMIN_MS  = 2500; // duration of the reverse (scrolling back below the trigger)
+
+// Scene 60->61 clouds-only transition: at the end of scene 60 (already sitting at the fully
+// zoomed-out scale from the sequence above, bus already shake-free since s5960ZoomT stays 1
+// throughout scene 60), pan freezes hard and after a short pause a clouds-only sweep plays on
+// its own — no birds, no scroll needed. One-shot/forward-only (unlike the reversible zoom
+// above — nothing asked for a reverse "clouds part again" on scroll-back yet), same
+// replay-on-re-entry reset as s32/s33.
+let _s6061FreezeT0 = null;      // wall-clock timestamp the freeze+clouds sequence started
+let _s6061FrozenTx = null;      // pan held stable for the whole sequence
+const S6061_END_TRIGGER = 0.85; // how far through scene 60 before it kicks in
+const S6061_PAUSE_MS  = 500;    // beat of stillness before the clouds start sweeping in
+const S6061_SWEEP_MS  = 900;    // clouds slide in from the right and cover the screen
+const S6061_HOLD_MS   = 300;    // brief hold fully covered
+const S6061_REVEAL_MS = 1300;   // clouds scale up + fade to reveal scene 61 behind them
+const S6061_TOTAL_MS  = S6061_PAUSE_MS + S6061_SWEEP_MS + S6061_HOLD_MS + S6061_REVEAL_MS;
 
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
@@ -813,6 +829,23 @@ function frame(ts) {
       _s5960FrozenTx = null;
       effectiveTx = tx;
     }
+  } else if (currentScene === 28 && sceneLocal >= S6061_END_TRIGGER) {
+    // Hard freeze at the end of scene 60, then the clouds-only transition plays on its own
+    // (see the S6061_* progress computed below, driving #s6061-clouds-transition) — bus and
+    // background are already shake-free/pinned at scale 0.2 throughout scene 60 (s5960ZoomT
+    // stays 1), so this just needs to freeze the pan too, same mechanic as every other
+    // auto-play sequence above.
+    if (_s6061FreezeT0 === null) {
+      _s6061FreezeT0 = ts;
+      _scrollFreezeUntil = Date.now() + S6061_TOTAL_MS;
+    }
+    if (ts - _s6061FreezeT0 < S6061_TOTAL_MS) {
+      if (_s6061FrozenTx === null) { _s6061FrozenTx = tx; }
+      effectiveTx = _s6061FrozenTx;
+    } else {
+      _s6061FrozenTx = null;
+      effectiveTx = tx;
+    }
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -827,6 +860,8 @@ function frame(ts) {
       _s5960ZoomCur = 0;
       _s5960ZoomTo = 0;
     }
+    _s6061FrozenTx = null;
+    if (currentScene < 28) _s6061FreezeT0 = null; // scrolled back out — reset so re-entering replays it
     effectiveTx = tx;
   }
 
@@ -1147,11 +1182,40 @@ function frame(ts) {
     // strip. --
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
-        const bgScale = 1 - 0.8 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
+        const bgScale = 1 - 0.3 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
       } else {
         s5973BgArt.style.transform = 'scale(1)';
+      }
+    }
+
+    // -- Scene 60->61 clouds-only transition: wall-clock sequence driven by _s6061FreezeT0
+    // (set in the effectiveTx freeze branch above) — sweep in from the right, cover, hold,
+    // then scale+fade to reveal scene 61. See the S6061_* constants near _s6061FreezeT0. --
+    if (s6061CloudsTransition) {
+      if (_s6061FreezeT0 !== null) {
+        const elapsed = ts - _s6061FreezeT0;
+        if (elapsed < S6061_PAUSE_MS) {
+          s6061CloudsTransition.style.opacity = '0';
+          s6061CloudsTransition.style.transform = 'translateX(100vw) scale(1)';
+        } else if (elapsed < S6061_PAUSE_MS + S6061_SWEEP_MS) {
+          const t = easeInOutCubic((elapsed - S6061_PAUSE_MS) / S6061_SWEEP_MS);
+          s6061CloudsTransition.style.opacity = t.toFixed(3);
+          s6061CloudsTransition.style.transform = `translateX(${(100 * (1 - t)).toFixed(2)}vw) scale(1)`;
+        } else if (elapsed < S6061_PAUSE_MS + S6061_SWEEP_MS + S6061_HOLD_MS) {
+          s6061CloudsTransition.style.opacity = '1';
+          s6061CloudsTransition.style.transform = 'translateX(0vw) scale(1)';
+        } else if (elapsed < S6061_TOTAL_MS) {
+          const revealT = easeInOutCubic((elapsed - S6061_PAUSE_MS - S6061_SWEEP_MS - S6061_HOLD_MS) / S6061_REVEAL_MS);
+          s6061CloudsTransition.style.opacity = (1 - revealT).toFixed(3);
+          s6061CloudsTransition.style.transform = `translateX(0vw) scale(${(1 + 0.8 * revealT).toFixed(3)})`;
+        } else {
+          s6061CloudsTransition.style.opacity = '0';
+          s6061CloudsTransition.style.transform = 'translateX(0vw) scale(1)';
+        }
+      } else {
+        s6061CloudsTransition.style.opacity = '0';
       }
     }
   }
@@ -1568,7 +1632,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
     // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
     // a locally-redeclared scroll-driven copy here, which is exactly how it drifted out of
     // sync with the background's own copy before.
-    zoom = 1 - 0.8 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
+    zoom = 1 - 0.5 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
     if (scene === 27 && s5960ZoomT === 0) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
