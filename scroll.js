@@ -3,7 +3,7 @@
    Continuous rAF engine: scroll-driven + time-based motion
    ============================================ */
 
-const SCENES = 42; // ends after scene-73
+const SCENES = 30; // ends after scene-61 (scenes 62-73 were cut — story now ends at 61)
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
@@ -43,23 +43,7 @@ const SCENE_SCROLL = [
   1.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
     // zoom-out-leaving-scene-59 transition, was 0.3 — much more scroll room so it plays out
     // slowly and smoothly instead of snapping through in a fraction of a scroll)
-  0.3,  // 29 → scene-61
-  0.3,  // 30 → scene-62
-  0.3,  // 31 → scene-63
-  0.3,  // 32 → scene-64 (fourth popup — vendor/elder/wheelchair group)
-  0.3,  // 33 → scene-65
-  0.3,  // 34 → scene-66
-  0.3,  // 35 → scene-67
-  0.3,  // 36 → scene-68
-  0.3,  // 37 → scene-69
-  0.3,  // 38 → scene-70
-  0.3,  // 39 → scene-71
-  0.3,  // 40 → scene-72
-  0.3,  // 41 → scene-73 (closing scene)
-  // Total 4.5 viewport-widths, matching #s59-s73-bg's 450vw width — same "no dead scroll"
-  // match as scenes 55-58. Each of the 15 gets an equal, modest scroll window (first draft
-  // — retune individually once the real popup text for 61-63/65-73 comes in, since some may
-  // need more/less room than others).
+  0.3,  // 29 → scene-61 (closing scene — story now ends here, scenes 62-73 were cut)
 ];
 
 // ---- Per-scene configuration ----
@@ -191,7 +175,7 @@ const s5558Car3       = document.getElementById('s5558-car3');
 const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
 const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
-const s5973Panels = [59,60,61,62,63,64,65,66,67,68,69,70,71,72,73].map(n => document.getElementById(`panel-${n}`));
+const s5973Panels = [59,60,61].map(n => document.getElementById(`panel-${n}`));
 const s5973BgArt = document.getElementById('s5973-bg-art');
 const s6061Puffs = Array.from(document.querySelectorAll('.s6061-puff')); // 8 waterfall puffs, staggered
 const cityAwayStand  = document.getElementById('city-awayly-stand');
@@ -1097,7 +1081,7 @@ function frame(ts) {
   const busVw      = _inJungle
     ? interpolateKeyframes(JUNGLE_KF, junglePhase).toFixed(0)
     : '–';
-  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73];
+  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,61];
   const _sceneLabel  = SCENE_LABELS[currentScene] ?? (currentScene + 1);
   if (dbgScene)  dbgScene.textContent  = `scene ${_sceneLabel}  ${_scenePct}%`;
   if (dbgTime)   dbgTime.textContent   = `${secs}s`;
@@ -1186,7 +1170,7 @@ function frame(ts) {
     // shared with the bus's own zoom in animateCityBus — see the freeze branch above and
     // where s5960ZoomT is computed, right after the effectiveTx chain). transform-origin
     // tracks the current viewport center (popupCenterVw2, already computed above) so it
-    // zooms from what's actually on screen instead of some fixed point on the 1500vw-wide
+    // zooms from what's actually on screen instead of some fixed point on the 300vw-wide
     // strip. --
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
@@ -1621,18 +1605,18 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
     driveCar(s5558Car2, { farEntry: -0.95 * vw, ahead: -0.35 * vw, entryWindow: 0.65, fadeInWindow: 0.3,  swayPhase: 0.4, swayAmp: 0.02  * vw });
     // Quick little car darting in ahead of both, own independent sway phase.
     driveCar(s5558Car3, { farEntry: -0.55 * vw, ahead:  0.55 * vw, entryWindow: 0.4,  fadeInWindow: 0.15, swayPhase: 0.8, swayAmp: 0.018 * vw });
-  } else if (scene >= 27 && scene <= 41) {
-    // Scenes 59-73: closing chapter — matatu drives in once at scene 59, then keeps "driving"
-    // continuously (a gentle bob, not literally translating) through the whole park/lake
-    // stretch instead of parking dead still, since this whole chapter is meant to read as the
-    // bus still moving. Never exits — scene 73 is the story's end, it just stays on screen.
+  } else if (scene >= 27 && scene <= 29) {
+    // Scenes 59-61: closing chapter — matatu drives in once at scene 59, then keeps "driving"
+    // continuously (a gentle bob, not literally translating) through the park/lake stretch
+    // instead of parking dead still, since this chapter is meant to read as the bus still
+    // moving. Never exits — scene 61 is the story's end, it just stays on screen.
     eff  = opacity;
     zoom = 1;
     if (cityBus) cityBus.style.transformOrigin = '50% 50%';
     if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
     if (cityBusS55)   cityBusS55.style.opacity   = '1';
-    // Continuous phase across all 15 scenes so the bob doesn't reset/jump at each scene
-    // boundary — 0 at scene-59 start, 14+local at scene-73.
+    // Continuous phase across all 3 scenes so the bob doesn't reset/jump at each scene
+    // boundary — 0 at scene-59 start, 2+local at scene-61.
     const chapterPhase = (scene - 27) + local;
     // Zoom scale driven by s5960ZoomT (passed in from frame() — wall-clock/auto-playing, see
     // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
@@ -1666,7 +1650,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
   }
 
   // Apply cursor parallax across all city scenes (5–19, 55–58, 59–73); frozen only during bus close-up
-  const inCityBus  = (scene >= 4 && scene <= 16) || (scene >= 23 && scene <= 26) || (scene >= 27 && scene <= 41);
+  const inCityBus  = (scene >= 4 && scene <= 16) || (scene >= 23 && scene <= 26) || (scene >= 27 && scene <= 29);
   const inBusClose = scene === 7 && local >= S8_EXIT;
   const bpx = (inCityBus && !inBusClose) ? prlxX2 * 12 : 0;
   const bpy = (inCityBus && !inBusClose) ? prlxY2 * 6  : 0;

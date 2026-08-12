@@ -2150,28 +2150,24 @@ display: block;
 #panel-55 p, #panel-56 p, #panel-57 p { color: #9F2222; }
 
 /* ================================================================
-   SCENES 59–73 — closing chapter: park/lake path with the matatu
-   driving through, 15 short closing-statement popups (scroll indices
-   27–41). FIRST DRAFT from the 3 reference screenshots (scenes
-   59/60/64) — every left/width/top value below is a starting guess,
-   expect to retune once this is actually on screen.
+   SCENES 59–61 — closing chapter: park/lake path with the matatu
+   driving through, then the scene 59->60 zoom-out + clouds waterfall
+   auto-plays through to scene 61, the story's end (scroll indices
+   27–29). Scenes 62-73 were cut — class/id names below still say
+   "5973"/"59-s73" since renaming everywhere wasn't worth the churn.
    ================================================================ */
-.scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61,
-.scene.city.scene-62, .scene.city.scene-63, .scene.city.scene-64,
-.scene.city.scene-65, .scene.city.scene-66, .scene.city.scene-67,
-.scene.city.scene-68, .scene.city.scene-69, .scene.city.scene-70,
-.scene.city.scene-71, .scene.city.scene-72, .scene.city.scene-73 { background: transparent; }
+.scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61 { background: transparent; }
 
 #s59-s73-bg {
   position: absolute;
   left: 3089vw; /* user-tuned (was 3065vw, the math-derived 27*100vw+365vw) — must stay in
     sync with S5973_BG_LEFT_VW in scroll.js (popup centering + zoom-out transform-origin) */
   top: 0;
-  width: 1500vw; /* 15 scene-slots × 100vw each — the pan ALWAYS advances exactly 100vw per
-    scroll index regardless of that index's own SCENE_SCROLL value (SCENE_SCROLL only
-    controls how much scrolling it takes to cover that 100vw, not the pan distance itself).
-    A narrower width here leaves a real content gap once the pan runs past its right edge,
-    not just a "less matched" scroll pace — this bit scenes 55-58 too until corrected. */
+  width: 300vw; /* 3 scene-slots × 100vw each (scenes 59-61 — 62-73 were cut) — the pan
+    ALWAYS advances exactly 100vw per scroll index regardless of that index's own
+    SCENE_SCROLL value (SCENE_SCROLL only controls how much scrolling it takes to cover that
+    100vw, not the pan distance itself). A narrower width here leaves a real content gap once
+    the pan runs past its right edge, not just a "less matched" scroll pace. */
   height: 100vh;
   background-color: #A9BB5D; /* olive-green park fallback, matches the reference screenshots'
     grass tone, so any gap between art layers doesn't show a jarring color */
@@ -2195,12 +2191,12 @@ display: block;
   width: 100%; height: 100%;
 }
 
-/* Base sky coverage across the full 1500vw strip — the 3 accent clouds below only cover the
+/* Base sky coverage across the full 300vw strip — the 3 accent clouds below only cover the
    first 540vw, so this tiled layer fills the rest instead of leaving empty gaps in the sky. */
 .s5973-clouds-tile {
   position: absolute;
   left: 0; top: 0;
-  width: 1500vw;
+  width: 300vw;
   height: 40%;
   background-image: url('assets/s59-s73/clouds%20%283%29.svg');
   background-repeat: repeat-x;
@@ -2214,7 +2210,7 @@ display: block;
 .s5973-clouds3 { top: 1%; left: 340vw !important; width: 200vw !important; z-index: 0; opacity: 0.75; }
 
 /* Big ground/backdrop composite — behind the bridge/tree layers. Tiled via background-repeat
-   (this is a <div>, not an <img> — not enough unique art to cover the full 1500vw width as
+   (this is a <div>, not an <img> — not enough unique art to cover the full 300vw width as
    one stretched image without it looking distorted/empty). */
 .s5973-ground {
     position: absolute;
@@ -2254,7 +2250,8 @@ display: block;
 position: absolute;
     left: 39vw;
     bottom: -72vh;
-    width: 1330vw;
+    width: 300vw; /* was 1330vw (sized for 15 scenes) — harmless either way since the image
+      itself is no-repeat/bottom-left (doesn't scale with this box), just trimmed to match */
     height: 103vh;
     background-image: url(assets/s59-s73/Bridge%20%2B%20bottom%20trees.svg);
     background-repeat: no-repeat;
@@ -2289,9 +2286,7 @@ position: absolute;
    the HTML comment near #s59-s73-bg for why (unclear/broken at this scale, not in the
    scene-59 reference). */
 
-#panel-59 p, #panel-60 p, #panel-61 p, #panel-62 p, #panel-63 p,
-#panel-64 p, #panel-65 p, #panel-66 p, #panel-67 p, #panel-68 p,
-#panel-69 p, #panel-70 p, #panel-71 p, #panel-72 p, #panel-73 p { color: #9F2222; }
+#panel-59 p, #panel-60 p, #panel-61 p { color: #9F2222; }
 
 /* One ambient passenger roughly centred in each 100vw scene slot (0–800vw used; 800–1300vw
    left empty — pure interior/seats — so the ride doesn't feel over-crowded at the end) */
