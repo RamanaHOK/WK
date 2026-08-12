@@ -519,13 +519,24 @@
        so there's a point in its transit where it fully covers/hides them. -->
   <img id="s5558-transition-frame-front" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
 
-  <!-- Scene 60->61 clouds-only transition: root-level fixed, same reasoning as the frame
-       above — needs to render above #city-bus/#s5973-bg-art. Plays automatically (wall-clock,
-       no scroll) once scrolled to the end of scene 60: sweeps in from the right, fully
-       covers the screen, then pulls back (scale+fade) to reveal scene 61. See the
-       S6061_* constants + _s6061FreezeT0 in scroll.js. No birds — plain cloud art only,
-       reused from the same set as the decorative sky clouds in this chapter. -->
-  <img id="s6061-clouds-transition" src="assets/s59-s73/clouds%20%283%29.svg" alt="" aria-hidden="true">
+  <!-- Scene 59->61 clouds "waterfall" transition: root-level fixed, same reasoning as the
+       frame above — needs to render above #city-bus/#s5973-bg-art. Chains directly onto the
+       end of the scene 59->60 bus/background zoom-out (no extra scrolling through scene 60
+       needed) — 8 individual cloud puffs fall in one by one like rain, staggered, until they
+       fully cover the screen, then fade back out together to reveal scene 61 (scroll position
+       is jumped forward to scene 61's start while fully covered — see S6061_* constants +
+       _s6061FreezeT0/_s6061ScrollJumped in scroll.js). Each puff's resting position/size is a
+       CSS nth-child rule (see style.css); JS only drives opacity/translateY per puff. -->
+  <div id="s6061-clouds-rain" aria-hidden="true">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+  </div>
 
 </div><!-- /pinned-wrap -->
 

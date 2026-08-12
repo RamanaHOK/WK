@@ -193,7 +193,7 @@ const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
 const s5973Panels = [59,60,61,62,63,64,65,66,67,68,69,70,71,72,73].map(n => document.getElementById(`panel-${n}`));
 const s5973BgArt = document.getElementById('s5973-bg-art');
-const s6061CloudsTransition = document.getElementById('s6061-clouds-transition');
+const s6061Puffs = Array.from(document.querySelectorAll('.s6061-puff')); // 8 waterfall puffs, staggered
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
@@ -364,20 +364,25 @@ let _s5960FrozenTx  = null; // pan held stable for the same duration, same reaso
 const S5960_ZOOMOUT_MS = 2500; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 const S5960_ZOOMIN_MS  = 2500; // duration of the reverse (scrolling back below the trigger)
 
-// Scene 60->61 clouds-only transition: at the end of scene 60 (already sitting at the fully
-// zoomed-out scale from the sequence above, bus already shake-free since s5960ZoomT stays 1
-// throughout scene 60), pan freezes hard and after a short pause a clouds-only sweep plays on
-// its own — no birds, no scroll needed. One-shot/forward-only (unlike the reversible zoom
-// above — nothing asked for a reverse "clouds part again" on scroll-back yet), same
-// replay-on-re-entry reset as s32/s33.
-let _s6061FreezeT0 = null;      // wall-clock timestamp the freeze+clouds sequence started
-let _s6061FrozenTx = null;      // pan held stable for the whole sequence
-const S6061_END_TRIGGER = 0.85; // how far through scene 60 before it kicks in
-const S6061_PAUSE_MS  = 500;    // beat of stillness before the clouds start sweeping in
-const S6061_SWEEP_MS  = 900;    // clouds slide in from the right and cover the screen
-const S6061_HOLD_MS   = 300;    // brief hold fully covered
-const S6061_REVEAL_MS = 1300;   // clouds scale up + fade to reveal scene 61 behind them
-const S6061_TOTAL_MS  = S6061_PAUSE_MS + S6061_SWEEP_MS + S6061_HOLD_MS + S6061_REVEAL_MS;
+// Scene 59->61 clouds "waterfall" transition: chains directly onto the END of the scene
+// 59->60 zoom-out above (the instant s5960ZoomT finishes easing to 1) — no extra scrolling
+// through scene 60 needed, the pan stays frozen straight through both sequences back to back.
+// 8 individual cloud puffs fall in one at a time, staggered, until they fully cover the
+// screen; once covered, the ACTUAL scroll position is jumped forward to scene 61's start
+// (invisible — fully hidden behind the puffs at that moment), then they fade back out
+// together to reveal it. One-shot/forward-only (unlike the reversible zoom above — nothing
+// asked for a reverse "clouds part again" on scroll-back), same replay-on-re-entry reset as
+// s32/s33: scrolling back out of scene 59 resets it so re-triggering plays it again.
+let _s6061FreezeT0 = null;       // wall-clock timestamp the puff sequence started (right as the zoom-out ends)
+let _s6061ScrollJumped = false;  // one-shot guard for the hidden-behind-clouds scroll jump
+const S6061_NUM_PUFFS  = 8;      // must match the number of .s6061-puff elements in index.html
+const S6061_PAUSE_MS   = 250;    // beat of stillness right as the zoom-out finishes, before puffs start falling
+const S6061_STAGGER_MS = 150;    // delay between each successive puff starting its fall
+const S6061_FALL_MS    = 500;    // one puff's own fall-in duration (offscreen -> resting position)
+const S6061_COVERED_AT_MS = S6061_PAUSE_MS + (S6061_NUM_PUFFS - 1) * S6061_STAGGER_MS + S6061_FALL_MS; // last puff lands
+const S6061_HOLD_MS    = 500;    // held fully covered (the scroll jump happens here)
+const S6061_REVEAL_MS  = 1000;   // all puffs fade out together, revealing scene 61 behind them
+const S6061_TOTAL_MS   = S6061_COVERED_AT_MS + S6061_HOLD_MS + S6061_REVEAL_MS;
 
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
@@ -816,7 +821,11 @@ function frame(ts) {
     const wantOut = sceneLocal >= S5960_ZOOM_START_PHASE;
     const targetVal = wantOut ? 1 : 0;
     const dur = wantOut ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
-    if (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal) {
+    // Only (re)trigger the tween if the clouds waterfall hasn't already taken over below —
+    // once that starts, _s5960ZoomTo/targetVal both stay 1 forever (nothing changes sceneLocal
+    // while scroll is frozen), so this condition would otherwise never fire again anyway, but
+    // being explicit here avoids relying on that.
+    if (_s6061FreezeT0 === null && (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal)) {
       _s5960ZoomFrom = _s5960ZoomCur;
       _s5960ZoomTo = targetVal;
       _s5960ZoomT0 = ts;
@@ -825,25 +834,24 @@ function frame(ts) {
     if (ts - _s5960ZoomT0 < dur) {
       if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
       effectiveTx = _s5960FrozenTx;
+    } else if (targetVal === 1) {
+      // Zoom-out finished — chain straight into the clouds waterfall (see the S6061_*
+      // progress computed below, driving .s6061-puff), still frozen at the same spot, no
+      // scroll needed in between. Bus/background are already shake-free/pinned at scale 0.2
+      // (s5960ZoomT stays 1 once _s5960ZoomTo===1), so nothing else needs to freeze.
+      if (_s6061FreezeT0 === null) {
+        _s6061FreezeT0 = ts;
+        _scrollFreezeUntil = Date.now() + S6061_TOTAL_MS;
+      }
+      if (ts - _s6061FreezeT0 < S6061_TOTAL_MS) {
+        effectiveTx = _s5960FrozenTx; // same frozen spot captured above, still holding
+      } else {
+        _s5960FrozenTx = null;
+        effectiveTx = tx;
+      }
     } else {
+      // Zoom-IN (reverse, scrolled back to normal) finished — release normally.
       _s5960FrozenTx = null;
-      effectiveTx = tx;
-    }
-  } else if (currentScene === 28 && sceneLocal >= S6061_END_TRIGGER) {
-    // Hard freeze at the end of scene 60, then the clouds-only transition plays on its own
-    // (see the S6061_* progress computed below, driving #s6061-clouds-transition) — bus and
-    // background are already shake-free/pinned at scale 0.2 throughout scene 60 (s5960ZoomT
-    // stays 1), so this just needs to freeze the pan too, same mechanic as every other
-    // auto-play sequence above.
-    if (_s6061FreezeT0 === null) {
-      _s6061FreezeT0 = ts;
-      _scrollFreezeUntil = Date.now() + S6061_TOTAL_MS;
-    }
-    if (ts - _s6061FreezeT0 < S6061_TOTAL_MS) {
-      if (_s6061FrozenTx === null) { _s6061FrozenTx = tx; }
-      effectiveTx = _s6061FrozenTx;
-    } else {
-      _s6061FrozenTx = null;
       effectiveTx = tx;
     }
   } else {
@@ -859,9 +867,9 @@ function frame(ts) {
       _s5960ZoomT0 = null;
       _s5960ZoomCur = 0;
       _s5960ZoomTo = 0;
+      _s6061FreezeT0 = null; // also reset the chained clouds waterfall so re-entering replays it
+      _s6061ScrollJumped = false;
     }
-    _s6061FrozenTx = null;
-    if (currentScene < 28) _s6061FreezeT0 = null; // scrolled back out — reset so re-entering replays it
     effectiveTx = tx;
   }
 
@@ -1190,33 +1198,31 @@ function frame(ts) {
       }
     }
 
-    // -- Scene 60->61 clouds-only transition: wall-clock sequence driven by _s6061FreezeT0
-    // (set in the effectiveTx freeze branch above) — sweep in from the right, cover, hold,
-    // then scale+fade to reveal scene 61. See the S6061_* constants near _s6061FreezeT0. --
-    if (s6061CloudsTransition) {
-      if (_s6061FreezeT0 !== null) {
-        const elapsed = ts - _s6061FreezeT0;
-        if (elapsed < S6061_PAUSE_MS) {
-          s6061CloudsTransition.style.opacity = '0';
-          s6061CloudsTransition.style.transform = 'translateX(100vw) scale(1)';
-        } else if (elapsed < S6061_PAUSE_MS + S6061_SWEEP_MS) {
-          const t = easeInOutCubic((elapsed - S6061_PAUSE_MS) / S6061_SWEEP_MS);
-          s6061CloudsTransition.style.opacity = t.toFixed(3);
-          s6061CloudsTransition.style.transform = `translateX(${(100 * (1 - t)).toFixed(2)}vw) scale(1)`;
-        } else if (elapsed < S6061_PAUSE_MS + S6061_SWEEP_MS + S6061_HOLD_MS) {
-          s6061CloudsTransition.style.opacity = '1';
-          s6061CloudsTransition.style.transform = 'translateX(0vw) scale(1)';
-        } else if (elapsed < S6061_TOTAL_MS) {
-          const revealT = easeInOutCubic((elapsed - S6061_PAUSE_MS - S6061_SWEEP_MS - S6061_HOLD_MS) / S6061_REVEAL_MS);
-          s6061CloudsTransition.style.opacity = (1 - revealT).toFixed(3);
-          s6061CloudsTransition.style.transform = `translateX(0vw) scale(${(1 + 0.8 * revealT).toFixed(3)})`;
-        } else {
-          s6061CloudsTransition.style.opacity = '0';
-          s6061CloudsTransition.style.transform = 'translateX(0vw) scale(1)';
-        }
-      } else {
-        s6061CloudsTransition.style.opacity = '0';
+    // -- Scene 59->61 clouds "waterfall": wall-clock sequence chained onto the end of the
+    // zoom-out above (see _s6061FreezeT0, set there). Each puff falls in on its own staggered
+    // schedule (offscreen above -> resting position, fading in); once the last one lands
+    // (S6061_COVERED_AT_MS) the actual scroll position is jumped forward to scene 61's start
+    // — invisible, since the screen is fully covered at that instant — then after a hold all
+    // puffs fade out together, revealing scene 61 already in place behind them. --
+    if (_s6061FreezeT0 !== null) {
+      const elapsed = ts - _s6061FreezeT0;
+      // Hidden scroll jump: fires once, exactly when fully covered.
+      if (!_s6061ScrollJumped && elapsed >= S6061_COVERED_AT_MS) {
+        _s6061ScrollJumped = true;
+        const jumpTarget = SCROLL_MAP[29] ? SCROLL_MAP[29].scrollStart + 10 : null; // scene 61 start
+        if (jumpTarget !== null) window.scrollTo(0, jumpTarget);
       }
+      const revealElapsed = elapsed - S6061_COVERED_AT_MS - S6061_HOLD_MS;
+      const revealFade = revealElapsed > 0 ? 1 - easeInOutCubic(Math.min(1, revealElapsed / S6061_REVEAL_MS)) : 1;
+      s6061Puffs.forEach((puff, i) => {
+        const fallStart = S6061_PAUSE_MS + i * S6061_STAGGER_MS;
+        const fallT = elapsed < fallStart ? 0 : easeInOutCubic(Math.min(1, (elapsed - fallStart) / S6061_FALL_MS));
+        const fallY = (1 - fallT) * -60; // vh — falls from above into its resting position
+        puff.style.opacity = (fallT * revealFade).toFixed(3);
+        puff.style.transform = `translateY(${fallY.toFixed(1)}vh)`;
+      });
+    } else {
+      s6061Puffs.forEach(puff => { puff.style.opacity = '0'; });
     }
   }
 

@@ -644,24 +644,34 @@ html, body {
   opacity: 0;
 }
 
-/* Scene 60->61 clouds-only transition — same root-level-fixed reasoning as the frame above
-   (z-index 20, beats #city-bus/#s5973-bg-art/#city-trees-5 so it can fully cover the whole
-   frozen zoomed-out scene). Opacity/transform driven every frame by the S6061_* wall-clock
-   sequence in scroll.js: slides in from the right, fully covers, holds, then scales up while
-   fading to reveal scene 61 behind it. background-color fills the gaps between this cloud
-   art's soft blurred puffs so it reads as a solid cloud cover, not scattered clumps. */
-#s6061-clouds-transition {
+/* Scene 59->61 clouds "waterfall" transition — same root-level-fixed reasoning as the frame
+   above (z-index 20, beats #city-bus/#s5973-bg-art/#city-trees-5). The container itself is
+   just a positioning root; each .s6061-puff's resting left/top/width is a hardcoded nth-child
+   rule below (8 puffs, staggered/scattered to fully overlap-cover the viewport once all have
+   fallen). JS (see the S6061_* sequence in scroll.js) only ever sets opacity + a translateY
+   "still falling" offset per puff — never their resting position. */
+#s6061-clouds-rain {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
-  background-color: #F5F5EF;
   z-index: 20;
   pointer-events: none;
-  opacity: 0;
 }
+.s6061-puff {
+  position: absolute;
+  opacity: 0;
+  display: block;
+}
+.s6061-puff:nth-child(1) { left: -10%; top: -20%; width: 55vw; }
+.s6061-puff:nth-child(2) { left: 30%;  top: -25%; width: 60vw; }
+.s6061-puff:nth-child(3) { left: 65%;  top: -15%; width: 55vw; }
+.s6061-puff:nth-child(4) { left: -15%; top: 20%;  width: 60vw; }
+.s6061-puff:nth-child(5) { left: 35%;  top: 15%;  width: 65vw; }
+.s6061-puff:nth-child(6) { left: 70%;  top: 20%;  width: 58vw; }
+.s6061-puff:nth-child(7) { left: 10%;  top: 55%;  width: 60vw; }
+.s6061-puff:nth-child(8) { left: 50%;  top: 55%;  width: 62vw; }
 
 /* ================================================================
    SCENES 1–3: Jungle
