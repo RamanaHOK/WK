@@ -444,13 +444,15 @@
         <img class="s5973-clouds2" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
         <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
         <div class="s5973-ground"></div>
+        <!-- First-guess placement near the road — tune left/bottom/width in style.css -->
+        <img class="s5973-prop905"      src="assets/s59-s73/Group%20905.svg"                     alt="">
         <img class="s5973-bridge-lake"  src="assets/s59-s73/Bridge%2Blake%2Bbottom%20trees.svg"  alt="">
         <div class="s5973-bridge-trees"></div>
         <div class="s5973-trees-top"></div>
-        <!-- Group904/905/Matatu5/8 removed for now — rendered unclear/broken at this scale
-             (a smudged prop, an oddly-skinned ambient bus) and weren't in the clean scene-59
-             reference (just bridge/lake/palm trees/grass). Re-add once we know which later
-             scene they actually belong to and how they should look there. -->
+        <!-- Group904/Matatu5/8 removed for now — rendered unclear/broken at this scale (an
+             oddly-skinned ambient bus) and weren't in the clean scene-59 reference (just
+             bridge/lake/palm trees/grass). Re-add once we know which later scene they
+             actually belong to and how they should look there. -->
         <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
       </div>
 
@@ -545,7 +547,7 @@
 
 <!-- Fixed trees overlay for scene 5 — z-index 16 keeps it above #city-bus (z:15) -->
 <div id="city-trees-5" aria-hidden="true">
-  <img src="assets/s5/trees.svg" alt="trees">
+  <img src="assets/s5-s8/trees.svg" alt="trees">
 </div>
 
 <!-- Scene-5 popup — position:fixed, repositioned every frame in frame() to track #city-bus's

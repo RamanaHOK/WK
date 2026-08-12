@@ -776,12 +776,13 @@ html, body {
   position: fixed;
   bottom: 0%;
   left: 0;
-  width: 140vw;
+  width: 170vw;
   height: 150vh;
   overflow: visible;
   z-index: 11;
   pointer-events: none;
   opacity: 0;
+  left: -6%;
 }
 #s4-trees img,
 #s4-trees lottie-player {
@@ -794,6 +795,7 @@ html, body {
     bottom: 0%;/* was "bottom" (100%) — that crops entirely from the TOP of the source (cutting canopy) to
     keep the trunk/ground flush. Pulling this down toward 50% keeps more of the canopy on-screen at the cost of
     cropping a bit more off the bottom (trunk) instead — tune this number directly if canopy is still cut. */
+  bottom: -10%;
   left: 0;
   display: block;
   will-change: transform;
@@ -863,21 +865,18 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100vw; /* was unset — with a position:absolute-only child (out of flow), this
-    collapsed to 0 width, which made the child's left:-15% resolve to 0px regardless of the
-    percentage (percentage-of-zero), silently no-opping that property. */
-  height: 100vh; /* same issue for bottom:-57% resolving against height */
   z-index: 16;
   pointer-events: none;
   opacity: 0;
 }
 #city-trees-5 img {
-    width: 84vw;
-    display: block;
-    will-change: transform;
-    left: -15%;
-    position: absolute;
-    bottom: -57% !important;
+  width: 80vw;
+  display: block;
+  will-change: transform;
+  left: -16%;
+    position: relative;
+    bottom: -20%;
+    margin-bottom: -90px;
 }
 
 /* #panel-5 now lives at root level, not inside .scene-5 (see index.html) — this old
@@ -2189,17 +2188,25 @@ display: block;
    (this is a <div>, not an <img> — not enough unique art to cover the full 1500vw width as
    one stretched image without it looking distorted/empty). */
 .s5973-ground {
-  position: absolute;
-  left: 0vw; /* was 69vw — left a gap of bare sky at the left edge of the screen */
-  bottom: -20vh;
-  width: 300vw; /* was 132vw — too narrow a box for the 175%-scaled image, cropping it off
-    on the sides; same background-size/zoom level, just more room for it to render into */
-  height: 121%;
-  background-image: url('assets/s59-s73/Group%20900.svg');
-  background-repeat: no-repeat;
-  background-position: bottom left;
-  background-size: auto 175%;
-  z-index: 1;
+    position: absolute;
+    left: 13vw;
+    bottom: -50vh;
+    width: 309vw;
+    height: 200vh;
+    background-image: url(assets/s59-s73/Group%20900.svg);
+    background-repeat: no-repeat;
+    background-position: bottom left;
+    background-size: auto 149%;
+    z-index: 1;
+}
+/* Roadside prop near the ground/road — first-guess placement, retune left/bottom/width */
+.s5973-prop905 {
+    left: 90vw;
+    bottom: -2vh;
+    top: auto;
+    width: 14vw !important;
+    height: auto;
+    z-index: 3;
 }
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
 .s5973-bridge-lake {
@@ -2212,39 +2219,39 @@ display: block;
 }
 /* Wider bridge+trees stretch, tiled across the rest of the strip past the lake view */
 .s5973-bridge-trees {
-  position: absolute;
-  left: 170vw; bottom: 0;
-  width: 1330vw; /* 1500vw total - 170vw already covered by .s5973-bridge-lake */
-  height: 80%;
-  background-image: url('assets/s59-s73/Bridge%20%2B%20bottom%20trees.svg');
-  background-repeat: repeat-x;
-  background-position: bottom left;
-  background-size: auto 100%;
-  z-index: 2;
+position: absolute;
+    left: 39vw;
+    bottom: -72vh;
+    width: 1330vw;
+    height: 103vh;
+    background-image: url(assets/s59-s73/Bridge%20%2B%20bottom%20trees.svg);
+    background-repeat: no-repeat;
+    background-position: bottom left;
+    background-size: auto 100%;
+    z-index: 2;
 }
 /* Tree canopy overlay — foreground layer the bus drives under */
 .s5973-trees-top {
-  position: absolute;
-  left: 0.4%;
-  /* top: 0; */
-  bottom: 43% !important;
-  width: 1500vw;
-  height: 68%;
-  background-image: url('assets/s59-s73/Trees%20top%20layer.svg');
-  background-repeat: no-repeat;
-  background-position: top left;
-  background-size: auto 100%;
-  z-index: 4;
+position: absolute;
+    left: -5vw;
+    /* top: 0; */
+    bottom: 50% !important;
+    width: 150vw;
+    height: 68%;
+    background-image: url(assets/s59-s73/Trees%20top%20layer.svg);
+    background-repeat: no-repeat;
+    background-position: top left;
+    background-size: auto 33vw;
+    z-index: 4;
 }
 .s5973-shadow {
-  left: 450vw !important; /* pushed out of scene-59's opening view (was 60vw, showing up
-    in what should be the clean bridge/lake/palm-tree shot) — closer to scene-64's own
-    ~500vw local position, where this park-structure shape is more likely to belong */
-  bottom: 10%; top: auto;
-  width: 220vw !important;
-  height: auto;
-  opacity: 0.5;
-  z-index: 1;
+    left: 80vw !important;
+    bottom: 10%;
+    top: -93vh;
+    width: 121vw !important;
+    height: auto;
+    opacity: 1;
+    z-index: 1;
 }
 /* .s5973-prop/.s5973-matatu5/.s5973-matatu8 rules removed along with their elements — see
    the HTML comment near #s59-s73-bg for why (unclear/broken at this scale, not in the
