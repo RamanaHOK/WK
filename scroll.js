@@ -117,9 +117,9 @@ const S46_HOLD_END = 0.8;
 // background art (#s5973-bg-art, in frame()) — single source of truth so the two can't
 // drift apart (they did once: the background had its own separately-typed copy of
 // ZOOM_START_PHASE that got out of sync with the bus's). combinedPhase = (scene-27)+local,
-// 0 at scene-59 start .. 2 at scene-60 end. Starts easing at 70% through scene 59, fully
-// zoomed out (scale 0.2) by scene 60's end.
-const S5960_ZOOM_START_PHASE = 0.7;
+// 0 at scene-59 start .. 2 at scene-60 end. Starts easing at 80% through scene 59 (more scroll
+// runway before it triggers than the original 70%), fully zoomed out (scale 0.2) once played out.
+const S5960_ZOOM_START_PHASE = 0.8;
 const S5960_ZOOM_END_PHASE = 2.0;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
@@ -349,9 +349,19 @@ let _s32FrozenTx  = null; // pan held stable during the initial zoom window (loc
 let _s32ZoomOutT0 = null; // wall-clock timestamp when the zoom-out + Samuel reveal started
 const S32_ZOOMOUT_MS = 1200; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 
-let _s5960ZoomT0    = null; // wall-clock timestamp when the scenes 59->60 zoom-out started
+// Scenes 59->60 zoom: reversible auto-play tween. Unlike s32/s33 (one-shot, forward only),
+// this one also plays a symmetric zoom-IN when scrolling back below the trigger point, so
+// scrolling backward isn't stuck at the zoomed-out state or an instant snap — it eases back
+// out over wall-clock time same as the zoom-out did. _s5960ZoomCur is the last committed
+// progress value (0 = normal, 1 = fully zoomed out); a new trigger (either direction) tweens
+// from wherever it currently sits toward the new target.
+let _s5960ZoomT0    = null; // wall-clock timestamp the CURRENT transition started
+let _s5960ZoomFrom  = 0;    // progress value captured at the start of the current transition
+let _s5960ZoomTo    = 0;    // target progress value for the current transition (0 or 1)
+let _s5960ZoomCur   = 0;    // last committed progress value, read by a new trigger as its "from"
 let _s5960FrozenTx  = null; // pan held stable for the same duration, same reasoning as _s32FrozenTx
-const S5960_ZOOMOUT_MS = 1800; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
+const S5960_ZOOMOUT_MS = 2500; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
+const S5960_ZOOMIN_MS  = 2500; // duration of the reverse (scrolling back below the trigger)
 
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
@@ -780,16 +790,23 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
-  } else if (currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE) {
-    // Auto-playing zoom-out (scenes 59->60): once scrolled to this point, position freezes
-    // exactly where it is and the whole zoom-out (bus scale + background scale, computed
-    // below from the SAME _s5960ZoomT0/S5960_ZOOMOUT_MS) plays on its own like a video — no
-    // further scroll needed. Same mechanic as the scene-32/33 auto zoom-outs above.
-    if (_s5960ZoomT0 === null) {
+  } else if (currentScene === 27 && (sceneLocal >= S5960_ZOOM_START_PHASE || _s5960ZoomCur > 0.001)) {
+    // Auto-playing zoom (scenes 59->60), reversible: crossing the trigger point forward starts
+    // the zoom-out; scrolling back below it while still zoomed at all starts a symmetric zoom-IN.
+    // Either way position freezes exactly where it is and the transition (bus scale + background
+    // scale, computed below from the SAME _s5960ZoomT0/_s5960ZoomFrom/_s5960ZoomTo) plays on its
+    // own like a video — no further scroll needed. Same freeze mechanic as the scene-32/33 auto
+    // zoom-outs above, but tweens from wherever it currently sits instead of always 0->1.
+    const wantOut = sceneLocal >= S5960_ZOOM_START_PHASE;
+    const targetVal = wantOut ? 1 : 0;
+    const dur = wantOut ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
+    if (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal) {
+      _s5960ZoomFrom = _s5960ZoomCur;
+      _s5960ZoomTo = targetVal;
       _s5960ZoomT0 = ts;
-      _scrollFreezeUntil = Date.now() + S5960_ZOOMOUT_MS;
+      _scrollFreezeUntil = Date.now() + dur;
     }
-    if (ts - _s5960ZoomT0 < S5960_ZOOMOUT_MS) {
+    if (ts - _s5960ZoomT0 < dur) {
       if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
       effectiveTx = _s5960FrozenTx;
     } else {
@@ -804,10 +821,12 @@ function frame(ts) {
     _s33FrozenTx = null;
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
-    _s5960ZoomT0 = null; // scrolled back out (or back below the trigger point within scene 59) —
-      // reset unconditionally, same as s32/s33 above, so scrolling backward past the trigger
-      // reverses the zoom back to scale 1 instead of staying stuck zoomed out.
     _s5960FrozenTx = null;
+    if (currentScene < 27) { // fully scrolled back out of scene 59 — reset so re-entering starts fresh
+      _s5960ZoomT0 = null;
+      _s5960ZoomCur = 0;
+      _s5960ZoomTo = 0;
+    }
     effectiveTx = tx;
   }
 
@@ -817,16 +836,22 @@ function frame(ts) {
     _s13TotalScale = 1;
   }
 
-  // Scenes 59->60 zoom-out progress (0-1), wall-clock driven once triggered above — single
-  // source of truth reused by BOTH the bus (passed into animateCityBus) and the background
-  // art zoom below, so they can't drift apart the way the old scroll-driven versions did.
+  // Scenes 59->60 zoom progress (0-1), wall-clock driven once triggered above — single source
+  // of truth reused by BOTH the bus (passed into animateCityBus) and the background art zoom
+  // below, so they can't drift apart the way the old scroll-driven versions did. Reversible:
+  // tweens between _s5960ZoomFrom and _s5960ZoomTo (set by the trigger branch above), not
+  // always 0->1, so a zoom-in triggered mid-zoom-out eases from wherever it currently is.
   let s5960ZoomT;
-  if (_s5960ZoomT0 !== null) {
-    s5960ZoomT = easeInOutCubic(Math.min(1, (ts - _s5960ZoomT0) / S5960_ZOOMOUT_MS));
+  if (currentScene === 27 && _s5960ZoomT0 !== null) {
+    const dur = _s5960ZoomTo === 1 ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
+    const raw = Math.min(1, (ts - _s5960ZoomT0) / dur);
+    s5960ZoomT = _s5960ZoomFrom + easeInOutCubic(raw) * (_s5960ZoomTo - _s5960ZoomFrom);
+    _s5960ZoomCur = s5960ZoomT; // commit so the next trigger (either direction) tweens from here
   } else if (currentScene >= 28) {
     s5960ZoomT = 1; // already scrolled past (e.g. jumped via nav) without triggering here
+    _s5960ZoomCur = 1;
   } else {
-    s5960ZoomT = 0;
+    s5960ZoomT = _s5960ZoomCur; // holds at whatever it last settled to (0 once fully reset)
   }
 
   // -- Horizontal strip --
