@@ -2199,9 +2199,12 @@ display: block;
     background-size: auto 149%;
     z-index: 1;
 }
-/* Roadside prop near the ground/road — first-guess placement, retune left/bottom/width */
+/* Roadside prop near the ground/road — first-guess placement, retune left/bottom/width.
+   left needs !important: #s59-s73-bg img's `left: 0` is an ID selector and beats a plain
+   class rule on specificity regardless of source order — same reason every sibling layer
+   below (.s5973-bridge-lake etc.) also has !important on left/width. */
 .s5973-prop905 {
-    left: 90vw;
+    left: 90vw !important;
     bottom: -2vh;
     top: auto;
     width: 14vw !important;
