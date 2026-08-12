@@ -346,7 +346,9 @@ let _s5960ZoomTo    = 0;    // target progress value for the current transition 
 let _s5960ZoomCur   = 0;    // last committed progress value, read by a new trigger as its "from"
 let _s5960FrozenTx  = null; // pan held stable for the same duration, same reasoning as _s32FrozenTx
 const S5960_ZOOMOUT_MS = 2500; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
-const S5960_ZOOMIN_MS  = 2500; // duration of the reverse (scrolling back below the trigger)
+const S5960_ZOOMIN_MS  = 900;  // duration of the reverse (scrolling back below the trigger) —
+  // shorter than the zoom-out since it no longer blocks scroll input while it plays (see the
+  // effectiveTx branch above), so it doesn't need to be slow/dramatic, just not an instant snap
 
 // Scene 59->61 clouds "waterfall" transition: chains directly onto the END of the scene
 // 59->60 zoom-out above (the instant s5960ZoomT finishes easing to 1) — no extra scrolling
@@ -796,12 +798,15 @@ function frame(ts) {
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
   } else if (currentScene === 27 && (sceneLocal >= S5960_ZOOM_START_PHASE || _s5960ZoomCur > 0.001)) {
-    // Auto-playing zoom (scenes 59->60), reversible: crossing the trigger point forward starts
-    // the zoom-out; scrolling back below it while still zoomed at all starts a symmetric zoom-IN.
-    // Either way position freezes exactly where it is and the transition (bus scale + background
-    // scale, computed below from the SAME _s5960ZoomT0/_s5960ZoomFrom/_s5960ZoomTo) plays on its
-    // own like a video — no further scroll needed. Same freeze mechanic as the scene-32/33 auto
-    // zoom-outs above, but tweens from wherever it currently sits instead of always 0->1.
+    // Auto-playing zoom (scenes 59->60): crossing the trigger point forward freezes position
+    // and plays the zoom-out + clouds waterfall on its own, no scroll needed (see below).
+    // Scrolling back below the trigger, though, NEVER freezes scroll/position — only the
+    // forward auto-play is meant to be hands-off; reversing should feel like ordinary
+    // scrolling. The scale itself still eases back smoothly over a short wall-clock tween
+    // (s5960ZoomT, computed below) so it's not an instant snap, it just doesn't block input
+    // while it plays. (An earlier version froze both directions symmetrically, which meant
+    // every threshold crossing — including ones from normal back-and-forth scrolling near the
+    // boundary — locked scroll input for ~2.5s each time; that's what read as "stuck".)
     const wantOut = sceneLocal >= S5960_ZOOM_START_PHASE;
     const targetVal = wantOut ? 1 : 0;
     const dur = wantOut ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
@@ -809,23 +814,24 @@ function frame(ts) {
       _s5960ZoomFrom = _s5960ZoomCur;
       _s5960ZoomTo = targetVal;
       _s5960ZoomT0 = ts;
-      _scrollFreezeUntil = Date.now() + dur;
-      if (targetVal === 0) {
-        // Reversing back to normal after the clouds waterfall already fired (its own
-        // _s6061FreezeT0 never got reset just from scrolling back within scene 59 — only
-        // fully leaving the scene did, in the fallback branch below) — cancel it here too,
-        // otherwise scrolling back below the trigger stayed stuck at the zoomed/covered state
-        // (targetVal flips to 0 but the chain-into-waterfall branch below still fired since
-        // it only checked _s6061FreezeT0, not direction) instead of reversing smoothly, and a
-        // subsequent forward pass needs this cleared to replay the waterfall from scratch.
+      if (targetVal === 1) {
+        _scrollFreezeUntil = Date.now() + dur; // only the forward auto-play blocks scroll
+      } else {
+        // Reversing — cancel the chained clouds waterfall too (its own _s6061FreezeT0 never
+        // got reset just from scrolling back within scene 59 otherwise), so a later forward
+        // pass replays the whole sequence cleanly instead of reusing stale state.
         _s6061FreezeT0 = null;
         _s6061ScrollJumped = false;
       }
     }
-    if (ts - _s5960ZoomT0 < dur) {
+    if (targetVal === 0) {
+      // Reverse: always tracks scroll immediately, never frozen.
+      _s5960FrozenTx = null;
+      effectiveTx = tx;
+    } else if (ts - _s5960ZoomT0 < dur) {
       if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
       effectiveTx = _s5960FrozenTx;
-    } else if (targetVal === 1) {
+    } else {
       // Zoom-out finished — chain straight into the clouds waterfall (see the S6061_*
       // progress computed below, driving .s6061-puff), still frozen at the same spot, no
       // scroll needed in between. Bus/background are already shake-free/pinned at scale 0.2
@@ -840,10 +846,6 @@ function frame(ts) {
         _s5960FrozenTx = null;
         effectiveTx = tx;
       }
-    } else {
-      // Zoom-IN (reverse, scrolled back to normal) finished — release normally.
-      _s5960FrozenTx = null;
-      effectiveTx = tx;
     }
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
