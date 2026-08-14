@@ -3,7 +3,7 @@
    Continuous rAF engine: scroll-driven + time-based motion
    ============================================ */
 
-const SCENES = 30; // ends after scene-61 (scenes 62-73 were cut — story now ends at 61)
+const SCENES = 32; // ends after scene-63 (2 more content screens added after scene-61)
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
@@ -43,7 +43,9 @@ const SCENE_SCROLL = [
   1.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
     // zoom-out-leaving-scene-59 transition, was 0.3 — much more scroll room so it plays out
     // slowly and smoothly instead of snapping through in a fraction of a scroll)
-  0.3,  // 29 → scene-61 (closing scene — story now ends here, scenes 62-73 were cut)
+  0.15, // 29 → scene-61 (closing message — "would you like to learn more")
+  0.4,  // 30 → scene-62 (content one — placeholder)
+  0.4,  // 31 → scene-63 (content two — placeholder, story ends here)
 ];
 
 // ---- Per-scene configuration ----
@@ -97,14 +99,10 @@ const S45_STICKY_RANGE = 1.0;
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
 const S46_HOLD_START = 0.45;
 const S46_HOLD_END = 0.8;
-// Scenes 59-60 zoom-out: shared timeline for BOTH the bus (animateCityBus) and the whole
-// background art (#s5973-bg-art, in frame()) — single source of truth so the two can't
-// drift apart (they did once: the background had its own separately-typed copy of
-// ZOOM_START_PHASE that got out of sync with the bus's). combinedPhase = (scene-27)+local,
-// 0 at scene-59 start .. 2 at scene-60 end. Starts easing at 80% through scene 59 (more scroll
-// runway before it triggers than the original 70%), fully zoomed out (scale 0.2) once played out.
+// Scene 59->61 zoom+clouds-cover trigger point — how far through scene 59 (sceneLocal, 0-1)
+// before the wall-clock auto-play sequence starts (see _s5960T0 below). 0.8 gives more scroll
+// runway before it triggers than earlier values (0.3, then 0.7) did.
 const S5960_ZOOM_START_PHASE = 0.8;
-const S5960_ZOOM_END_PHASE = 2.0;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
 // against the old, much larger values and became badly mismatched once those shrank, causing
@@ -174,9 +172,22 @@ const s5558Car2       = document.getElementById('s5558-car2');
 const s5558Car3       = document.getElementById('s5558-car3');
 const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
 const s4548Bg = document.getElementById('s45-s48-bg');
-// Scenes 59-73 popups — array indexed 0..14 matching scroll indices 27..41 (scene-59..73)
+// Scenes 59-61 popups — closing chapter, shares #s59-s73-bg with the park/lake art
 const s5973Panels = [59,60,61].map(n => document.getElementById(`panel-${n}`));
+const panelPurpleMan = document.getElementById('panel-purple-man'); // second popup, tied to
+  // the purple-man character's position (.s5973-purple-man in style.css), not a scene boundary
+const panelLanguageJustice = document.getElementById('panel-language-justice'); // third popup
 const s5973BgArt = document.getElementById('s5973-bg-art');
+const s5973Bg = document.getElementById('s59-s73-bg');
+// Scenes 62-63 (content screens) — root-level fixed full-viewport overlay (NOT part of the
+// #scroll-x pan strip), switched screen-by-screen instead of continuously panned. See the
+// _s6263* state below and its wheel handler/frame() logic.
+const s6263Bg = document.getElementById('s62-s63-bg');
+const s6263Slides = [
+  document.querySelector('.s6263-slide-0'),
+  document.querySelector('.s6263-slide-1'),
+];
+const s6263Panels = [62,63].map(n => document.getElementById(`panel-${n}`));
 const s6061Puffs = Array.from(document.querySelectorAll('.s6061-puff')); // 8 waterfall puffs, staggered
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
@@ -334,41 +345,29 @@ let _s32FrozenTx  = null; // pan held stable during the initial zoom window (loc
 let _s32ZoomOutT0 = null; // wall-clock timestamp when the zoom-out + Samuel reveal started
 const S32_ZOOMOUT_MS = 1200; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 
-// Scenes 59->60 zoom: reversible auto-play tween. Unlike s32/s33 (one-shot, forward only),
-// this one also plays a symmetric zoom-IN when scrolling back below the trigger point, so
-// scrolling backward isn't stuck at the zoomed-out state or an instant snap — it eases back
-// out over wall-clock time same as the zoom-out did. _s5960ZoomCur is the last committed
-// progress value (0 = normal, 1 = fully zoomed out); a new trigger (either direction) tweens
-// from wherever it currently sits toward the new target.
-let _s5960ZoomT0    = null; // wall-clock timestamp the CURRENT transition started
-let _s5960ZoomFrom  = 0;    // progress value captured at the start of the current transition
-let _s5960ZoomTo    = 0;    // target progress value for the current transition (0 or 1)
-let _s5960ZoomCur   = 0;    // last committed progress value, read by a new trigger as its "from"
-let _s5960FrozenTx  = null; // pan held stable for the same duration, same reasoning as _s32FrozenTx
-const S5960_ZOOMOUT_MS = 2500; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
-const S5960_ZOOMIN_MS  = 900;  // duration of the reverse (scrolling back below the trigger) —
-  // shorter than the zoom-out since it no longer blocks scroll input while it plays (see the
-  // effectiveTx branch above), so it doesn't need to be slow/dramatic, just not an instant snap
-
-// Scene 59->61 clouds "waterfall" transition: chains directly onto the END of the scene
-// 59->60 zoom-out above (the instant s5960ZoomT finishes easing to 1) — no extra scrolling
-// through scene 60 needed, the pan stays frozen straight through both sequences back to back.
-// 8 individual cloud puffs fall in one at a time, staggered, until they fully cover the
-// screen; once covered, the ACTUAL scroll position is jumped forward to scene 61's start
-// (invisible — fully hidden behind the puffs at that moment), then they fade back out
-// together to reveal it. One-shot/forward-only (unlike the reversible zoom above — nothing
-// asked for a reverse "clouds part again" on scroll-back), same replay-on-re-entry reset as
-// s32/s33: scrolling back out of scene 59 resets it so re-triggering plays it again.
-let _s6061FreezeT0 = null;       // wall-clock timestamp the puff sequence started (right as the zoom-out ends)
-let _s6061ScrollJumped = false;  // one-shot guard for the hidden-behind-clouds scroll jump
-const S6061_NUM_PUFFS  = 8;      // must match the number of .s6061-puff elements in index.html
-const S6061_PAUSE_MS   = 250;    // beat of stillness right as the zoom-out finishes, before puffs start falling
-const S6061_STAGGER_MS = 150;    // delay between each successive puff starting its fall
-const S6061_FALL_MS    = 500;    // one puff's own fall-in duration (offscreen -> resting position)
-const S6061_COVERED_AT_MS = S6061_PAUSE_MS + (S6061_NUM_PUFFS - 1) * S6061_STAGGER_MS + S6061_FALL_MS; // last puff lands
-const S6061_HOLD_MS    = 500;    // held fully covered (the scroll jump happens here)
-const S6061_REVEAL_MS  = 1000;   // all puffs fade out together, revealing scene 61 behind them
-const S6061_TOTAL_MS   = S6061_COVERED_AT_MS + S6061_HOLD_MS + S6061_REVEAL_MS;
+// Scenes 59->61 zoom + clouds-cover sequence: a single wall-clock auto-play, like a video —
+// crossing S5960_ZOOM_START_PHASE triggers it, then scroll is fully blocked (no
+// "stepped"/scroll-tick-driven motion) until it finishes on its own: bus/background zoom out,
+// then clouds fade in and cover the screen — and STAY covering, as the permanent backdrop for
+// the closing scene 61 (matching the reference — no reveal/fade-out, the clouds don't part
+// again). Scrolling BACKWARD is deliberately never blocked by this, though (see the
+// effectiveTx branch) — only the forward auto-play is meant to be hands-off; that asymmetry
+// is what fixed the "stuck/jerky" bugs from an earlier version that froze both directions.
+let _s5960T0 = null;         // wall-clock timestamp the sequence started (null = not playing)
+let _s5960FrozenTx = null;   // pan held stable for the whole sequence
+// Plays every time sceneLocal crosses S5960_ZOOM_START_PHASE in scene 59, scrolling FORWARD
+// (see _scrollingForward in frame() — without that direction check, re-entering scene 27 from
+// above by scrolling backward also satisfied "sceneLocal >= threshold" and kept re-triggering
+// the whole sequence, snapping back to the end every time). Also fixed: scrolling back into
+// scene 60 used to leave _s5960T0 stale/"completed", so the clouds kept computing full opacity
+// even while real scene 60 art was rendering normally underneath (duplicate-looking clouds) —
+// fixed by resetting _s5960T0 whenever currentScene < 29 (see the fallback branch below),
+// which is also exactly what makes clean replay work: null state on re-entry means the
+// trigger fires fresh again. No more hidden auto-scroll jump to scene 61 either (removed —
+// see the comment where it used to be) — scene 61 is reached by ordinary continued scrolling.
+const S5960_TOTAL_MS = 3400; // total duration of the whole cinematic sequence
+const S5960_ZOOM_END_FRAC  = 0.4;  // bus/background finish zooming out by this fraction
+const S5960_COVER_END_FRAC = 0.8;  // clouds finish covering (and just stay) by this fraction
 
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
@@ -391,6 +390,25 @@ let _s46ZoomT0 = null; // wall-clock timestamp when the wheelchair-man zoom-in s
 // before there's been any time to read it.
 let _scrollFreezeUntil = 0; // Date.now() timestamp; wheel input is ignored while now < this
 const POPUP_SCROLL_FREEZE_MS = 700;
+
+// Scenes 62-63 — discrete screen-by-screen slide switching (see the 'wheel' listener and
+// frame() below). Once _s6263Active is true, wheel input drives _s6263Index directly instead
+// of native scroll; a crossfade plays between the two slides on each step.
+// Counted in distinct scroll GESTURES ("ticks"), not accumulated deltaY — a single physical
+// scroll (mouse click or trackpad swipe) fires many rapid wheel events that sum past any
+// pixel threshold within the same gesture, so a deltaY accumulator alone still felt instant.
+// Same burst-debounce technique as the Lesan-popup dismiss counter above (_s32LesanBurstActive):
+// only the START of each burst (150ms of inactivity apart) counts as one tick.
+let _s6263Active     = false; // true once we've entered the locked slide-switch zone
+let _s6263Index      = 0;     // which slide is showing: 0 = scene 62, 1 = scene 63
+let _s6263TransT0    = null;  // wall-clock start of the current crossfade; null = settled
+let _s6263Ticks      = 0;     // distinct scroll gestures counted so far in _s6263TickDir
+let _s6263TickDir    = 0;     // direction (+1/-1) the current tick count applies to
+let _s6263BurstActive = false;
+let _s6263BurstTimer  = null;
+const S6263_TICKS_REQUIRED = 2; // gestures needed before a step actually triggers — the first
+  // is a "dummy" scroll that's absorbed, only the second (same direction) advances the slide.
+const S6263_TRANS_MS = 500;       // crossfade duration
 let _panel32IntroShown     = false;
 let _panel32UmugandaShown  = false;
 let _panel32LesanShown     = false;
@@ -608,6 +626,58 @@ let _s32LesanBurstTimer  = null;
 window.addEventListener('wheel', e => {
   pauseAutoAdvance(); // manual scroll input — user is taking control themselves
   if (Date.now() < _scrollFreezeUntil) { e.preventDefault(); return; }
+
+  // Scenes 62-63 — discrete slide lock (see _s6263Active in frame()). While active, wheel
+  // input drives _s6263Index directly instead of native scroll. Requires S6263_TICKS_REQUIRED
+  // distinct scroll gestures (not just a big enough single scroll) before it actually steps —
+  // the first gesture in a new direction is absorbed as a "dummy", only a second matching one
+  // advances/retreats the slide.
+  if (_s6263Active) {
+    if (_s6263TransT0 !== null) { e.preventDefault(); return; } // mid-crossfade — ignore input
+    const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+    // If the active slide's content is taller than the viewport (.s6263-content-panel is
+    // overflow-y:auto), let the wheel scroll IT first instead of immediately counting toward a
+    // slide switch — otherwise there'd be no way to read content past the fold. Only once
+    // it's already at the scroll edge in the gesture's direction does this fall through to the
+    // normal tick-counting/switch logic below.
+    const activePanel = s6263Panels[_s6263Index];
+    if (dir !== 0 && activePanel && activePanel.scrollHeight > activePanel.clientHeight + 1) {
+      const atTop    = activePanel.scrollTop <= 0;
+      const atBottom = activePanel.scrollTop + activePanel.clientHeight >= activePanel.scrollHeight - 1;
+      if ((dir > 0 && !atBottom) || (dir < 0 && !atTop)) return; // let native scroll happen inside the panel
+    }
+    e.preventDefault();
+    if (dir !== 0 && !_s6263BurstActive) {
+      _s6263BurstActive = true;
+      if (dir !== _s6263TickDir) { _s6263TickDir = dir; _s6263Ticks = 0; } // direction changed — restart the count
+      _s6263Ticks++;
+      if (_s6263Ticks >= S6263_TICKS_REQUIRED) {
+        _s6263Ticks = 0;
+        if (dir > 0) {
+          if (_s6263Index === 0) { _s6263Index = 1; _s6263TransT0 = performance.now(); }
+          // else: already on the last slide (scene 63) — nothing further to advance to.
+        } else if (_s6263Index === 1) {
+          _s6263Index = 0;
+          _s6263TransT0 = performance.now();
+        } else if (SCROLL_MAP[29]) {
+          // Already on the first slide (scene 62), scrolling back further — release the lock
+          // and hand back to the normal continuous pan. Lands near the START of scene 61 (not
+          // its end) — landing only 10px before the 62 boundary meant any residual scroll
+          // momentum (trackpad inertia continuing to fire wheel events after the user's finger
+          // lifts) could shove scrollY straight back across the boundary and re-trigger the
+          // lock almost instantly, making "scroll back" feel stuck/not working. Starting from
+          // scene 61's own start gives its whole (small but non-trivial) scroll budget as a
+          // buffer before that can happen.
+          _s6263Active = false;
+          window.scrollTo(0, SCROLL_MAP[29].scrollStart + 10);
+        }
+      }
+    }
+    clearTimeout(_s6263BurstTimer);
+    _s6263BurstTimer = setTimeout(() => { _s6263BurstActive = false; }, 150);
+    return;
+  }
+
   // 4th popup (Lesan AI) has no auto-hide timer — it dismisses itself after a few wheel
   // *scrolls* once it's open, instead. One physical scroll (a wheel turn or trackpad
   // swipe) fires many rapid 'wheel' events, not one — so this only counts the START of
@@ -623,12 +693,19 @@ window.addEventListener('wheel', e => {
   }
 }, { passive: false });
 
+// (A 'scroll'-listener hard-clamp for "no forward scroll past scene 61" lived here briefly —
+// removed: calling window.scrollTo() from inside a 'scroll' handler re-fires that same
+// handler, and it broke forward scrolling generally instead of just capping the very end.
+// The pan is already frozen for all of scene 61 (see the effectiveTx branch in frame()), so
+// nothing visibly moves even with a little residual native scroll room left — that's enough.)
+
 // ---- Bus opacity: hidden until first scroll, then fades in ----
 let busOpacity  = 1;    // bus visible from scroll position 0
 let hasScrolled = true;
 
 // ---- Continuous animation loop ----
 let lastTs = 0;
+let _prevScrollYForS5960 = 0; // see _scrollingForward in frame()
 let _lastNarrationCheck = 0;
 
 function frame(ts) {
@@ -639,7 +716,43 @@ function frame(ts) {
 
   const scrollY = window.scrollY;
   const { tx, currentScene, sceneLocal, scrollPct } = scrollToState(scrollY);
+  // Not-decreasing since last frame — used to gate the scene 59->61 trigger below so it only
+  // fires while actually scrolling FORWARD into it, not when arriving already past the
+  // threshold by scrolling BACKWARD from scene 60/61 (sceneLocal starts near 1 re-entering
+  // scene 27 from above, which used to satisfy ">= threshold" and re-trigger every time).
+  const _scrollingForward = scrollY >= _prevScrollYForS5960;
+  _prevScrollYForS5960 = scrollY;
 
+  // Scenes 62-63 — engage the discrete slide lock the first time continuous scroll reaches
+  // this zone (forward from scene 61, or landing here directly e.g. on page reload/dot-nav).
+  // Once active, native scroll stops driving which slide shows — see the 'wheel' listener
+  // and _s6263Index below instead.
+  if (!_s6263Active && (currentScene === 30 || currentScene === 31)) {
+    _s6263Active = true;
+    _s6263Index = currentScene === 31 ? 1 : 0;
+    _s6263Ticks = 0;
+    _s6263TickDir = 0;
+    _s6263BurstActive = false;
+    _s6263TransT0 = null;
+  } else if (_s6263Active && currentScene !== 30 && currentScene !== 31) {
+    // scrollY moved elsewhere by some path other than the wheel-lock exit (dot-nav, keyboard,
+    // programmatic jump) — release the lock so the overlay doesn't stay stuck covering an
+    // unrelated scene.
+    _s6263Active = false;
+    _s6263TransT0 = null;
+  }
+
+  // Scenes 62-63 — continuous "position" across both slides (0 = fully scene 62, 1 = fully
+  // scene 63), including any in-progress crossfade. Single source of truth reused below for
+  // both the bus/background zoom-reversal and the slide-opacity render block further down.
+  let s6263Pos = _s6263Index;
+  if (_s6263TransT0 !== null) {
+    const s6263T  = Math.min(1, (ts - _s6263TransT0) / S6263_TRANS_MS);
+    const s6263Te = easeInOutCubic(s6263T);
+    const from = _s6263Index === 1 ? 0 : 1;
+    s6263Pos = from + (_s6263Index - from) * s6263Te;
+    if (s6263T >= 1) _s6263TransT0 = null;
+  }
 
   // junglePhase: 0→1 across the jungle scroll segment (scenes 1–3, may differ from scrollPct)
   const jungleScrollLen = SCENE_SCROLL.slice(0, JUNGLE_BUS_SCENES.length)
@@ -797,56 +910,31 @@ function frame(ts) {
       const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
     }
-  } else if (currentScene === 27 && (sceneLocal >= S5960_ZOOM_START_PHASE || _s5960ZoomCur > 0.001)) {
-    // Auto-playing zoom (scenes 59->60): crossing the trigger point forward freezes position
-    // and plays the zoom-out + clouds waterfall on its own, no scroll needed (see below).
-    // Scrolling back below the trigger, though, NEVER freezes scroll/position — only the
-    // forward auto-play is meant to be hands-off; reversing should feel like ordinary
-    // scrolling. The scale itself still eases back smoothly over a short wall-clock tween
-    // (s5960ZoomT, computed below) so it's not an instant snap, it just doesn't block input
-    // while it plays. (An earlier version froze both directions symmetrically, which meant
-    // every threshold crossing — including ones from normal back-and-forth scrolling near the
-    // boundary — locked scroll input for ~2.5s each time; that's what read as "stuck".)
-    const wantOut = sceneLocal >= S5960_ZOOM_START_PHASE;
-    const targetVal = wantOut ? 1 : 0;
-    const dur = wantOut ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
-    if (_s5960ZoomT0 === null || _s5960ZoomTo !== targetVal) {
-      _s5960ZoomFrom = _s5960ZoomCur;
-      _s5960ZoomTo = targetVal;
-      _s5960ZoomT0 = ts;
-      if (targetVal === 1) {
-        _scrollFreezeUntil = Date.now() + dur; // only the forward auto-play blocks scroll
-      } else {
-        // Reversing — cancel the chained clouds waterfall too (its own _s6061FreezeT0 never
-        // got reset just from scrolling back within scene 59 otherwise), so a later forward
-        // pass replays the whole sequence cleanly instead of reusing stale state.
-        _s6061FreezeT0 = null;
-        _s6061ScrollJumped = false;
-      }
-    }
-    if (targetVal === 0) {
-      // Reverse: always tracks scroll immediately, never frozen.
-      _s5960FrozenTx = null;
-      effectiveTx = tx;
-    } else if (ts - _s5960ZoomT0 < dur) {
-      if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
-      effectiveTx = _s5960FrozenTx;
-    } else {
-      // Zoom-out finished — chain straight into the clouds waterfall (see the S6061_*
-      // progress computed below, driving .s6061-puff), still frozen at the same spot, no
-      // scroll needed in between. Bus/background are already shake-free/pinned at scale 0.2
-      // (s5960ZoomT stays 1 once _s5960ZoomTo===1), so nothing else needs to freeze.
-      if (_s6061FreezeT0 === null) {
-        _s6061FreezeT0 = ts;
-        _scrollFreezeUntil = Date.now() + S6061_TOTAL_MS;
-      }
-      if (ts - _s6061FreezeT0 < S6061_TOTAL_MS) {
-        effectiveTx = _s5960FrozenTx; // same frozen spot captured above, still holding
-      } else {
-        _s5960FrozenTx = null;
-        effectiveTx = tx;
-      }
-    }
+  } else if (_s5960T0 !== null && ts - _s5960T0 < S5960_TOTAL_MS) {
+    // Mid wall-clock sequence (see the state comment above _s5960T0) — checked by STATE, not
+    // currentScene, since wheel input is blocked for the whole duration (_scrollFreezeUntil)
+    // so currentScene can't actually change during this window anyway; state is just the more
+    // direct thing to check.
+    if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
+    effectiveTx = _s5960FrozenTx;
+  } else if (currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE && _scrollingForward && _s5960T0 === null) {
+    // Trigger: crossing this point starts the sequence, but only while actually scrolling
+    // FORWARD (_scrollingForward, computed above from raw scrollY) — arriving here already
+    // past the threshold by scrolling BACKWARD from scene 60/61 (sceneLocal starts near 1
+    // re-entering scene 27 from above) is ordinary scrolling, not a re-trigger. Without this
+    // guard scrolling back past scene 59 immediately re-triggered the whole sequence and
+    // jumped straight back to the end, every time.
+    // _s5960T0 === null is equally critical: without it, once the freeze naturally expired
+    // (elapsed >= S5960_TOTAL_MS) while STILL sitting at sceneLocal >= threshold (never having
+    // scrolled away), this branch matched again on the very next frame and overwrote
+    // _s5960T0 = ts, restarting the whole sequence from scratch — forever, every
+    // S5960_TOTAL_MS, since nothing ever reset it while stuck at the same spot. That's what
+    // read as a periodic "jump". Now it only re-arms once you've actually left (currentScene
+    // < 29 resets it in the fallback below).
+    _s5960T0 = ts;
+    _scrollFreezeUntil = Date.now() + S5960_TOTAL_MS;
+    _s5960FrozenTx = tx;
+    effectiveTx = _s5960FrozenTx;
   } else {
     if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -856,12 +944,19 @@ function frame(ts) {
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
     _s5960FrozenTx = null;
-    if (currentScene < 27) { // fully scrolled back out of scene 59 — reset so re-entering starts fresh
-      _s5960ZoomT0 = null;
-      _s5960ZoomCur = 0;
-      _s5960ZoomTo = 0;
-      _s6061FreezeT0 = null; // also reset the chained clouds waterfall so re-entering replays it
-      _s6061ScrollJumped = false;
+    // Reset _s5960T0 UNLESS we're sitting right in the trigger zone itself (scene 27, at/past
+    // the threshold) — that exact condition is what the retrigger branch above requires
+    // _s5960T0 to stay non-null through, to know "already played, don't restart". Resetting it
+    // here unconditionally for currentScene < 29 (an earlier version of this fix) was itself
+    // the bug: once the freeze naturally finished while sceneLocal was STILL >= threshold
+    // (never having scrolled away), this fallback ran anyway (currentScene 27 < 29), reset
+    // _s5960T0 to null, and the very next frame the retrigger branch's conditions were all
+    // true again — replaying the whole sequence from scratch, forever, every S5960_TOTAL_MS.
+    // That's what read as a periodic "jump". This condition only resets once you've actually
+    // moved out of the trigger zone (left scene 59, or scrolled back below the threshold
+    // within it) — scene 28 is included so the duplicate-clouds bug (see git log) stays fixed.
+    if (!(currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE)) {
+      _s5960T0 = null; // reset so crossing forward again replays the whole sequence
     }
     effectiveTx = tx;
   }
@@ -872,22 +967,41 @@ function frame(ts) {
     _s13TotalScale = 1;
   }
 
-  // Scenes 59->60 zoom progress (0-1), wall-clock driven once triggered above — single source
-  // of truth reused by BOTH the bus (passed into animateCityBus) and the background art zoom
-  // below, so they can't drift apart the way the old scroll-driven versions did. Reversible:
-  // tweens between _s5960ZoomFrom and _s5960ZoomTo (set by the trigger branch above), not
-  // always 0->1, so a zoom-in triggered mid-zoom-out eases from wherever it currently is.
-  let s5960ZoomT;
-  if (currentScene === 27 && _s5960ZoomT0 !== null) {
-    const dur = _s5960ZoomTo === 1 ? S5960_ZOOMOUT_MS : S5960_ZOOMIN_MS;
-    const raw = Math.min(1, (ts - _s5960ZoomT0) / dur);
-    s5960ZoomT = _s5960ZoomFrom + easeInOutCubic(raw) * (_s5960ZoomTo - _s5960ZoomFrom);
-    _s5960ZoomCur = s5960ZoomT; // commit so the next trigger (either direction) tweens from here
+  // Scenes 59->60 zoom+cover progress (0-1) — driven by the wall-clock state (_s5960T0),
+  // single source of truth reused by the bus (passed into animateCityBus), the background art
+  // zoom, and the cloud puffs below, so none of them can drift apart.
+  // s5960ZoomT  — bus/background scale pulling back, finishes at S5960_ZOOM_END_FRAC
+  // s5960CoverT — clouds fading in (see the puff-driving code below), finishes at
+  //               S5960_COVER_END_FRAC and then just stays at 1 — no reveal/fade-out, the
+  //               clouds are the permanent backdrop for scene 61 once they've covered.
+  let s5960ZoomT = 0, s5960CoverT = 0, s5960Overall = 0;
+  if (_s5960T0 !== null) {
+    s5960Overall = Math.min(1, (ts - _s5960T0) / S5960_TOTAL_MS);
+    s5960ZoomT  = easeInOutCubic(Math.min(1, s5960Overall / S5960_ZOOM_END_FRAC));
+    s5960CoverT = easeInOutCubic(Math.max(0, Math.min(1, (s5960Overall - S5960_ZOOM_END_FRAC) / (S5960_COVER_END_FRAC - S5960_ZOOM_END_FRAC))));
+    // (The hidden auto-scroll-to-scene-61 jump that used to live here was removed — it was
+    // the root cause of most of the back-and-forth bugs this session: duplicate clouds,
+    // repeated re-triggering, "stuck" backward scrolling. Without clouds to hide the jump
+    // behind, it wasn't serving its original purpose anyway. Scene 61 is now reached by
+    // ordinary continued scrolling after the zoom-out finishes, same as any other scene.)
+  } else if (_s6263Active) {
+    // Scenes 62-63 (content one/two) — the zoom REVERSES here, easing scale back from 0.5 up
+    // to 1 (full size) across both screens combined, instead of staying permanently zoomed.
+    // Driven by s6263Pos (computed above from _s6263Index/_s6263TransT0), not currentScene/
+    // sceneLocal — scroll is locked once inside this zone, so sceneLocal stops advancing.
+    s5960ZoomT = Math.max(0, 1 - s6263Pos);
+    s5960CoverT = 1;
+    s5960Overall = 1;
   } else if (currentScene >= 28) {
-    s5960ZoomT = 1; // already scrolled past (e.g. jumped via nav) without triggering here
-    _s5960ZoomCur = 1;
-  } else {
-    s5960ZoomT = _s5960ZoomCur; // holds at whatever it last settled to (0 once fully reset)
+    // Scene 60-61 — the bus's zoomed-out scale (0.5) is permanent through these two, not just
+    // something that holds while _s5960T0 happens to still be set. Without this, crossing from
+    // scene 59 into scene 60 (which resets _s5960T0 — see the fallback above) left s5960ZoomT
+    // with no source at all and it defaulted back to 0, snapping the bus back to full scale(1)
+    // right at the 59/60 boundary. Also covers reaching scene 60/61 some other way (e.g. nav
+    // jump) without ever playing the sequence.
+    s5960ZoomT = 1;
+    s5960CoverT = 1;
+    s5960Overall = 1;
   }
 
   // -- Horizontal strip --
@@ -1090,7 +1204,7 @@ function frame(ts) {
   const busVw      = _inJungle
     ? interpolateKeyframes(JUNGLE_KF, junglePhase).toFixed(0)
     : '–';
-  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,61];
+  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,61,62,63];
   const _sceneLabel  = SCENE_LABELS[currentScene] ?? (currentScene + 1);
   if (dbgScene)  dbgScene.textContent  = `scene ${_sceneLabel}  ${_scenePct}%`;
   if (dbgTime)   dbgTime.textContent   = `${secs}s`;
@@ -1170,10 +1284,43 @@ function frame(ts) {
     const viewportCenterVw2 = -effectiveTx / vwPx2 + 50;
     const popupCenterVw2 = viewportCenterVw2 - S5973_BG_LEFT_VW;
     s5973Panels.forEach((el, i) => {
-      const sceneIdx = 27 + i;
-      const show = currentScene === sceneIdx && sceneLocal > 0.15 && sceneLocal < 0.9;
+      const sceneIdx = 27 + i; // 27..29 only now (59-61) — 62/63 moved to their own block below
+      let show;
+      if (sceneIdx === 27) {
+        // panel-59: the intro message — hides by SCROLL AMOUNT (sceneLocal), not the bus
+        // zoom's own progress — 0.75 is just before S5960_ZOOM_START_PHASE (0.8, where the
+        // freeze/zoom triggers), so it's gone before the zoom even starts, handing off to
+        // panel-60 (right below) instead of the two overlapping.
+        show = currentScene === 27 && sceneLocal > 0.15 && sceneLocal < 0.45;
+      } else if (sceneIdx === 28) {
+        // panel-60: disabled — it has the same "Would you like to learn more?" text as
+        // panel-61, and only the LAST one (panel-61, the true final scene) should open now.
+        show = false;
+      } else {
+        // panel-61: was a 5% sliver (0.05-0.1) of scene 61's already-small scroll budget —
+        // easy to scroll straight past without ever seeing it. Wide open now since this is
+        // the actual ending message and there's nothing after it to hand off to.
+        show = currentScene === sceneIdx && sceneLocal > 0.02;
+      }
       positionCenteredPopup(el, show, popupCenterVw2);
     });
+
+    // Second popup — tied to the purple-man character (.s5973-purple-man in style.css,
+    // left:60vw), not a scene boundary. Shows in the gap between panel-59 hiding and
+    // panel-60/61's window — retune this sceneLocal range directly if it doesn't line up
+    // with where the character actually scrolls into view.
+    if (panelPurpleMan) {
+      const showPurpleMan = currentScene === 27 && sceneLocal > 0.45 && sceneLocal < 0.7;
+      positionCenteredPopup(panelPurpleMan, showPurpleMan, popupCenterVw2);
+    }
+
+    // Third popup — opens once the bus finishes zooming out to scale 0.5 (s5960ZoomT reaches
+    // 1, partway through the wall-clock freeze sequence — see S5960_ZOOM_END_FRAC), not a
+    // scroll-number threshold like the others.
+    if (panelLanguageJustice) {
+      const showLanguageJustice = currentScene === 27 && s5960ZoomT >= 1;
+      positionCenteredPopup(panelLanguageJustice, showLanguageJustice, popupCenterVw2);
+    }
 
     // -- Whole-background zoom: auto-playing, wall-clock driven by s5960ZoomT (computed once,
     // shared with the bus's own zoom in animateCityBus — see the freeze branch above and
@@ -1186,37 +1333,51 @@ function frame(ts) {
         const bgScale = 1 - 0.3 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
+        s5973BgArt.style.opacity = '1';
       } else {
+        // Scene 61 — no special treatment anymore (was hidden, showing only a plain fill
+        // color, back when the clouds needed something clean underneath their gaps; clouds
+        // are disabled now, so this just left it as a pink void for no reason). Same as any
+        // other scene: the park art (ground/bridge/trees) renders normally.
         s5973BgArt.style.transform = 'scale(1)';
+        s5973BgArt.style.opacity = '1';
       }
     }
 
-    // -- Scene 59->61 clouds "waterfall": wall-clock sequence chained onto the end of the
-    // zoom-out above (see _s6061FreezeT0, set there). Each puff falls in on its own staggered
-    // schedule (offscreen above -> resting position, fading in); once the last one lands
-    // (S6061_COVERED_AT_MS) the actual scroll position is jumped forward to scene 61's start
-    // — invisible, since the screen is fully covered at that instant — then after a hold all
-    // puffs fade out together, revealing scene 61 already in place behind them. --
-    if (_s6061FreezeT0 !== null) {
-      const elapsed = ts - _s6061FreezeT0;
-      // Hidden scroll jump: fires once, exactly when fully covered.
-      if (!_s6061ScrollJumped && elapsed >= S6061_COVERED_AT_MS) {
-        _s6061ScrollJumped = true;
-        const jumpTarget = SCROLL_MAP[29] ? SCROLL_MAP[29].scrollStart + 10 : null; // scene 61 start
-        if (jumpTarget !== null) window.scrollTo(0, jumpTarget);
-      }
-      const revealElapsed = elapsed - S6061_COVERED_AT_MS - S6061_HOLD_MS;
-      const revealFade = revealElapsed > 0 ? 1 - easeInOutCubic(Math.min(1, revealElapsed / S6061_REVEAL_MS)) : 1;
-      s6061Puffs.forEach((puff, i) => {
-        const fallStart = S6061_PAUSE_MS + i * S6061_STAGGER_MS;
-        const fallT = elapsed < fallStart ? 0 : easeInOutCubic(Math.min(1, (elapsed - fallStart) / S6061_FALL_MS));
-        const fallY = (1 - fallT) * -60; // vh — falls from above into its resting position
-        puff.style.opacity = (fallT * revealFade).toFixed(3);
-        puff.style.transform = `translateY(${fallY.toFixed(1)}vh)`;
-      });
-    } else {
-      s6061Puffs.forEach(puff => { puff.style.opacity = '0'; });
-    }
+    // -- Scene 59->61 clouds cover — COMMENTED OUT (disabled on request). Was: the 3 cloud
+    // images fading in ONE BY ONE (not all together), each getting its own equal slice of the
+    // cover window (S5960_ZOOM_END_FRAC -> S5960_COVER_END_FRAC, driven by s5960Overall above).
+    // s6061Puffs is now always empty (its elements are commented out in index.html too), so
+    // this was already a no-op, but leaving the logic commented rather than deleted in case
+    // it comes back.
+    // const perPuffFrac = (S5960_COVER_END_FRAC - S5960_ZOOM_END_FRAC) / s6061Puffs.length;
+    // s6061Puffs.forEach((puff, i) => {
+    //   const myStart = S5960_ZOOM_END_FRAC + i * perPuffFrac;
+    //   const t = easeInOutCubic(Math.max(0, Math.min(1, (s5960Overall - myStart) / perPuffFrac)));
+    //   puff.style.opacity = t.toFixed(3);
+    // });
+    // (The scene-61 backdrop color swap to #F8DCD3 that used to live here was removed along
+    // with hiding the park art above — same reasoning, leave the background as-is.)
+  }
+
+  // -- Scenes 62-63 (content screens) — root-level fixed overlay, screen-by-screen switching.
+  // Not part of the pan strip at all anymore: #s62-s63-bg's own opacity shows/hides the whole
+  // overlay, and each .s6263-slide crossfades via s6263Pos (computed above from _s6263Index/
+  // _s6263TransT0, driven by the wheel-lock listener, not scroll position). --
+  if (s6263Bg) {
+    s6263Bg.classList.toggle('active', _s6263Active);
+    if (s6263Slides[0]) s6263Slides[0].style.opacity = Math.max(0, 1 - s6263Pos).toFixed(3);
+    if (s6263Slides[1]) s6263Slides[1].style.opacity = Math.max(0, s6263Pos).toFixed(3);
+    // Content panels (.s6263-content-panel, the real Resources/Contact+Credits design) fade
+    // with their parent .s6263-slide's own opacity above — no separate opacity toggle needed.
+    // pointer-events is toggled here instead: only the currently-active, settled slide's panel
+    // should be clickable/scrollable — the other one sits at opacity:0 in the same spot and
+    // must not intercept clicks/wheel meant for the visible one.
+    s6263Panels.forEach((el, i) => {
+      if (!el) return;
+      const active = _s6263Active && _s6263TransT0 === null && _s6263Index === i;
+      el.style.pointerEvents = active ? 'auto' : 'none';
+    });
   }
 
   // #panel-5: track bus position — now `position: fixed` (see style.css), so it moves in
@@ -1642,19 +1803,19 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
     } else if (scene === 27 || scene === 28) {
-      // From the instant the zoom-out starts, the bus is basically parked — just a small
-      // fast shake/jitter that fades out, driven by s5960ZoomT (wall-clock) instead of scroll
-      // position, since scroll is frozen/blocked for the whole auto-play duration (a
-      // scroll-driven shake wouldn't animate at all while scroll itself isn't moving).
-      const shakeFade = 1 - s5960ZoomT;
-      const shakeX = Math.sin(s5960ZoomT * Math.PI * 10) * 0.0015 * vw * shakeFade;
-      busY = Math.sin(s5960ZoomT * Math.PI * 12) * 1.2 * shakeFade;
-      busX = CENTER + shakeX;
+      // Hard freeze — the instant the cloud-cover sequence begins (s5960ZoomT > 0), the bus
+      // holds completely still (no shake/jitter/bob) for the whole window, only moving again
+      // once scrolled back below the trigger (s5960ZoomT back to exactly 0). Scale still
+      // eases via the zoom formula above (unchanged, still driven by the same s5960ZoomT).
+      busX = CENTER;
+      busY = 0;
     } else {
-      // Gentle continuous bob for the rest of the chapter — reads as still driving, not parked.
-      const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
-      busY = Math.sin(chapterPhase * Math.PI * 4) * 2; // subtle vertical jostle, px
-      busX = CENTER + bob;
+      // Scene 61: the story has ended (clouds have covered/revealed it) — bus is gone for
+      // good, same reasoning as scenes 58's car/seller above (hidden while still fully
+      // covered by the clouds, so the disappearance itself is never visible).
+      eff  = 0;
+      busX = CENTER;
+      busY = 0;
     }
   }
 

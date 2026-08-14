@@ -6,7 +6,7 @@
 <title>Prevailer Matatu Journey</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500&family=Noto+Sans+Ethiopic:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&family=Noto+Sans+Ethiopic:wght@400&display=swap">
 <link rel="stylesheet" href="https://use.typekit.net/diu6bwx.css">
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
@@ -416,14 +416,16 @@
     <div class="scene city scene-59"></div>
     <div class="scene city scene-60"></div>
     <div class="scene city scene-61"></div>
+    <div class="scene city scene-62"></div>
+    <div class="scene city scene-63"></div>
 
-    <!-- Single wide background spanning scenes 59-61 (300vw = 3 scene-slots × 100vw each,
-         see #s59-s73-bg's width comment in style.css for why it must be that wide). Ground/
+    <!-- Background spanning scenes 59-61 only (300vw = 3 scene-slots × 100vw each). Ground/
          bridge-trees/trees-top are tiled via CSS background-repeat (divs, not <img>) since
          there isn't enough unique art to cover it as single images without stretching.
          Element/class names kept as "s5973"/"s59-s73" even though the story now ends at 61 —
          scenes 62-73 were cut (only 59-61 remain), renaming everywhere wasn't worth the
-         churn for a suffix that's now just historical. -->
+         churn for a suffix that's now just historical. Scenes 62-63 have their OWN independent
+         wrapper below (#s62-s63-bg) so each content screen can have a fully custom bg/content. -->
     <div id="s59-s73-bg">
       <!-- Background art only, NOT the popups below — this inner wrapper is what scales for
            the scene-59 zoom-out (see #s5973-bg-art in scroll.js/style.css). Kept separate so
@@ -444,6 +446,8 @@
              bridge/lake/palm trees/grass). Re-add once we know which later scene they
              actually belong to and how they should look there. -->
         <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
+        <!-- Ambient standing character — first-guess placement, tune left/bottom/width in style.css -->
+        <img class="s5973-purple-man"   src="assets/s59-s73/Purple%20man.png"                     alt="">
       </div>
 
       <!-- Popups — content from panels.panel-59..panel-61 in i18n/<lang>.json, dynamically
@@ -453,6 +457,11 @@
       <div class="text-panel" id="panel-59" aria-hidden="true"></div>
       <div class="text-panel" id="panel-60" aria-hidden="true"></div>
       <div class="text-panel" id="panel-61" aria-hidden="true"></div>
+      <!-- Second popup, tied to the purple-man character's on-screen position rather than a
+           scene boundary — see the dedicated show/position block in scroll.js. -->
+      <div class="text-panel" id="panel-purple-man" aria-hidden="true"></div>
+      <!-- Third popup, same scroll-number-threshold pattern as the others (see scroll.js). -->
+      <div class="text-panel" id="panel-language-justice" aria-hidden="true"></div>
     </div>
 
   </div><!-- /scroll-x -->
@@ -464,6 +473,102 @@
        fixed element, position synced to the pan via JS (see frame()'s effectiveTx block),
        so its z-index actually competes with the car/bus. -->
   <img id="s5558-seller-front" src="assets/s55-s58/blue%20man%20seller.svg" alt="" aria-hidden="true">
+
+  <!-- SCENES 62-63: "content" screens — a root-level position:fixed, full-viewport overlay
+       (same stacking-context-escape pattern as #s5558-seller-front above), NOT part of
+       #scroll-x's horizontal-pan strip anymore. Scrolling into/through this pair switches
+       screen-by-screen (crossfade + scroll-locked one-screen-per-gesture) instead of
+       continuously panning — see the _s6263* state/wheel-lock logic in scroll.js. Each slide
+       is a full 100vw/100vh screen so clouds/content can fill the whole viewport. -->
+  <div id="s62-s63-bg" aria-hidden="true">
+    <!-- SCENE 62 — Resources. Not the i18n .text-panel popup pattern used elsewhere (this is a
+         full page-style layout, not a single blob) — each piece of text is wired individually
+         via data-i18n/data-i18n-html (same attribute-based mechanism i18n.js already uses for
+         ui.* strings like the RESOURCES nav button), keyed under s6263.* in i18n/<lang>.json.
+         data-i18n-html is used wherever the string contains a nested <a> link; data-i18n
+         (textContent) for plain text. English stays hard-coded in the HTML as the fallback
+         shown before i18n.js runs / if a key is ever missing. -->
+    <div class="s6263-slide s6263-slide-0">
+      <div class="s6263-clouds"></div>
+      <img class="s6263-bird1" src="assets/s62-s63/Group%20812.svg" alt="">
+      <div class="s6263-content-panel" id="panel-62" aria-hidden="true">
+        <div class="s6263-wrap">
+          <section class="s6263-resources">
+            <h2 class="s6263-heading" data-i18n="s6263.resourcesHeading">RESOURCES</h2>
+            <div class="s6263-resource-columns">
+              <ul>
+                <li data-i18n-html="s6263.resourceItem1">Download our comprehensive report <a href="#" target="_blank" rel="noopener">"African Languages and Digital Justice: A Mapping Study on Community-Centered Language Technologies"</a></li>
+                <li data-i18n-html="s6263.resourceItem2">Download our <a href="#" target="_blank" rel="noopener">"Community-Centered Language Technology: Best Practices Guideline"</a> to explore how this kind of tech work can be adopted and expanded by others</li>
+              </ul>
+              <ul>
+                <li data-i18n-html="s6263.resourceItem3">Read our past, foundational research-in-action about the internet's languages online: <a href="https://internetslanguages.org" target="_blank" rel="noopener">internetslanguages.org</a></li>
+                <li data-i18n-html="s6263.resourceItem4">Explore the <a href="#" target="_blank" rel="noopener">LesanAI</a> platform, an AI startup dedicated to developing machine translation tools with a focus on Ethiopian and Eritrean languages.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="s6263-contact">
+            <h2 class="s6263-heading" data-i18n="s6263.contactHeading">CONTACT US</h2>
+            <div class="s6263-contact-columns">
+              <p data-i18n="s6263.contactIntro">Reach out to give us feedback and share your thoughts, let us know of African/Global Majority initiatives working on these issues, or recommend someone we should be in conversation with!</p>
+              <div class="s6263-contact-links">
+                <a href="mailto:languages@whoseknowledge.org" data-i18n="s6263.contactEmail">languages@whoseknowledge.org</a>
+                <a href="https://whoseknowledge.org" target="_blank" rel="noopener" data-i18n="s6263.contactSite">whoseknowledge.org</a>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 63 — Credits, the story's true final screen. -->
+    <div class="s6263-slide s6263-slide-1">
+      <div class="s6263-clouds"></div>
+      <img class="s6263-bird2" src="assets/s62-s63/Group%20813.svg" alt="">
+      <div class="s6263-content-panel" id="panel-63" aria-hidden="true">
+        <div class="s6263-wrap">
+          <section class="s6263-credits">
+            <h2 class="s6263-heading" data-i18n="s6263.creditsHeading">CREDITS</h2>
+            <div class="s6263-credits-columns">
+              <div>
+                <p data-i18n-html="s6263.creditsCol1Item1">This work was made possible through the generous support of The Internet Society Foundation (<a href="#" target="_blank" rel="noopener">ISOC</a>).</p>
+                <p data-i18n-html="s6263.creditsCol1Item2">Research-in-action process conducted by <a href="#" target="_blank" rel="noopener">Whose Knowledge?</a> and the Distributed AI Research Institute (<a href="#" target="_blank" rel="noopener">DAIR</a>).</p>
+                <p data-i18n="s6263.creditsCol1Item3">Written by Claudia Pozo and Maari Zwick-Maitreyi with edits from Grusha Dhawan</p>
+              </div>
+              <div>
+                <p data-i18n-html="s6263.creditsCol2Item1">Website by <a href="#" target="_blank" rel="noopener">Studio Ping Pong</a></p>
+                <p data-i18n-html="s6263.creditsCol2Item2">Development by <a href="#" target="_blank" rel="noopener">House of Katha</a></p>
+                <p data-i18n="s6263.creditsCol2Item3">Creative representation advisory by Anisa Ali</p>
+                <p data-i18n="s6263.creditsCol2Item4">Tigrinya translation and proofreading by Berhane Achame and Fekadu Gebregziabher.</p>
+                <p data-i18n="s6263.creditsCol2Item5">Kishwahili translation and proofreading by Melchior Shukuru and Exuper Njau</p>
+              </div>
+            </div>
+
+            <!-- Real org logos (added under assets/s62-s63/) instead of guessed placeholder marks -->
+            <div class="s6263-org-marks">
+              <img src="assets/s62-s63/InternetSociety_Foundation_Logo_Primary_GroundNavy_RGB%201.png" alt="Internet Society Foundation">
+              <img src="assets/s62-s63/Whose_Knowledge__secondary_logo_-_coffee%201.png" alt="Whose Knowledge?">
+              <img src="assets/s62-s63/dair-institute-logo%201.png" alt="DAIR">
+            </div>
+
+            <div class="s6263-credits-footer">
+              <p class="s6263-license" data-i18n-html="s6263.licenseText"><a href="#" target="_blank" rel="noopener">Unless otherwise stated</a>, this work is licensed under a <a href="#" target="_blank" rel="noopener">Creative Commons Attribution-ShareAlike 4.0 International License.</a> 2026</p>
+              <!-- Real social icons (assets/s62-s63/) — already colored to match the site's
+                   #9F2222 accent, so no button/background wrapper needed like the guessed
+                   placeholders had. -->
+              <div class="s6263-social-row">
+                <a href="#" aria-label="YouTube"><img src="assets/s62-s63/Vector%20(2).svg" alt=""></a>
+                <a href="#" aria-label="Instagram"><img src="assets/s62-s63/Group%20(1).svg" alt=""></a>
+                <a href="#" aria-label="Mastodon"><img src="assets/s62-s63/Logo-Mastodon--Streamline-Ionic-Filled.svg" alt=""></a>
+                <a href="#" aria-label="X"><img src="assets/s62-s63/Group%20(2).svg" alt=""></a>
+                <a href="#" aria-label="LinkedIn"><img src="assets/s62-s63/Linkedin-Logo--Streamline-Logos-Block.svg" alt=""></a>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- City bus lives inside #pinned-wrap so its z-index is relative to scenes.
        z:5 = above regular city scenes (z:auto) but below scene-4 savanna (z:11),
@@ -497,24 +602,15 @@
        so there's a point in its transit where it fully covers/hides them. -->
   <img id="s5558-transition-frame-front" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
 
-  <!-- Scene 59->61 clouds "waterfall" transition: root-level fixed, same reasoning as the
-       frame above — needs to render above #city-bus/#s5973-bg-art. Chains directly onto the
-       end of the scene 59->60 bus/background zoom-out (no extra scrolling through scene 60
-       needed) — 8 individual cloud puffs fall in one by one like rain, staggered, until they
-       fully cover the screen, then fade back out together to reveal scene 61 (scroll position
-       is jumped forward to scene 61's start while fully covered — see S6061_* constants +
-       _s6061FreezeT0/_s6061ScrollJumped in scroll.js). Each puff's resting position/size is a
-       CSS nth-child rule (see style.css); JS only drives opacity/translateY per puff. -->
+  <!-- Scene 59->61 clouds cover transition — COMMENTED OUT (disabled on request). Was:
+       root-level fixed cloud cover for scene 61, driven by scroll.js (see the puff-driving
+       code + S6061_* constants + _s6061ScrollJumped there, also currently commented out).
   <div id="s6061-clouds-rain" aria-hidden="true">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
-    <img class="s6061-puff" src="assets/s59-s73/cloud-puff.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
+    <img class="s6061-puff" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
   </div>
+  -->
 
 </div><!-- /pinned-wrap -->
 

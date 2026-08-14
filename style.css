@@ -644,12 +644,13 @@ html, body {
   opacity: 0;
 }
 
-/* Scene 59->61 clouds "waterfall" transition — same root-level-fixed reasoning as the frame
-   above (z-index 20, beats #city-bus/#s5973-bg-art/#city-trees-5). The container itself is
-   just a positioning root; each .s6061-puff's resting left/top/width is a hardcoded nth-child
-   rule below (8 puffs, staggered/scattered to fully overlap-cover the viewport once all have
-   fallen). JS (see the S6061_* sequence in scroll.js) only ever sets opacity + a translateY
-   "still falling" offset per puff — never their resting position. */
+/* Scene 59->61 clouds cover transition — same root-level-fixed reasoning as the frame above
+   (z-index 20, beats #city-bus/#s5973-bg-art/#city-trees-5). The container itself is just a
+   positioning root; each .s6061-puff's resting left/top/width is a hardcoded nth-child rule
+   below (3 real cloud images, oversized and overlapped to fully cover the viewport — see the
+   comment on #s6061-clouds-rain in index.html for why they need to be this big). JS (see the
+   puff-driving code in frame(), scroll.js) only ever sets opacity — a plain 0->1 fade tied to
+   scroll progress, no position/scale/timers. */
 #s6061-clouds-rain {
   position: fixed;
   top: 0;
@@ -663,15 +664,15 @@ html, body {
   position: absolute;
   opacity: 0;
   display: block;
+  object-fit: contain; /* safety margin in case the per-puff height isn't a pixel-exact aspect match */
 }
-.s6061-puff:nth-child(1) { left: -10%; top: -20%; width: 55vw; }
-.s6061-puff:nth-child(2) { left: 30%;  top: -25%; width: 60vw; }
-.s6061-puff:nth-child(3) { left: 65%;  top: -15%; width: 55vw; }
-.s6061-puff:nth-child(4) { left: -15%; top: 20%;  width: 60vw; }
-.s6061-puff:nth-child(5) { left: 35%;  top: 15%;  width: 65vw; }
-.s6061-puff:nth-child(6) { left: 70%;  top: 20%;  width: 58vw; }
-.s6061-puff:nth-child(7) { left: 10%;  top: 55%;  width: 60vw; }
-.s6061-puff:nth-child(8) { left: 50%;  top: 55%;  width: 62vw; }
+/* height set explicitly (matching each SVG's own intrinsic aspect ratio) instead of relying
+   on the browser auto-computing it from the image's natural size at this width — at ~3000px
+   render width that auto-resolution wasn't completing (image stuck at naturalWidth/Height 0,
+   so height:auto came out 0 and nothing ever rendered despite opacity being set correctly). */
+.s6061-puff:nth-child(1) { left: -50%; top: -35%; width: 210vw; height: 112vw; } /* Clouds (1): 4173x2226 */
+.s6061-puff:nth-child(2) { left: -10%; top: 5%;   width: 230vw; height: 125vw; } /* Clouds (2): 4212x2282 */
+.s6061-puff:nth-child(3) { left: -55%; top: 30%;  width: 220vw; height: 128vw; } /* clouds (3): 4895x2856 */
 
 /* ================================================================
    SCENES 1–3: Jungle
@@ -2155,19 +2156,26 @@ display: block;
    auto-plays through to scene 61, the story's end (scroll indices
    27–29). Scenes 62-73 were cut — class/id names below still say
    "5973"/"59-s73" since renaming everywhere wasn't worth the churn.
+   Scenes 62-63 (content screens, scroll indices 30-31) now live in
+   their own independent #s62-s63-bg wrapper — see that section below.
    ================================================================ */
-.scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61 { background: transparent; }
+.scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61,
+.scene.city.scene-62, .scene.city.scene-63 { background: transparent; }
 
 #s59-s73-bg {
   position: absolute;
   left: 3089vw; /* user-tuned (was 3065vw, the math-derived 27*100vw+365vw) — must stay in
     sync with S5973_BG_LEFT_VW in scroll.js (popup centering + zoom-out transform-origin) */
   top: 0;
-  width: 300vw; /* 3 scene-slots × 100vw each (scenes 59-61 — 62-73 were cut) — the pan
-    ALWAYS advances exactly 100vw per scroll index regardless of that index's own
-    SCENE_SCROLL value (SCENE_SCROLL only controls how much scrolling it takes to cover that
-    100vw, not the pan distance itself). A narrower width here leaves a real content gap once
-    the pan runs past its right edge, not just a "less matched" scroll pace. */
+  width: 400vw; /* 3 scene-slots × 100vw (scenes 59-61) PLUS a full extra 100vw buffer. Scenes
+    62-63 don't live in the pan strip at all anymore (#s62-s63-bg is a position:fixed overlay,
+    not part of #scroll-x) — so as far as the pan strip itself is concerned, scene 61 is now
+    the LAST scene it ever shows, and needs the same last-scene buffer #s59-s73-bg used to
+    need back when it stretched all the way to 63: without it, nearing the end of scene 61 the
+    pan runs past this wrapper's right edge (the pan advances continuously within scene 61's
+    own scroll budget, same "always 100vw per scene index" invariant as everywhere else on the
+    site) and reveals <body>'s dark global background instead of this wrapper's own color —
+    confirmed via screenshot, dark green/black fill from ~93% through scene 61. */
   height: 100vh;
   background-color: #A9BB5D; /* olive-green park fallback, matches the reference screenshots'
     grass tone, so any gap between art layers doesn't show a jarring color */
@@ -2236,6 +2244,28 @@ display: block;
     height: auto;
     z-index: 3;
 }
+/* Ambient standing character — first-guess placement near the ground/road, retune
+   left/bottom/width. left needs !important — see .s5973-prop905's comment above for why. */
+.s5973-purple-man {
+left: 114vw !important;
+    bottom: 73vh;
+    top: auto;
+    width: 2vw !important;
+    height: auto;
+    z-index: 3;
+}
+div#panel-59 {
+    bottom: 65%;
+}
+div#panel-purple-man {
+    bottom: 72vh;
+    left: 99vw !important;
+}
+div#panel-language-justice {
+    bottom: 65vh;
+    left: 147vw !important;
+}
+
 /* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
 .s5973-bridge-lake {
   left: 0vw !important; /* was 15vw — left a gap of bare sky at the left edge of the screen */
@@ -2287,6 +2317,225 @@ position: absolute;
    scene-59 reference). */
 
 #panel-59 p, #panel-60 p, #panel-61 p { color: #9F2222; }
+
+/* ================================================================
+   SCENES 62–63 — "content" screens (scroll indices 30-31). Root-level
+   position:fixed full-viewport overlay (NOT part of #scroll-x's
+   horizontal-pan strip — same stacking-context-escape pattern as
+   #s5558-seller-front), so scrolling into/through this pair switches
+   screen-by-screen (crossfade, one screen per scroll gesture) instead
+   of continuously panning. See the _s6263* state/wheel-lock in
+   scroll.js for how #s62-s63-bg's opacity and each slide's opacity
+   get driven.
+   ================================================================ */
+#s62-s63-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0; /* 0 until the slide-switch zone is entered (JS toggles the .active class) */
+  transition: opacity 0.3s ease;
+  z-index: 30; /* beats #city-bus/.text-panel (z:20) so it fully covers the strip underneath;
+    stays below #debug-scale/#dbg-bar (z:200) so debug controls remain usable */
+}
+#s62-s63-bg.active { opacity: 1; }
+/* Each slide is a full, independent 100vw/100vh screen — opacity-crossfaded between by JS
+   (frame() in scroll.js), not scroll-position-driven anymore. */
+.s6263-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #F8DCD3;
+  opacity: 0; /* JS sets the actual crossfaded value every frame */
+}
+.s6263-clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/s62-s63/clouds.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%; /* stretch to fill exactly — the clouds in this asset are
+    sprinkled mostly along the edges (a lot of empty/near-white space in the middle), so
+    background-size:cover was cropping most of them out of view depending on viewport aspect
+    ratio. Stretching guarantees the whole image (all the cloud shapes) stays visible. */
+  z-index: 2;
+}
+.s6263-bird1, .s6263-bird2 {
+  position: absolute;
+  left: 8vw;
+  top: 12vh;
+  width: 4vw;
+  height: 4vw; /* explicit, not auto — Group 812/813.svg are 217x217 (square) viewBoxes, but
+    relying on the browser to auto-resolve height from intrinsic size failed here (same issue
+    as the s6061-puff clouds earlier), leaving it at 0 and invisible regardless of position */
+  z-index: 5;
+}
+.s6263-bird2 { left: auto; right: 8vw; top: 18vh; } /* mirrored side so it doesn't sit right on
+  top of bird1's old spot now that both slides reuse the same left-basis coordinate space */
+/* Content panel — the real Resources / Contact+Credits design (not the small .text-panel
+   popup-card style used elsewhere), so it's its own full layout, not a floating bubble.
+   Internally scrollable (overflow-y: auto) in case content runs taller than the viewport —
+   the wheel listener in scroll.js checks scrollTop/scrollHeight here before treating a wheel
+   gesture as a slide-switch tick, so scrolling to read overflow content doesn't accidentally
+   flip to the other screen. pointer-events is toggled auto/none per-frame in scroll.js (only
+   the currently-showing slide's panel is interactive) — #s62-s63-bg/.s6263-slide are
+   pointer-events:none by default so nothing here is clickable/scrollable while off-screen. */
+.s6263-content-panel {
+  --s6263-bg:    #F8DCD3;
+  --s6263-ink:   #9F2222;
+  --s6263-text:  #9F2222;
+  --s6263-line:  #c76b6b;
+  position: absolute;
+  inset: 0;
+  z-index: 10; /* above .s6263-clouds (z:2) and the birds (z:5) — content-panel had no
+    z-index before (auto), which loses to any explicitly-z-indexed sibling regardless of DOM
+    order, so the clouds layer could paint over the content in spots */
+  overflow-y: auto;
+  pointer-events: none; /* toggled to auto in scroll.js for the active slide only */
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 400;
+  font-size: 1.5vmax !important; /* 40px equivalent at a 1920x1080 reference viewport
+    (40/1920*100), converted from the flat px spec so it scales with viewport size like the
+    rest of the site's typography (which uses vmin/vmax above the 1024px breakpoint) */
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--s6263-text);
+  padding: 130px 144px 40px; /* top clears #navbar-wrap (top:56px + 44px height + margin) —
+    otherwise the heading sat right underneath the fixed nav bar. left/right (44px) matches
+    #navbar-wrap's own left/right:44px so the content's edges line up with the nav bar's. */
+  box-sizing: border-box;
+}
+.s6263-wrap {
+  max-width: none; /* was 900px + margin:0 auto (centered) — now stretches edge-to-edge within
+    .s6263-content-panel's own 44px side padding, so it lines up with #navbar-wrap exactly
+    instead of sitting at its own independent centered width. */
+  margin: 0;
+}
+/* Heading style, exact spec: thunderhouse-pro (already loaded site-wide via the Typekit link
+   in index.html — see .sound-caption-s32-name for the other place it's used), 120px/80%
+   line-height, centered, #9F2222. Same size everywhere now (RESOURCES/CONTACT US/CREDITS) —
+   the smaller 24-30px per-section overrides that used to live here are gone. */
+.s6263-heading {
+  font-family: 'thunderhouse-pro', 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: 4.25vmax !important; /* 120px equivalent at a 1920x1080 reference viewport
+    (120/1920*100), same conversion as .s6263-content-panel's body size above */
+  line-height: 0.8;
+  letter-spacing: 0;
+  color: #9F2222;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-bottom: 100px;
+}
+.s6263-resources {
+  position: relative;
+  border-radius: 50% / 42%;
+  padding: 5vh 60px;
+  text-align: center;
+  background: radial-gradient(55.44% 55.44% at 50% 50%, #FFF2EE 53.79%, #F8DCD3 94.23%);
+}
+.s6263-resource-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  text-align: left;
+}
+.s6263-resource-columns ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+.s6263-resource-columns li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 50px;
+}
+.s6263-resource-columns li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--s6263-text);
+}
+.s6263-content-panel a { color: var(--s6263-text); text-decoration: underline; }
+
+.s6263-contact {
+  margin-top: 40px; /* now sits directly under .s6263-resources on the same slide, needs its
+    own spacing (previously relied on .s6263-credits' margin-top when it followed contact) */
+  border: 1.5px solid var(--s6263-line);
+  border-radius: 6px;
+  padding: 28px 32px;
+}
+.s6263-contact-columns {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 200px;
+}
+.s6263-contact-columns p { max-width: auto; margin: 0; }
+.s6263-contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.s6263-contact-links a { color: var(--s6263-text); text-decoration: none; }
+.s6263-contact-links a:hover { text-decoration: underline; }
+
+.s6263-credits { margin-top: 32px; padding: 20px 12px 4px; margin-bottom: 100px; }
+.s6263-credits-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 28px;
+}
+.s6263-credits-columns > div { display: flex; flex-direction: column; gap: 14px; }
+.s6263-credits-columns p { margin: 0; }
+
+/* Real org logos (assets/s62-s63/*.png) — each image's own natural aspect ratio is kept,
+   just capped to a shared height so the three sit level with each other. */
+.s6263-org-marks {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 60px;
+  flex-wrap: wrap;
+  margin-top: 100px;
+  margin-bottom: 200px;
+}
+.s6263-org-marks img { height: 100px; width: auto; }
+
+.s6263-credits-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 500px;
+}
+.s6263-license {  margin: 0; color: var(--s6263-text); }
+/* Real icon assets are already colored #9F2222 (the site's accent) — plain icons, no
+   background button needed like the earlier guessed placeholders had. */
+.s6263-social-row { display: flex; align-items: center; gap: 20px; }
+.s6263-social-row a { display: flex; text-decoration: none; }
+.s6263-social-row img { width: 50px; height: 50px; }
+
+@media (max-width: 640px) {
+  .s6263-resources { padding: 5vh 24px; border-radius: 24px; }
+  .s6263-resource-columns { grid-template-columns: 1fr; }
+  .s6263-credits-columns { grid-template-columns: 1fr; }
+  .s6263-contact-columns { flex-direction: column; }
+  .s6263-contact-links { text-align: left; }
+  .s6263-org-marks { gap: 24px; }
+  .s6263-credits-footer { flex-direction: column; align-items: flex-start; }
+}
 
 /* One ambient passenger roughly centred in each 100vw scene slot (0–800vw used; 800–1300vw
    left empty — pure interior/seats — so the ride doesn't feel over-crowded at the end) */
