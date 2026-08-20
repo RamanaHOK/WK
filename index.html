@@ -67,11 +67,11 @@
 
 <!-- Scene-21 vehicle overlay — position:fixed z:3, all 4 vehicles move right -->
 <div id="s21-vehicles" aria-hidden="true">
-  <img id="s21v-meta"      src="assets/s21-s23/Meta%20with%20smoke.svg"           alt="Meta truck">
-  <img id="s21v-openai"    src="assets/s21-s23/Open%20AI%20with%20smoke.svg"      alt="OpenAI truck">
-  <img id="s21v-matatu"    src="assets/s21-s23/Matatu%20top.svg"                  alt="Matatu">
-  <img id="s21v-google"    src="assets/s21-s23/Google%20truck%20with%20smoke.svg" alt="Google truck">
-  <img id="s21v-microsoft" src="assets/s21-s23/Microsoft%20bus.svg"               alt="Microsoft bus">
+  <img id="s21v-meta"      src="assets/s21-s23/Meta%20with%20smoke.svg"           alt="Meta truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckMeta">
+  <img id="s21v-openai"    src="assets/s21-s23/Open%20AI%20with%20smoke.svg"      alt="OpenAI truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckOpenai">
+  <img id="s21v-matatu"    src="assets/s21-s23/Matatu%20top.svg"                  alt="The Prevailer matatu, dwarfed by the Big Tech trucks around it" data-i18n-alt="alt.matatuOvertaken">
+  <img id="s21v-google"    src="assets/s21-s23/Google%20truck%20with%20smoke.svg" alt="Google truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckGoogle">
+  <img id="s21v-microsoft" src="assets/s21-s23/Microsoft%20bus.svg"               alt="Microsoft bus billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.busMicrosoft">
   <lottie-player id="s21v-truck" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay></lottie-player>
 </div>
 
@@ -125,14 +125,14 @@
     <!-- SCENE 4: Savanna - Transition -->
     <div class="scene savanna scene-4">
       <div class="layer layer-s4-road">
-        <img src="assets/s4/road%20extended.svg" alt="road">
+        <img src="assets/s4/road%20extended.svg" alt="">
       </div>
       <div class="layer layer-s4-clouds">
-        <img src="assets/s4/clouds.svg" alt="clouds">
+        <img src="assets/s4/clouds.svg" alt="">
       </div>
       <div class="s4-extend">
         <div class="layer layer-s4-trees">
-          <img src="assets/s4/trees.svg" alt="savanna trees">
+          <img src="assets/s4/trees.svg" alt="">
         </div>
       </div>
     </div>
@@ -173,13 +173,13 @@
     <!-- SCENE 9: City – Language Reveal (bus zoom) -->
     <div class="scene city scene-9">
       <div class="layer layer-city-road">
-        <img src="assets/s8/road.svg" alt="road">
+        <img src="assets/s8/road.svg" alt="">
       </div>
       <div class="layer layer-city-buildings">
-        <img src="assets/s8/buildings.svg" alt="buildings">
+        <img src="assets/s8/buildings.svg" alt="">
       </div>
       <div class="layer layer-city-clouds">
-        <img src="assets/s8/clouds.svg" alt="clouds">
+        <img src="assets/s8/clouds.svg" alt="">
       </div>
     </div>
 
@@ -447,7 +447,7 @@
              actually belong to and how they should look there. -->
         <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
         <!-- Ambient standing character — first-guess placement, tune left/bottom/width in style.css -->
-        <img class="s5973-purple-man"   src="assets/s59-s73/Purple%20man.png"                     alt="">
+        <img class="s5973-purple-man"   src="assets/s59-s73/Purple%20man.png"                     alt="Illustrated figure standing by the roadside as the matatu passes" data-i18n-alt="alt.purpleManFigure">
       </div>
 
       <!-- Popups — content from panels.panel-59..panel-61 in i18n/<lang>.json, dynamically
@@ -546,9 +546,9 @@
 
             <!-- Real org logos (added under assets/s62-s63/) instead of guessed placeholder marks -->
             <div class="s6263-org-marks">
-              <img src="assets/s62-s63/InternetSociety_Foundation_Logo_Primary_GroundNavy_RGB%201.png" alt="Internet Society Foundation">
-              <img src="assets/s62-s63/Whose_Knowledge__secondary_logo_-_coffee%201.png" alt="Whose Knowledge?">
-              <img src="assets/s62-s63/dair-institute-logo%201.png" alt="DAIR">
+              <img src="assets/s62-s63/InternetSociety_Foundation_Logo_Primary_GroundNavy_RGB%201.png" alt="Internet Society Foundation logo" data-i18n-alt="alt.logoIsoc">
+              <img src="assets/s62-s63/Whose_Knowledge__secondary_logo_-_coffee%201.png" alt="Whose Knowledge? logo" data-i18n-alt="alt.logoWk">
+              <img src="assets/s62-s63/dair-institute-logo%201.png" alt="DAIR — Distributed AI Research Institute — logo" data-i18n-alt="alt.logoDair">
             </div>
 
             <div class="s6263-credits-footer">
@@ -574,13 +574,13 @@
        z:5 = above regular city scenes (z:auto) but below scene-4 savanna (z:11),
        so scene 4 naturally slides over the bus during the transition. -->
   <div id="city-bus">
-    <img id="city-bus-empty"    src="assets/s5/matatu.svg"                                   alt="city matatu">
-    <img id="city-bus-people"   src="assets/Matatu-with-people.svg"                          alt="matatu with people">
-    <img id="city-bus-full"     src="assets/s12-s15/Matatu%20with%20full%20toto%20moto.svg"  alt="matatu full">
-    <img id="city-bus-people1"  src="assets/s12-s15/Matatu%20with%20people1.svg"             alt="matatu with people 1">
-    <img id="city-bus-s26"      src="assets/s26-s30/Matatu%20with%20interviewees.svg"        alt="matatu with interviewees">
-    <img id="city-bus-inside"   src="assets/s32-s43/Matatu-inside.svg"                       alt="inside the matatu">
-    <img id="city-bus-s55"      src="assets/s55-s58/Matatu%20with%20Full%20Bus.svg"          alt="matatu parked outside the Municipal Federation building">
+    <img id="city-bus-empty"    src="assets/s5/matatu.svg"                                   alt="The Prevailer matatu, empty" data-i18n-alt="alt.busEmpty">
+    <img id="city-bus-people"   src="assets/Matatu-with-people.svg"                          alt="The Prevailer matatu with passengers boarding" data-i18n-alt="alt.busWithPeople">
+    <img id="city-bus-full"     src="assets/s12-s15/Matatu%20with%20full%20toto%20moto.svg"  alt="The Prevailer matatu full of passengers" data-i18n-alt="alt.busFull">
+    <img id="city-bus-people1"  src="assets/s12-s15/Matatu%20with%20people1.svg"             alt="The Prevailer matatu with more passengers aboard" data-i18n-alt="alt.busWithPeople1">
+    <img id="city-bus-s26"      src="assets/s26-s30/Matatu%20with%20interviewees.svg"        alt="The Prevailer matatu with the interviewees aboard" data-i18n-alt="alt.busInterviewees">
+    <img id="city-bus-inside"   src="assets/s32-s43/Matatu-inside.svg"                       alt="Inside view of the Prevailer matatu, seats and handles" data-i18n-alt="alt.busInside">
+    <img id="city-bus-s55"      src="assets/s55-s58/Matatu%20with%20Full%20Bus.svg"          alt="The Prevailer matatu parked outside the Municipal Federation building" data-i18n-alt="alt.busMunicipal">
   </div>
 
   <!-- Scene 55-58 companion car — trails the bus along the street, same fixed/z-index
@@ -619,8 +619,8 @@
      pinnedWrap), shown/hidden directly in animateCityBus alongside panel-30-awayly. -->
 <div id="s30-zoom-people" aria-hidden="true">
   <img id="city-bus-handle-prop" src="assets/s32-s43/Bus%20handle.svg"                     alt="">
-  <img id="city-awayly-stand"  src="assets/s32-s43/Away%20Ly-handle-hold.svg"              alt="Awa Ly standing">
-  <img id="city-awayly-handle" src="assets/s32-s43/Away%20Ly-stand.svg"                    alt="Awa Ly holding the handle">
+  <img id="city-awayly-stand"  src="assets/s32-s43/Away%20Ly-handle-hold.svg"              alt="Awa Ly standing inside the matatu" data-i18n-alt="alt.awaLyStanding">
+  <img id="city-awayly-handle" src="assets/s32-s43/Away%20Ly-stand.svg"                    alt="Awa Ly holding onto the matatu's handle strap" data-i18n-alt="alt.awaLyHandle">
 </div>
 
 <!-- Spacer creates scroll length -->
@@ -628,7 +628,7 @@
 
 <!-- Single fixed bus that rides continuously across jungle scenes 1–3 -->
 <div id="jungle-bus" aria-hidden="true">
-  <img src="assets/s1/matatu-top.svg" alt="matatu">
+  <img src="assets/s1/matatu-top.svg" alt="">
 </div>
 
 
@@ -640,7 +640,7 @@
 
 <!-- Fixed trees overlay for scene 5 — z-index 16 keeps it above #city-bus (z:15) -->
 <div id="city-trees-5" aria-hidden="true">
-  <img src="assets/s5-s8/trees.svg" alt="trees">
+  <img src="assets/s5-s8/trees.svg" alt="">
 </div>
 
 <!-- Scene-5 popup — position:fixed, repositioned every frame in frame() to track #city-bus's
@@ -755,29 +755,29 @@
   <!-- Pair s27: Asmelash (behind) + Awa Ly (front) -->
   <div class="people-group1">
     <div class="char-wrap char-s27-asmelash">
-      <img src="assets/s26-s30/Asmelash_Teka_Hadgu.svg" alt="Asmelash Teka Hadgu">
+      <img src="assets/s26-s30/Asmelash_Teka_Hadgu.svg" alt="Portrait illustration of Asmelash Teka Hadgu" data-i18n-alt="alt.portraitAsmelash">
       <button class="plus-btn" data-popup="s27-asmelash" data-dir="right" aria-label="Show info about Asmelash Teka Hadgu, Lesan AI"><img src="assets/cross.svg" alt=""></button>
     </div>
     <div class="char-wrap char-s27-awayly">
-      <img src="assets/s26-s30/Away%20Ly.svg" alt="Awa Ly">
+      <img src="assets/s26-s30/Away%20Ly.svg" alt="Portrait illustration of Awa Ly" data-i18n-alt="alt.portraitAwaLy">
       <button class="plus-btn" data-popup="s27-awayly" data-dir="right" aria-label="Show info about Awa Ly, Galsen AI"><img src="assets/cross.svg" alt=""></button>
     </div>
 
     <div class="char-wrap char-s28-chris">
-      <img src="assets/s26-s30/Chris_Emezue.svg" alt="Chris Emezue">
+      <img src="assets/s26-s30/Chris_Emezue.svg" alt="Portrait illustration of Chris Emezue" data-i18n-alt="alt.portraitChris">
       <button class="plus-btn" data-popup="s28-chris" data-dir="right" aria-label="Show info about Chris Emezue, Lanfrica Labs"><img src="assets/cross.svg" alt=""></button>
     </div>
     <div class="char-wrap char-s28-kathleen">
-      <img src="assets/s26-s30/Kathleen_Siminyu.svg" alt="Kathleen Siminyu">
+      <img src="assets/s26-s30/Kathleen_Siminyu.svg" alt="Portrait illustration of Kathleen Siminyu" data-i18n-alt="alt.portraitKathleen">
       <button class="plus-btn" data-popup="s28-kathleen" data-dir="right" aria-label="Show info about Kathleen Siminyu, Masakane and DAIR"><img src="assets/cross.svg" alt=""></button>
     </div>
 
     <div class="char-wrap char-s29-sadik">
-      <img src="assets/s26-s30/Sadik_Shahadu.svg" alt="Sadik Shahadu">
+      <img src="assets/s26-s30/Sadik_Shahadu.svg" alt="Portrait illustration of Sadik Shahadu" data-i18n-alt="alt.portraitSadik">
       <button class="plus-btn" data-popup="s29-sadik" data-dir="right" aria-label="Show info about Sadik Shahadu, Dagbani Wikimedians User Group"><img src="assets/cross.svg" alt=""></button>
     </div>
     <div class="char-wrap char-s29-samuel">
-      <img src="assets/s26-s30/Samuel_Rutunda.svg" alt="Samuel Rutunda">
+      <img src="assets/s26-s30/Samuel_Rutunda.svg" alt="Portrait illustration of Samuel Rutunda" data-i18n-alt="alt.portraitSamuel">
       <button class="plus-btn" data-popup="s29-samuel" data-dir="right" aria-label="Show info about Samuel Rutunda, Digital Umuganda"><img src="assets/cross.svg" alt=""></button>
     </div>
   </div>

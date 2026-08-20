@@ -67,6 +67,14 @@ function i18nRenderDOM() {
     else el.textContent = val;
   });
 
+  // Image alt text — same fallback rules as data-i18n, applied to the alt attribute
+  // instead of textContent. The English string stays hard-coded in the alt="" markup
+  // as the pre-hydration/no-JS fallback; this only overwrites it once JSON is loaded.
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const val = t(el.dataset.i18nAlt);
+    if (val != null) el.alt = val;
+  });
+
   document.documentElement.lang = i18nCurrent;
   document.dispatchEvent(new CustomEvent('i18n:rendered'));
 }

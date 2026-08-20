@@ -3,7 +3,9 @@
    Continuous rAF engine: scroll-driven + time-based motion
    ============================================ */
 
-const SCENES = 32; // ends after scene-63 (2 more content screens added after scene-61)
+const SCENES = 32; // ends after scene-73, the Figma-numbered CREDITS screen (2 more content
+// screens added after the scene-60 closing chapter — see SCENE_LABELS below for the real
+// scene numbers, which don't run contiguously with the array index)
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
@@ -43,10 +45,25 @@ const SCENE_SCROLL = [
   1.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
     // zoom-out-leaving-scene-59 transition, was 0.3 — much more scroll room so it plays out
     // slowly and smoothly instead of snapping through in a fraction of a scroll)
-  0.15, // 29 → scene-61 (closing message — "would you like to learn more")
-  0.4,  // 30 → scene-62 (content one — placeholder)
-  0.4,  // 31 → scene-63 (content two — placeholder, story ends here)
+  0.15, // 29 → scene-63 (closing message — "would you like to learn more" — was mislabeled
+    // scene-61 here; the Figma storyboard renumbered the closing chapter at some point and
+    // this comment/SCENE_LABELS entry was never updated to match. The very short scroll
+    // length (shortest in this whole array) means this is just a text overlay on scene-60's
+    // existing background, not new visual content of its own — so scenes 64-71 (which the
+    // Figma numbering skips to next) are NOT covered here; they appear to be leftover/cut
+    // storyboard frames from before that rework, not part of the live site. See sceneBeats
+    // "63-71" in i18n/<lang>.json for the caveat on that gap.
+  0.4,  // 30 → scene-72 (RESOURCES screen — was mislabeled scene-62 here, same renumbering)
+  0.4,  // 31 → scene-73 (CREDITS screen — was mislabeled scene-63 here — story ends here)
 ];
+
+// Real, on-screen scene number for each currentScene index above — the numbering a sighted
+// viewer (and the ref-row-1/2/3 storyboard) actually uses, not the internal 0-based index.
+// Shared by the debug scene readout (frame()) and the sceneBeats key lookup (checkSceneExtras)
+// below, so both always agree with SCENE_SCROLL's own comments. The last 3 values (63, 72,
+// 73) reflect the Figma storyboard's actual numbering for the closing chapter, confirmed
+// against the storyboard screenshots — not the original 61/62/63 this array used to have.
+const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,63,72,73];
 
 // ---- Per-scene configuration ----
 // Tune each scene independently here.
@@ -1204,7 +1221,6 @@ function frame(ts) {
   const busVw      = _inJungle
     ? interpolateKeyframes(JUNGLE_KF, junglePhase).toFixed(0)
     : '–';
-  const SCENE_LABELS = [1,2,3,4,5,6,7,8,12,13,21,26,27,28,29,30,32,33,34,44,45,46,47,55,56,57,58,59,60,61,62,63];
   const _sceneLabel  = SCENE_LABELS[currentScene] ?? (currentScene + 1);
   if (dbgScene)  dbgScene.textContent  = `scene ${_sceneLabel}  ${_scenePct}%`;
   if (dbgTime)   dbgTime.textContent   = `${secs}s`;
@@ -2589,20 +2605,17 @@ function pauseAutoAdvance() {
   clearTimeout(_autoAdvanceTimer);
 }
 
-// Speaks + live-announces one piece of text — shared by panel narration and the scene-beat
-// descriptions below. #narration-live always updates (harmless with no screen reader present,
-// and it's what Narrator itself reads regardless of our own audio). The spoken audio only
-// plays once _autoAdvanceActive is true — i.e. only after the user has engaged the accessible
-// Previous/Next controls — so ordinary mouse/trackpad scrolling stays silent and only makes
-// the visuals move, exactly like a normal page.
+// Live-announces one piece of text — shared by panel narration and the scene-beat
+// descriptions above. #narration-live always updates (harmless with no screen reader present,
+// and it's what Narrator/NVDA/JAWS/VoiceOver actually reads). Deliberately does NOT also
+// speak via window.speechSynthesis (see the #narration-live comment above) — a screen reader
+// user already has their AT reading this live region in their own configured voice; adding a
+// second synthesized voice on top spoke every line twice. The auto-advance timing below still
+// runs once _autoAdvanceActive is true (i.e. after the user has engaged the accessible
+// Previous/Next controls), estimating how long the text takes to read so the story doesn't
+// step forward before the current line has finished.
 function narrate(text) {
   _queueLiveText(text);
-  if (_autoAdvanceActive && 'speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    const lang = window.i18nCurrentLang || 'en';
-    utterance.lang = lang === 'sw' ? 'sw-KE' : lang === 'ti' ? 'ti-ET' : 'en-US';
-    window.speechSynthesis.speak(utterance);
-  }
   if (_autoAdvanceActive) {
     const readMs = Math.max(1200, Math.min(9000, text.length * 55));
     scheduleAutoAdvance(readMs + 400);
@@ -2623,25 +2636,73 @@ function checkNarration() {
   });
 }
 
-// Short descriptions for story beats that have no dedicated text-panel — pure visual/motion
-// moments (a scene transition, vehicles on the road, characters boarding) that would
-// otherwise have nothing announced at all. Keyed by currentScene index (0-based, matches
-// SCENE_SCROLL/SCENE_LABELS — label shown in parentheses).
-const SCENE_NARRATION_EXTRAS = {
-  3:  'The Prevailer speeds through the open savanna, leaving the jungle behind.',   // scene-4
-  4:  'The Prevailer arrives in the city, rolling past its buildings and streets before pulling up at a busy bus stop, where several passengers board and speak about the languages they use every day.', // scene-5
-  10: 'Top-down view of the road: Meta, OpenAI, Google and Microsoft vehicles speed past, trailed by a small delivery truck.', // scene-21
-  11: 'The matatu arrives on a busy street, vendors and motorbikes passing by.',      // scene-26
-  12: 'Asmelash Teka Hadgu of Lesan AI and Awa Ly of Galsen AI step aboard.',         // scene-27
-  13: 'Chris Emezue of Lanfrica Labs and Kathleen Siminyu of Masakane and DAIR step aboard.', // scene-28
-  14: 'Sadik Shahadu of the Dagbani Wikimedians User Group and Samuel Rutunda of Digital Umuganda step aboard.', // scene-29
-};
-let _lastExtraScene = -1;
+// Short descriptions of what's visually happening in a scene — vehicles on the road,
+// characters boarding, a camera zoom, a transition — covering story beats a sighted user
+// picks up from the visuals alone, whether or not a .text-panel is also playing nearby.
+// Content lives in i18n/<lang>.json under "sceneBeats", never hardcoded here (same
+// never-content-in-JS rule as panels/chars — see i18n.js). Keyed by the REAL, on-screen
+// scene number (or a range, e.g. "8-11", when several real scenes play out as one
+// continuous stretch with no separate SCENE_SCROLL entry of their own in between — see
+// SCENE_LABELS above) — not the internal currentScene index, so the JSON reads the same
+// way the ref-row-1/2/3 storyboard numbers the scenes, and a non-developer can find and
+// edit the right line without knowing anything about the scroll engine.
+// sceneBeatKeyFor() below derives that key from currentScene on every call; nothing here
+// needs updating if scenes are ever renumbered or SCENE_SCROLL/SCENE_LABELS changes shape
+// — except SCENE_BEAT_KEY_FORCE_SINGLE just below, see its own comment.
+// Not every scene has an entry — a few (6, 33, 46, 56, 57) are dense enough with their own
+// dialogue panels that an extra beat would just be noise. The 8-11 and 13-20 ranges also
+// fold in the #char-bubble stats (language + speaker counts) that the s8/s12 ambient
+// characters show on click — that popup system isn't .text-panel, so checkNarration()
+// never picks it up on its own; this is the only place that content reaches a screen
+// reader. t() falls back to English the same way it does for panels, so a scene with no
+// configured beat simply narrates nothing extra.
+// Full key list, cross-checked scene-by-scene against the Figma storyboard screenshots
+// (not just SCENE_SCROLL's own comments, which had drifted stale for the closing chapter):
+// 1-3, 4, 5, 7, 8-11, 12, 13-20, 21-25, 26, 27, 28, 29, 30-31, 32, 34-43, 44, 45, 47-54, 55,
+// 58, 59, 60, 63, 72, 73.
+// "1-3" (the opening jungle drive) is the one range here that spans multiple SCENE_SCROLL
+// segments rather than several real scenes bundled into one — see SCENE_BEAT_KEY_MERGE
+// above. ui.sceneIntroDesc (a static block read once before scrolling starts) is a
+// preamble, not a substitute for this — it still fires as the user actually scrolls in.
+let _lastExtraKey = null;
+
+// idx28 (scene-60) and idx29 (scene-63) both border a gap in SCENE_LABELS that does NOT
+// mean "these real scenes are bundled into this segment" the way e.g. idx7's 8-11 gap does.
+// The Figma storyboard confirms scenes 61/62 and 65/66/70/71 were deleted/renumbered out of
+// existence entirely (nothing to bundle), while 64/67/68/69 DO have real designed content —
+// just not confidently attributable to either neighboring segment (idx28 is only 1.3
+// viewport-widths, idx29 a mere 0.15 — not plausibly enough room for either to cover 4+ more
+// full scenes). Rather than guess a wrong split, force these two to stay single-scene keys
+// ("60", "63") instead of letting the normal range formula produce "60-62"/"63-71" and
+// overclaim coverage. Revisit once scenes 64/67/68/69's actual place in the live site (if
+// any) is confirmed.
+const SCENE_BEAT_KEY_FORCE_SINGLE = new Set([28, 29]);
+
+// currentScene indices 0/1/2 (real scenes 1/2/3, the opening jungle drive) share ONE
+// sceneBeats entry ("1-3") by request — unlike every other range here, this one genuinely
+// spans 3 separate SCENE_SCROLL segments, not real-scene-numbers bundled into a single
+// segment. checkSceneExtras below dedupes by the computed KEY rather than the raw scene
+// index specifically so scrolling 0→1→2 doesn't re-fire the same text three times.
+const SCENE_BEAT_KEY_MERGE = { 0: '1-3', 1: '1-3', 2: '1-3' };
+
+// currentScene index -> the "sceneBeats" key that covers it, e.g. 7 -> "8-11" (idx7 is the
+// real scene-8 slot, and covers real scenes 8-11 since scenes 9-11 have no SCENE_SCROLL
+// entry of their own — see SCENE_LABELS above). Single-scene stretches return just the
+// number, e.g. "27".
+function sceneBeatKeyFor(scene) {
+  if (SCENE_BEAT_KEY_MERGE[scene] !== undefined) return SCENE_BEAT_KEY_MERGE[scene];
+  const lo = SCENE_LABELS[scene];
+  if (lo == null) return null;
+  if (SCENE_BEAT_KEY_FORCE_SINGLE.has(scene)) return String(lo);
+  const hi = (scene + 1 < SCENE_LABELS.length) ? SCENE_LABELS[scene + 1] - 1 : lo;
+  return hi > lo ? `${lo}-${hi}` : String(lo);
+}
 
 function checkSceneExtras(scene) {
-  if (scene === _lastExtraScene) return;
-  _lastExtraScene = scene;
-  const text = SCENE_NARRATION_EXTRAS[scene];
+  const key = sceneBeatKeyFor(scene);
+  if (key === _lastExtraKey) return;
+  _lastExtraKey = key;
+  const text = key ? t(`sceneBeats.${key}`) : null;
   if (text) narrate(text);
 }
 
