@@ -2,7 +2,10 @@
    PREVAILER MATATU JOURNEY — i18n.js
    Generic, data-driven translation engine.
 
-   - Content lives in i18n/<lang>.json, never in HTML or JS.
+   - Content lives in i18n/<lang>.json, never in HTML or JS (except "ti", whose file is
+     named i18n/tigrinya.json — see I18N_FILENAMES below — while the language code itself
+     stays the short "ti" everywhere else: I18N_LABELS, data-audio-ti attributes, the saved
+     localStorage preference, etc.).
    - Any element with class "text-panel" and an id is auto-wired to
      panels[id] in the active language's JSON.
    - Any element with a data-i18n="path.to.key" attribute is wired to
@@ -14,6 +17,10 @@
    ============================================ */
 
 const I18N_LABELS  = { en: 'ENGLISH', sw: 'KISWAHILI', ti: 'ትግርኛ' };
+// Language code -> JSON filename, only where it differs from "<code>.json". Everything else
+// (I18N_LABELS keys, data-audio-ti attributes, the saved language preference) keeps using the
+// short code "ti" — only the on-disk filename is the exception, kept readable as "tigrinya.json".
+const I18N_FILENAMES = { ti: 'tigrinya', sw: 'kiswahili' };
 const I18N_DEFAULT = 'en';
 const I18N_STORAGE_KEY = 'prevailerLang';
 
@@ -22,7 +29,8 @@ const i18nCache = {};
 
 async function i18nLoad(lang) {
   if (i18nCache[lang]) return i18nCache[lang];
-  const res  = await fetch(`i18n/${lang}.json`);
+  const filename = I18N_FILENAMES[lang] || lang;
+  const res  = await fetch(`i18n/${filename}.json`);
   const data = await res.json();
   i18nCache[lang] = data;
   return data;

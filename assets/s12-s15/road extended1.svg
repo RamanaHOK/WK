@@ -122,6 +122,9 @@
 <path d="M14681.8 837.024L14809.6 929.842L13908.8 929.842L14446.2 756.138L14681.8 837.024Z" fill="#7B746C" fill-opacity="0.35" style="mix-blend-mode:multiply"/>
 </g>
 <g filter="url(#filter36_f_313_128281)">
+<rect x="-97.8926" y="706.07" width="14753.9" height="33.1562" fill="#D3C164"/>
+</g>
+<g filter="url(#filter37_f_313_128281)">
 <rect x="-97.8926" y="25.7969" width="14753.9" height="33.1562" fill="#D3C164"/>
 </g>
 <path d="M4935.87 669.219L4826.13 746.836H5495.26L5580.9 669.219H4935.87Z" fill="#D3D2D2"/>
@@ -493,7 +496,12 @@
 <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
 <feBlend mode="normal" in2="shape" result="effect1_innerShadow_313_128281"/>
 </filter>
-<filter id="filter36_f_313_128281" x="-101.893" y="21.7969" width="14761.9" height="41.1562" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter36_f_313_128281" x="-101.893" y="702.07" width="14761.9" height="41.1562" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2" result="effect1_foregroundBlur_313_128281"/>
+</filter>
+<filter id="filter37_f_313_128281" x="-101.893" y="21.7969" width="14761.9" height="41.1562" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
 <feGaussianBlur stdDeviation="2" result="effect1_foregroundBlur_313_128281"/>

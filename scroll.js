@@ -148,7 +148,6 @@ const panels = {
   3: document.getElementById('panel-3'),
   5: document.getElementById('panel-5'),
   6: document.getElementById('panel-6'),
-  7: document.getElementById('panel-7'),
   8: document.getElementById('panel-8'),
   9: document.getElementById('panel-9'),
   10: document.getElementById('panel-12'),  // panel-12 popup shown at scroll index 9 (new scene-13)
@@ -163,6 +162,12 @@ const popup13a   = document.getElementById('panel-13a');
 const panelS13_1 = document.getElementById('panel-s13-1');
 const panelS13_2 = document.getElementById('panel-s13-2');
 const panelS13_3 = document.getElementById('panel-s13-3');
+const panelS21Meta1     = document.getElementById('panel-s21-meta-1');
+const panelS21Google1   = document.getElementById('panel-s21-google-1');
+const panelS21Meta2     = document.getElementById('panel-s21-meta-2');
+const panelS21Google2   = document.getElementById('panel-s21-google-2');
+const panelS21Microsoft = document.getElementById('panel-s21-microsoft');
+const panelS21OpenAI    = document.getElementById('panel-s21-openai');
 
 // Single fixed bus across all jungle scenes
 const jungleBus = document.getElementById('jungle-bus');
@@ -184,6 +189,25 @@ const cityBusPeople1 = document.getElementById('city-bus-people1');
 const cityBusS26     = document.getElementById('city-bus-s26');
 const cityBusInside  = document.getElementById('city-bus-inside');
 const cityBusS55     = document.getElementById('city-bus-s55');
+const s8BusTransitionWrap   = document.getElementById('s8-bus-transition');
+const s8BusTransitionPlayer = document.getElementById('s8-bus-transition-player');
+if (s8BusTransitionPlayer) {
+  // Force full-bleed cropping (cover, not letterboxed contain) so the animation always fills
+  // the whole viewport width regardless of window size/aspect ratio — lottie-player has no
+  // attribute for this, so the shadow-DOM svg's own preserveAspectRatio has to be patched.
+  const forceSlice = () => {
+    const svg = s8BusTransitionPlayer.shadowRoot && s8BusTransitionPlayer.shadowRoot.querySelector('svg');
+    if (!svg) return;
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    // Zoom out a bit: widen the viewBox around the same center so more of the composition
+    // shows instead of a tight crop.
+    const ZOOM_OUT = 1.12;
+    const w = 3923 * ZOOM_OUT, h = 2242 * ZOOM_OUT;
+    svg.setAttribute('viewBox', `${(3923 - w) / 2} ${(2242 - h) / 2} ${w} ${h}`);
+  };
+  s8BusTransitionPlayer.addEventListener('ready', forceSlice);
+  s8BusTransitionPlayer.addEventListener('load', forceSlice);
+}
 const s5558Car        = document.getElementById('s5558-car');
 const s5558Car2       = document.getElementById('s5558-car2');
 const s5558Car3       = document.getElementById('s5558-car3');
@@ -249,6 +273,8 @@ const char32Sadik      = document.querySelector('.char-s32-sadik');
 
 // Fixed trees overlay for scene 4 — sits above #jungle-bus (z:11 vs z:10)
 const s4TreesOverlay = document.getElementById('s4-trees');
+const s4TreesPlayer  = document.getElementById('s4-trees-player');
+let _s4TreesPlaying  = false;
 // Fixed trees overlay for scene 5 — sits above #city-bus in root stacking context
 const cityTrees5    = document.getElementById('city-trees-5');
 // Fixed seller overlay for scenes 55-58 — sits above #s5558-car in root stacking context
@@ -258,8 +284,11 @@ const s5558SellerFront = document.getElementById('s5558-seller-front');
 // Fixed character + tree overlays for scenes 7, 8 & 9
 const cityOverlay7  = document.getElementById('city-overlay-7');
 const cityOverlay8  = document.getElementById('city-overlay-8');
+const s8PlazaSign   = document.getElementById('s8-plaza-sign');
 const cityOverlay9   = document.getElementById('city-overlay-9');
 const cityOverlay12  = document.getElementById('city-overlay-12');
+const s12AvenueSign  = document.getElementById('s12-avenue-sign');
+const panel12b       = document.getElementById('panel-12b');
 
 // City scene parallax — img elements targeted directly.
 // applyCityParallax runs AFTER animateLayerReveals (which clears img transforms),
@@ -321,11 +350,10 @@ const s13ParallaxEls = {
 const s21Vehicles   = document.getElementById('s21-vehicles');
 const s21CloudsWrap = document.getElementById('s21-clouds');
 const s21vMeta      = document.getElementById('s21v-meta');
-const s21vOpenAI    = document.getElementById('s21v-openai');
 const s21vMatatu    = document.getElementById('s21v-matatu');
 const s21vGoogle    = document.getElementById('s21v-google');
 const s21vMicrosoft = document.getElementById('s21v-microsoft');
-const s21vTruck     = document.getElementById('s21v-truck');
+const s21vOpenAI    = document.getElementById('s21v-openai');
 // Scene-21 clouds — fixed overlay z:2, fade in near end of scene
 const s21cRegular   = document.getElementById('s21c-regular');
 const s21cWhite     = document.getElementById('s21c-white');
@@ -805,10 +833,10 @@ function frame(ts) {
     // Scene 13: freeze strip during zoom + popup + slide-up phases
     const s9Freeze = -(SCROLL_MAP[9].stripX + 0.37 * _vw);
     if (sceneLocal >= 0.92 && SCROLL_MAP[10]) {
-      // Bus slides up (0.92–1.0) while s21Preview covers the view — use this window to
-      // advance the strip from freeze position to scene-21 natural start so there's no snap
-      const bridgeT = easeInOutCubic((sceneLocal - 0.92) / 0.08);
-      effectiveTx = s9Freeze + bridgeT * (-(SCROLL_MAP[10].stripX) - s9Freeze);
+      // Bus slides up (0.92–1.0) while s21Preview covers the view — snap straight to
+      // scene-21's natural start so the strip is already in place under the bus, with
+      // no visible pan while the bus is sliding up.
+      effectiveTx = -(SCROLL_MAP[10].stripX);
     } else {
       effectiveTx = s9Freeze;
     }
@@ -1027,8 +1055,16 @@ function frame(ts) {
   // -- Scene-4 trees overlay: 140vw wide, starts 20vw left of scene 4 (mirrors .s4-extend) --
   if (s4TreesOverlay && SCROLL_MAP[3]) {
     const s4vx = SCROLL_MAP[3].stripX + effectiveTx - 0.20 * _vw;
-    s4TreesOverlay.style.opacity   = (s4vx < _vw && s4vx > -1.40 * _vw) ? '1' : '0';
+    const s4TreesVisible = s4vx < _vw && s4vx > -1.40 * _vw;
+    s4TreesOverlay.style.opacity   = s4TreesVisible ? '1' : '0';
     s4TreesOverlay.style.transform = `translateX(${s4vx.toFixed(1)}px)`;
+    // Only animate while actually visible — this lottie is heavy (14 instances of a 185-layer
+    // precomp), so leaving it playing for the whole site visit (previously loop+autoplay,
+    // unconditional) was a constant background cost, not just while scene 4 is on screen.
+    if (s4TreesPlayer) {
+      if (s4TreesVisible && !_s4TreesPlaying) { _s4TreesPlaying = true; s4TreesPlayer.play(); }
+      else if (!s4TreesVisible && _s4TreesPlaying) { _s4TreesPlaying = false; s4TreesPlayer.pause(); }
+    }
   }
 
   // -- Scene 55-58 seller: synced to his position (89vw) inside #s55-s58-bg so he tracks
@@ -1101,8 +1137,17 @@ function frame(ts) {
   }
   if (cityOverlay8 && SCROLL_MAP[7]) {
     const s8vx = SCROLL_MAP[7].stripX + effectiveTx;
-    cityOverlay8.style.opacity = (s8vx < _vw && s8vx > -_vw) ? '1' : '0';
+    const show8overlay = (s8vx < _vw && s8vx > -_vw) ? '1' : '0';
+    cityOverlay8.style.opacity = show8overlay;
     cityOverlay8.style.transform = `translateX(${s8vx.toFixed(1)}px)`;
+    // The sign sits at its own fixed spot within the overlay, so it can stay on-screen a beat
+    // longer than the characters even after they've scrolled past — fade it out explicitly
+    // once the bus starts exiting so it's fully gone by the time scene 12 has taken over,
+    // instead of lingering over what already looks like a different, finished scene.
+    if (s8PlazaSign) {
+      const busExitingForSign = currentScene === 7 && sceneLocal >= BUS_SCROLL_START;
+      s8PlazaSign.style.opacity = busExitingForSign ? '0' : show8overlay;
+    }
   }
   if (cityOverlay9 && SCROLL_MAP[8]) {
     const s9vx = SCROLL_MAP[8].stripX + effectiveTx;
@@ -1115,7 +1160,10 @@ function frame(ts) {
 
     let ov12Op = 0;
     if (currentScene === 8) {
-      ov12Op = 1;
+      // Position-based, like city-overlay-7/8/9 — characters ease into view as normal
+      // scrolling brings them on screen, instead of popping to full opacity all at once
+      // the moment the scene starts.
+      ov12Op = (s12vx < _vw && s12vx > -_vw) ? 1 : 0;
     } else if (currentScene === 9) {
       if (sceneLocal < 0.18) {
         ov12Op = 1;
@@ -1126,12 +1174,19 @@ function frame(ts) {
     }
     cityOverlay12.style.opacity = ov12Op.toFixed(3);
 
+    // Tied purely to the bus being AT Algorithm Avenue — opens when it enters, hides when it
+    // leaves. Not scene-bound (no lingering through scene 13).
+    const show12 = currentScene === 8 && s12vx < _vw && s12vx > -_vw;
     const p12 = panels[10];
     if (p12) {
-      const show12 = (currentScene === 9) && sceneLocal > 0.0 && sceneLocal < 0.35;
       p12.style.opacity = show12 ? '1' : '0';
       p12.classList.toggle('visible', show12);
     }
+    if (panel12b) {
+      panel12b.style.opacity = show12 ? '1' : '0';
+      panel12b.classList.toggle('visible', show12);
+    }
+    if (s12AvenueSign) s12AvenueSign.style.opacity = show12 ? '1' : '0';
   }
 
   // Scene 21 preview: fade in road behind pinned-wrap as s12-s15-bg fades out during close-up
@@ -1206,7 +1261,7 @@ function frame(ts) {
   // -- Matatu drive-in --
   animateMatatu(currentScene, sceneLocal, tx, junglePhase, busOpacity);
   animateCityBus(currentScene, sceneLocal, busOpacity, s5960ZoomT);
-  animateS21Vehicles(currentScene, sceneLocal);
+  animateS21Vehicles(currentScene, sceneLocal, ts);
   animateS26S30(currentScene, sceneLocal, effectiveTx);
   animateS32S43(currentScene, sceneLocal, effectiveTx, ts);
   animateS44(currentScene, sceneLocal);
@@ -1247,7 +1302,6 @@ function frame(ts) {
     3: { start: 0.01, end: 0.92, preShow: 0.5 }, // also shows from the center of scene 2 onward
     5: { start: 0.075, end: 0.92 }, // synced to the city bus's START position — it's already parked at ENTRY by scene-5's local:0 (drive-in happens during scene 4's final 40%, see animateCityBus scene===3 block), then eases ENTRY→CENTER over local 0-0.15 (scene===4 block) — this opens right as that move begins, not after it finishes.
     6: { start: 0.3, end: 0.92 },
-    7: { start: 0.3, end: 0.92 },
     9: { start: 0.3, end: 0.92 },
     // panel-55/56/57 (keys 24/25/26) are NOT here — they're handled separately below via
     // positionCenteredPopup, not this generic left-fixed-in-CSS toggle. Reason: they live
@@ -1398,10 +1452,23 @@ function frame(ts) {
 
   // #panel-5: track bus position — now `position: fixed` (see style.css), so it moves in
   // step with the bus's own drive-in animation instead of sitting at a static scene-relative
-  // %. Anchored above-left of the bus's live on-screen rect (_busRect, already computed above
-  // for the scene-13 popup) so the bubble tail — which points right/down — lands on the bus.
+  // %. The bubble tail (CSS `.bubble__tail { left: 66% }`, tip pointing down-right) needs to
+  // land on the driver, who sits at a fixed FRACTION of the bus's own width from its left
+  // edge (~89%, measured directly off-screen at two very different viewport widths — the
+  // bus's rendered width is vw-based, so the driver's absolute px position moves with it).
+  // The old code anchored left to a flat `_busRect.left - 20` offset, which only happened to
+  // line up with the driver at whatever width it was last tuned against — at any other width
+  // the fixed 20px offset doesn't scale with the bus, so the tail drifts off the driver
+  // entirely (confirmed: pointed at the wheel at ~1000px width, at a random passenger window
+  // at ~1900px). Computing left from the driver's live position instead keeps the tail
+  // pinned to him at any width. Box width read live too (panels[5].offsetWidth) since the
+  // popup's own width is vmin-font-driven, not fixed either.
+  const DRIVER_FRACTION_OF_BUS = 0.89; // driver's position along the bus, left edge = 0
+  const TAIL_FRACTION_OF_BOX   = 0.66; // matches .bubble__tail's CSS `left: 66%`
   if (panels[5] && currentScene === 4 && _busRect) {
-    panels[5].style.left = `${(_busRect.left - 20).toFixed(0)}px`;
+    const driverX = _busRect.left + _busRect.width * DRIVER_FRACTION_OF_BUS;
+    const boxWidth = panels[5].offsetWidth || 0;
+    panels[5].style.left = `${(driverX - boxWidth * TAIL_FRACTION_OF_BOX).toFixed(0)}px`;
     panels[5].style.top  = `${(_busRect.top + _busRect.height * 0.08).toFixed(0)}px`;
     panels[5].style.bottom = 'auto';
     panels[5].style.right  = 'auto';
@@ -1421,17 +1488,32 @@ function frame(ts) {
     panels[8].style.opacity = show8 ? '1' : '0';
     panels[8].classList.toggle('visible', show8);
   }
-  // Popup 1 — Africa's 2 000 languages — appears once bus is fully zoomed
+  // Popup 1 — Africa's 2 000 languages — appears once bus is fully zoomed, stays ~2 "scrolls"
+  // worth of time, then a ~1-"scroll" gap (both popups hidden) before popup 2 opens.
   if (popup8a) {
-    const show = currentScene === 7 && sceneLocal > 0.42 && sceneLocal < 0.65;
+    const show = currentScene === 7 && sceneLocal > 0.42 && sceneLocal < 0.54;
     popup8a.style.opacity = show ? '1' : '0';
     popup8a.classList.toggle('visible', show);
   }
-  // Popup 2 — matatu comparison — appears after popup 1 hides, clears before bus close-up
+  // Popup 2 — matatu comparison — appears after the gap, clears before bus close-up
   if (popup8b) {
-    const show = currentScene === 7 && sceneLocal > 0.68 && sceneLocal < 0.72;
+    const show = currentScene === 7 && sceneLocal > 0.60 && sceneLocal < 0.68;
     popup8b.style.opacity = show ? '1' : '0';
     popup8b.classList.toggle('visible', show);
+  }
+  // Bus transition flourish — scrubbed directly by scroll position (not autoplaying), right
+  // after popup 2 (panel-8b) closes. sceneLocal 0.72-0.80 maps straight to the lottie's own
+  // full frame range (0-87), so it starts from its true first frame, not partway in.
+  if (s8BusTransitionWrap) {
+    const S8_BUS_TRANS_ENABLED = false; // disabled for now — set true to re-enable
+    const S8_BUS_TRANS_START = 0.72, S8_BUS_TRANS_END = 0.80;
+    const inWindow = S8_BUS_TRANS_ENABLED && currentScene === 7 && sceneLocal >= S8_BUS_TRANS_START && sceneLocal < S8_BUS_TRANS_END;
+    s8BusTransitionWrap.style.opacity = inWindow ? '1' : '0';
+    if (inWindow && s8BusTransitionPlayer) {
+      const t = (sceneLocal - S8_BUS_TRANS_START) / (S8_BUS_TRANS_END - S8_BUS_TRANS_START);
+      const lottie = s8BusTransitionPlayer.getLottie && s8BusTransitionPlayer.getLottie();
+      if (lottie) lottie.goToAndStop(t * 87, true);
+    }
   }
 
   // -- Spoken narration: check after every panel's visibility has been resolved above.
@@ -1549,9 +1631,10 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
     if (local <= ZOOM_END) {
       targetZoom = 1 + (zoomMax - 1) * easeInOutCubic(local / ZOOM_END);
     } else if (local >= BUS_SCROLL_START) {
-      // Bus exits right — ease whole-scene zoom back to 1× so there's no snap at scene-8 boundary
-      const exitT = easeInOutCubic((local - BUS_SCROLL_START) / (1 - BUS_SCROLL_START));
-      targetZoom = 1 + (zoomMax - 1) * (1 - exitT);
+      // Background stays zoomed in for the whole exit slide — no visible zoom-out animation.
+      // It gets reset to 1× instantly by the currentScene!==7 safety net elsewhere the moment
+      // the scene actually ends, rather than easing down here.
+      targetZoom = zoomMax;
     } else {
       targetZoom = zoomMax;
     }
@@ -1570,8 +1653,11 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
         zoom = 1 + (BUS_CLOSE_MULT * zoomMax - 1) * closeT;
         busX = CENTER;
       } else {
-        const exitT = easeOutCubic((local - BUS_SCROLL_START) / (1 - BUS_SCROLL_START));
-        zoom = BUS_CLOSE_MULT * zoomMax;
+        const exitT = easeInOutCubic((local - BUS_SCROLL_START) / (1 - BUS_SCROLL_START));
+        // Ease the bus's own zoom back down to 1× as it exits, in sync with pinnedWrap's own
+        // zoom reset above and the scene-12 crossfade below — all three finish together
+        // exactly as scene 8 ends, instead of the bus staying stuck at its close-up scale.
+        zoom = BUS_CLOSE_MULT * zoomMax * (1 - exitT) + exitT;
         busX = CENTER + exitT * 1.5 * vw;
       }
       if (cityBus) cityBus.style.transformOrigin = '90% 50%';
@@ -1621,7 +1707,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
       if (cityBus) cityBus.style.transformOrigin = '50% 35%';
     }
     // 85–90%: bus moves slightly right to stop position; 90–92%: fully stopped (popup 3)
-    const EXIT_HOLD_X = CENTER + easeInOutCubic(1) * 0.3 * vw;
+    const EXIT_HOLD_X = CENTER + easeInOutCubic(1) * 0.39 * vw;
     if (local >= 0.85 && local < 0.90) {
       const tExit = easeInOutCubic((local - 0.85) / 0.05);
       busX = CENTER + tExit * (EXIT_HOLD_X - CENTER);
@@ -1853,40 +1939,130 @@ function animateCityBus(scene, local, opacity, s5960ZoomT) {
 
 }
 
-// ---- Scene 21 vehicles — all 5 drive left-to-right across the fixed viewport ----
-function animateS21Vehicles(scene, sceneLocal) {
+// ---- Scene 21 vehicles — 3 lanes (top: Meta, center: bus, bottom: Google). Each drives
+// in from off-screen once, staggered 1s apart (bus, then Meta, then Google), and holds
+// at a resting spot on screen once it arrives — a one-time timed reveal, not a scroll-
+// linked loop, so popups can follow each vehicle in on a predictable cadence.
+// After the viewer scrolls a bit further (S21_PHASE2_LOCAL), Meta and Google pull forward
+// (not off-screen) to make room, and Microsoft/OpenAI drive into the spots they vacated —
+// so all 4 trucks plus the bus are on screen together.
+let _s21LottiesPlaying = false;
+let _s21EnterTs   = null; // timestamp scene 21 was last (re)entered
+let _s21Phase2Ts  = null; // timestamp phase 2 (forward shift + swap-in) triggered
+const S21_ENTER_MS   = 2000; // drive-in duration per vehicle, phase 1
+const S21_STAGGER_MS = 1000; // delay between each phase-1 vehicle's entrance start
+const S21_PHASE2_LOCAL    = 0.15; // sceneLocal at which phase 2 kicks off (~2 scrolls in)
+const S21_FORWARD_X       = 0.62; // Meta/Google's new forward resting position
+const S21_SHIFT_MS        = 700;  // Meta/Google forward-shift duration
+const S21_PHASE2_ENTER_MS = 900;  // Microsoft/OpenAI drive-in duration — same quick tempo as the shift
+const S21_PHASE2_STAGGER_MS = 600; // delay between Microsoft and OpenAI's entrance
+// [element, entrance delay, resting position (fraction of viewport width from the left)] —
+// different restX per vehicle so they don't all line up shoulder-to-shoulder like a race.
+const S21_ORDER = [
+  [s21vMatatu, 0,                  0.40],
+  [s21vMeta,   S21_STAGGER_MS,     0.12],
+  [s21vGoogle, S21_STAGGER_MS * 2, 0.30],
+];
+const S21_PHASE2_ORDER = [
+  [s21vMicrosoft, 0,                     0.12], // drives into the spot Meta vacated
+  [s21vOpenAI,    S21_PHASE2_STAGGER_MS, 0.30], // drives into the spot Google vacated
+];
+function animateS21Vehicles(scene, sceneLocal, ts) {
   const vw     = window.innerWidth;
   const active = scene === 10;
   if (s21Vehicles) s21Vehicles.style.opacity = active ? '1' : '0';
+  if (active && !_s21LottiesPlaying) {
+    _s21LottiesPlaying = true;
+    _s21EnterTs = ts;
+    [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.play === 'function' && el.play());
+  } else if (!active && _s21LottiesPlaying) {
+    _s21LottiesPlaying = false;
+    _s21EnterTs = null;
+    _s21Phase2Ts = null;
+    [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.pause === 'function' && el.pause());
+  }
   if (!active) {
     // Release GPU layers when not in scene 21 so they don't compete with pinnedWrap animations
-    [s21vMeta, s21vOpenAI, s21vMatatu, s21vGoogle, s21vMicrosoft, s21vTruck].forEach(el => {
+    [s21vMeta, s21vMatatu, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => {
       if (el) el.style.transform = 'none';
     });
     if (s21cRegular) s21cRegular.style.opacity = '0';
     if (s21cWhite)   s21cWhite.style.opacity   = '0';
+    [panelS21Meta1, panelS21Google1, panelS21Meta2, panelS21Google2,
+     panelS21Microsoft, panelS21OpenAI].forEach(p => {
+      if (p) { p.style.opacity = '0'; p.classList.remove('visible'); }
+    });
     return;
   }
+  if (sceneLocal >= S21_PHASE2_LOCAL && _s21Phase2Ts == null) _s21Phase2Ts = ts;
 
-  // Moving vehicles — Meta and Matatu only
-  const w = Math.round(0.32 * vw);
-  // All 5 vehicles travel right
-  [
-    [s21vMeta,      1.2, 0.0 ],
-    [s21vOpenAI,    1.4, 0.30],
-    [s21vMatatu,    1.8, 0.10],
-    [s21vGoogle,    1.0, 0.50],
-    [s21vMicrosoft, 1.2, 0.75],
-    [s21vTruck,     1.5, 0.20],
-  ].forEach(([el, speed, phase]) => {
+  const elapsed = _s21EnterTs == null ? 0 : (ts - _s21EnterTs);
+  const elapsed2 = _s21Phase2Ts == null ? null : (ts - _s21Phase2Ts);
+  // Each vehicle's own rendered width — sizes vary per truck now, so a shared fixed
+  // offset isn't enough to fully hide the wider ones off-screen.
+  const offW = el => Math.round((el.offsetWidth || 0.32 * vw) * 1.05);
+
+  // Bus stays put throughout — only Meta/Google are affected by phase 2.
+  S21_ORDER.forEach(([el, delayMs, restX]) => {
     if (!el) return;
-    const t = (sceneLocal * speed + phase) % 1;
-    el.style.transform = `translate3d(${(t * (vw + w) - w).toFixed(1)}px,0,0)`;
+    const w = offW(el);
+    const restPx = restX * vw;
+    const localElapsed = elapsed - delayMs;
+    let x;
+    if (localElapsed <= 0) {
+      x = -w; // still waiting its turn, parked off-screen left
+    } else if (el !== s21vMatatu && elapsed2 != null) {
+      // Phase 2: pull forward a bit (stay on screen) to make room for the new arrival
+      const t = easeInOutCubic(Math.min(1, elapsed2 / S21_SHIFT_MS));
+      const forwardPx = S21_FORWARD_X * vw;
+      x = restPx + t * (forwardPx - restPx);
+    } else {
+      const t = easeInOutCubic(Math.min(1, localElapsed / S21_ENTER_MS));
+      x = -w + t * (restPx - (-w));
+    }
+    el.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+  });
+
+  // Phase 2 entrants — Microsoft/OpenAI, hidden off-screen until phase 2 starts
+  S21_PHASE2_ORDER.forEach(([el, delayMs, restX]) => {
+    if (!el) return;
+    const w = offW(el);
+    const restPx = restX * vw;
+    let x = -w;
+    if (elapsed2 != null) {
+      const localElapsed2 = elapsed2 - delayMs;
+      if (localElapsed2 > 0) {
+        const t = easeInOutCubic(Math.min(1, localElapsed2 / S21_PHASE2_ENTER_MS));
+        x = -w + t * (restPx - (-w));
+      }
+    }
+    el.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
   });
 
   // Regular clouds: 60%→80% (full); white clouds: 80%→100% (full at scene end)
   if (s21cRegular) s21cRegular.style.opacity = Math.max(0, Math.min(1, (sceneLocal - 0.60) / 0.20)).toFixed(3);
   if (s21cWhite)   s21cWhite.style.opacity   = Math.max(0, Math.min(1, (sceneLocal - 0.80) / 0.20)).toFixed(3);
+
+  // Truck popups — phase 1 (Meta/Google resting) fades in once each has arrived, fades out
+  // the moment phase 2 starts; phase 2 (Microsoft/OpenAI resting) fades in once each of
+  // those has arrived. As the scene approaches the clouds (starting at sceneLocal 0.60),
+  // the 4 phase-2 popups hide one by one instead of all lingering into the cloud fade.
+  const metaArriveMs   = S21_STAGGER_MS + S21_ENTER_MS;
+  const googleArriveMs = S21_STAGGER_MS * 2 + S21_ENTER_MS;
+  const showMeta1   = elapsed2 == null && elapsed >= metaArriveMs;
+  const showGoogle1 = elapsed2 == null && elapsed >= googleArriveMs;
+  // Staggered hide points, all clear before the clouds start fading in at 0.60
+  const showMeta2      = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_MS && sceneLocal < 0.42;
+  const showMicrosoft  = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_MS && sceneLocal < 0.48;
+  const showGoogle2    = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_MS) >= S21_PHASE2_ENTER_MS && sceneLocal < 0.54;
+  const showOpenAI     = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_MS) >= S21_PHASE2_ENTER_MS && sceneLocal < 0.60;
+  [[panelS21Meta1, showMeta1], [panelS21Google1, showGoogle1],
+   [panelS21Meta2, showMeta2], [panelS21Google2, showGoogle2],
+   [panelS21Microsoft, showMicrosoft], [panelS21OpenAI, showOpenAI]].forEach(([p, show]) => {
+    if (!p) return;
+    p.style.opacity = show ? '1' : '0';
+    p.classList.toggle('visible', show);
+  });
 }
 
 // ---- Scene 26–30 overlay — 500vw wide, slides in sync with the strip ----
@@ -2864,26 +3040,33 @@ document.querySelectorAll('.cross-btn, .plus-btn').forEach(btn => {
       charBubble.classList.remove('dialogue');
     }
 
-    const rect = btn.getBoundingClientRect();
-    const dir  = btn.dataset.dir || 'right';
-
-    // Button is in front of the face; popup opens in the opposite direction (behind/over the character)
     charBubble.classList.add('visible');
-    if (dir === 'right') {
-      // Button on right (front of right-facing char) → popup opens LEFT
-      charBubble.classList.add('pop-left');
-      const bw = charBubble.offsetWidth;
-      charBubble.style.left = (rect.left - bw - 12) + 'px';
-    } else {
-      // Button on left (front of left-facing char) → popup opens RIGHT
-      charBubble.classList.remove('pop-left');
-      charBubble.style.left = (rect.right + 12) + 'px';
-    }
-    charBubble.style.top = (rect.top + rect.height / 2 - 22) + 'px';
-
     activeCrossBtn = btn;
+    charBubble.dataset.char = btn.dataset.popup;
+    charBubble.classList.remove('char-bubble-s8-purple-man', 'char-bubble-s8-blue-girl', 'char-bubble-s8-lime-man', 'char-bubble-s8-green-man');
+    if (btn.dataset.popup.startsWith('s8-')) charBubble.classList.add('char-bubble-' + btn.dataset.popup);
+    positionCharBubble(btn);
   });
 });
+
+function positionCharBubble(btn) {
+  const rect = btn.getBoundingClientRect();
+  const dir  = btn.dataset.dir || 'right';
+  const bw = charBubble.offsetWidth;
+  if (dir === 'right') {
+    charBubble.classList.add('pop-left');
+    charBubble.style.left = (rect.left - bw - 12) + 'px';
+  } else {
+    charBubble.classList.remove('pop-left');
+    charBubble.style.left = (rect.right + 12) + 'px';
+  }
+  const minLeft = 12;
+  const maxLeft = window.innerWidth - bw - 12;
+  const clampedLeft = Math.min(Math.max(parseFloat(charBubble.style.left), minLeft), maxLeft);
+  charBubble.style.left = clampedLeft + 'px';
+  const bh = charBubble.offsetHeight;
+  charBubble.style.top = (rect.top + rect.height / 2 - bh / 2 + 26) + 'px';
+}
 
 document.addEventListener('click', () => {
   charBubble.classList.remove('visible', 'dialogue', 'pop-left');
@@ -2923,7 +3106,10 @@ document.addEventListener('keydown', e => {
 });
 
 function frameLoop(ts) {
-  if (!_paused) frame(ts);
+  if (!_paused) {
+    frame(ts);
+    if (activeCrossBtn) positionCharBubble(activeCrossBtn);
+  }
   requestAnimationFrame(frameLoop);
 }
 

@@ -67,12 +67,11 @@
 
 <!-- Scene-21 vehicle overlay — position:fixed z:3, all 4 vehicles move right -->
 <div id="s21-vehicles" aria-hidden="true">
-  <img id="s21v-meta"      src="assets/s21-s23/Meta%20with%20smoke.svg"           alt="Meta truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckMeta">
-  <img id="s21v-openai"    src="assets/s21-s23/Open%20AI%20with%20smoke.svg"      alt="OpenAI truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckOpenai">
-  <img id="s21v-matatu"    src="assets/s21-s23/Matatu%20top.svg"                  alt="The Prevailer matatu, dwarfed by the Big Tech trucks around it" data-i18n-alt="alt.matatuOvertaken">
-  <img id="s21v-google"    src="assets/s21-s23/Google%20truck%20with%20smoke.svg" alt="Google truck billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.truckGoogle">
-  <img id="s21v-microsoft" src="assets/s21-s23/Microsoft%20bus.svg"               alt="Microsoft bus billowing smoke, overtaking on Algorithm Avenue" data-i18n-alt="alt.busMicrosoft">
-  <lottie-player id="s21v-truck" src="assets/lottie/toyota-probox.json" background="transparent" speed="1" loop autoplay></lottie-player>
+  <lottie-player id="s21v-meta"      src="assets/lottie/Meta%20Truck.json"       background="transparent" speed="1" loop></lottie-player>
+  <img id="s21v-matatu" src="assets/s21-s23/Matatu%20top.svg" alt="The Prevailer matatu, dwarfed by the Big Tech trucks around it" data-i18n-alt="alt.matatuOvertaken">
+  <lottie-player id="s21v-google"    src="assets/lottie/google%20struck.json"    background="transparent" speed="1" loop></lottie-player>
+  <lottie-player id="s21v-microsoft" src="assets/lottie/Microsoft%20Truck.json"  background="transparent" speed="1" loop></lottie-player>
+  <lottie-player id="s21v-openai"    src="assets/lottie/Open%20AI.json"          background="transparent" speed="1" loop></lottie-player>
 </div>
 
 <!-- Scene-21 cloud overlays — position:fixed z:2 (below vehicles); fade in near end -->
@@ -141,7 +140,7 @@
     <div id="s5-s8-bg">
       <img class="s5s8-clouds"    src="assets/s5-s8/Clouds%20extended.svg"       alt="">
       <img class="s5s8-buildings" src="assets/s5-s8/Buildings%20Extended.svg"    alt="">
-      <img class="s5s8-road"      src="assets/s5-s8/road%20extended%20(2).svg"   alt="">
+      <img class="s5s8-road"      src="assets/s5-s8/road%20extended.svg"   alt="">
       <img class="s5s8-fence"     src="assets/s5-s8/fence%20extended.svg"        alt="">
       <!-- Trees tiled across the whole 400vw wrapper (scenes 5-8), separate from
            #city-trees-5 (which stays as-is, still handling the scene-5-only bus-passes-
@@ -155,12 +154,7 @@
     </div>
 
     <!-- SCENE 6: same CSS layout as scene 5, own assets -->
-    <div class="scene city scene-6">
-      <div class="text-panel" id="panel-6" aria-hidden="true">
-        <h3>THE PREVAILER</h3>
-        <p>Iconic. Bold. Unstoppable. This is the Prevailer — the heartbeat of every route.</p>
-      </div>
-    </div>
+   
 
     <!-- SCENE 7: City – Characters at the bus stop -->
     <div class="scene city scene-7">
@@ -635,13 +629,20 @@
 <!-- Fixed trees overlay for scene 4 — z:11 keeps it above #jungle-bus (z:10) so the bus
      passes under the trees but stays in front of the road (road is inside #pinned-wrap at z:0) -->
 <div id="s4-trees" aria-hidden="true">
-  <lottie-player src="assets/lottie/tree%20lottie.json" background="transparent" speed="1" loop autoplay aria-hidden="true"></lottie-player>
+  <lottie-player id="s4-trees-player" src="assets/lottie/tree%20lottie.json" background="transparent" speed="1" loop aria-hidden="true"></lottie-player>
 </div>
 
 <!-- Fixed trees overlay for scene 5 — z-index 16 keeps it above #city-bus (z:15) -->
 <div id="city-trees-5" aria-hidden="true">
   <img src="assets/s5-s8/trees.svg" alt="">
 </div>
+
+<!-- Scene-8 "bus transition" flourish — disabled (see S8_BUS_TRANS_ENABLED in scroll.js).
+     Element removed entirely rather than just hidden: its 1.9MB asset (by far the largest
+     lottie in the project) was still being fetched/parsed/rendered at full viewport size even
+     while inactive, and was the actual cause of the scroll slowdown. Re-add this block (and
+     restore s8BusTransitionWrap/Player's DOM refs + the ready/load listener in scroll.js) if
+     the feature comes back. -->
 
 <!-- Scene-5 popup — position:fixed, repositioned every frame in frame() to track #city-bus's
      live getBoundingClientRect(). MUST live at root level (outside #pinned-wrap/#scroll-x): an
@@ -676,16 +677,13 @@
     <img src="assets/s7/green%20man.svg" alt="">
     <button class="cross-btn" data-popup="s7-green-man" data-dir="left" aria-label="Show what the man in green says about his languages"><img src="assets/cross.svg" alt=""></button>
   </div>
-  <div class="text-panel" id="panel-7" aria-hidden="true">
-    <h3>THE PREVAILER</h3>
-    <p>In the African region we are highly multilingual! I speak Twi, Pidgin and understand Fante. What languages do you speak?</p>
-  </div>
 </div>
 <div class="text-panel" id="panel-8" aria-hidden="true">
   <p>Language is the foundational inheritance passed down from our ancestors, a living connection we share with each other and those who follow us.</p>
   <p>It is the very essence of how we think, speak, imagine, and experience the world. It sits at the core of our identity and culture, enabling us to share our stories and collective knowledge.</p>
 </div>
 <div id="city-overlay-8" aria-hidden="true">
+  <div id="s8-plaza-sign" data-i18n="ui.s8PlazaSign" aria-hidden="true">PROBLEM PLAZA</div>
   <div class="char-wrap char-s8-purple-man">
     <img src="assets/s8/purple%20man.svg" alt="">
     <button class="cross-btn" data-popup="s8-purple-man" data-dir="right" aria-label="Show the languages spoken by the man in purple"><img src="assets/cross.svg" alt=""></button>
@@ -703,7 +701,9 @@
     <button class="cross-btn" data-popup="s8-green-man" data-dir="left" aria-label="Show the languages spoken by the man in green"><img src="assets/cross.svg" alt=""></button>
   </div>
   <div class="text-panel s8-pop" id="panel-8a" aria-hidden="true">
+    <p>Alright, my people! Before we go ahead, let's take it back a bit!</p>
     <p>For aeons, Africa has been home to over 2,000 distinct languages across 54 countries — a profound pluralism that stands in sharp contrast to the European historical preference for linguistic uniformity.</p>
+    <p>Colonial powers didn't just ignore this diversity; they sought to erase it, often for administrative efficiency, forcing a multitude of voices into single, "unified" languages.</p>
   </div>
   <div class="text-panel s8-pop" id="panel-8b" aria-hidden="true">
     <p>Now let me draw you a comparison.</p>
@@ -724,6 +724,7 @@
   </div>
 </div>
 
+<div id="s12-avenue-sign" data-i18n="ui.s12AvenueSign" aria-hidden="true">ALGORITHM AVENUE</div>
 <div id="city-overlay-12" aria-hidden="true">
   <div class="char-wrap char-s12-green-man">
     <img src="assets/s12-s15/green%20man.svg" alt="">
@@ -958,20 +959,58 @@
   <p>As this pattern repeats globally, billions of people face a digital world where their local languages are functionally invisible.</p>
 </div>
 
+<!-- Scene-12 popup 2 — same fixed/no-transition pattern as panel-12, same open/hide trigger -->
+<div class="text-panel" id="panel-12b" aria-hidden="true">
+  <p>When local languages are not digitised, they do not just fade from the internet—they risk total extinction. Some scholars call this process 'epistemicide' or digital language death.</p>
+</div>
+
 <!-- Scene 13 popups -->
 <div class="text-panel s8-pop" id="panel-s13-1" aria-hidden="true">
   <p>These languages are invisible online for multiple reasons. The problem isn't just a lack of sufficient corpora; look around this matatu, the speakers are there in abundance. The deeper problem is that the internet was built for written text, effectively marginalising the rich oral, signed and multivariate language traditions of the Global Majority.</p>
   <p>This isn't a technical failure—it's a historical one.</p>
   <p>For oral languages, insufficient written and textual corpora have meant that their languages do not have easy access to digitisable and machine-readable data. As a result, they have come to be termed "low-resource languages" by scholars of the Global North.</p>
+  <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="0,28 0,52 90,5" />
+    <line class="bubble__seam" x1="0" y1="28" x2="0" y2="52" />
+    <path d="M0 28 L90 5 L0 52" />
+  </svg>
 </div>
 <div class="text-panel s8-pop" id="panel-s13-2" aria-hidden="true">
   <p>This under-resourcing is not accidental, but an outcome of the systems that led to the universalisation of Western epistemics. By contrast, we propose to expand on context and identify the histories of how this gap came to be.</p>
   <p>By naming them "digitally under-resourced," we point to the fact that the struggle to bring African languages online is not a technical problem; it is a historical one, deeply rooted in the legacy of colonialism.</p>
+  <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="0,28 0,52 90,5" />
+    <line class="bubble__seam" x1="0" y1="28" x2="0" y2="52" />
+    <path d="M0 28 L90 5 L0 52" />
+  </svg>
 </div>
 <div class="text-panel s8-pop" id="panel-s13-3" aria-hidden="true">
   <p>When a language is excluded from the internet, people's history and knowledge are also silenced. Without resources in their own languages, the next generation is forced to adopt dominant viewpoints, losing their own in the process.</p>
   <p>Even when indigenous languages are instituted, widely spoken local languages, such as Amharic and Kiswahili, can overshadow a multitude of languages spoken by a smaller number of people.</p>
   <p>This constant pressure to adopt the dominant language, colonial or local, is one of the causes of a profound reduction in linguistic diversity, pushing many languages towards extinction.</p>
+</div>
+
+<!-- Scene-21 truck popups — Meta (top lane) and Google (bottom lane). Each has a phase-1
+     version (shown while the trucks are resting near) and a phase-2 version (shown once
+     Meta/Google pull forward and Microsoft/OpenAI swap in) — see animateS21Vehicles. -->
+<div class="text-panel" id="panel-s21-meta-1" aria-hidden="true">
+  <p>Today, the future of languages and all they represent is being decided by a select few. A small group of Big Tech giants&mdash;like Google, Microsoft, Meta, and OpenAI&mdash;holds the keys to the data centres and foundation models that power the world&rsquo;s AI.</p>
+</div>
+<div class="text-panel" id="panel-s21-google-1" aria-hidden="true">
+  <p>While Natural Language Processing (NLP) has a long history of non-AI methods, the current scale and pace of AI development is leaving a significant number of languages behind.</p>
+</div>
+<div class="text-panel" id="panel-s21-meta-2" aria-hidden="true">
+  <p>The main problem is that the training data imbues foundation models with a permanent, deep-seated bias, meaning the internal conceptual maps of any applications built upon it are fundamentally skewed.</p>
+</div>
+<div class="text-panel" id="panel-s21-google-2" aria-hidden="true">
+  <p>Therefore, when an application tries to process a language with fewer online resources, such as Twi or Ewe, it doesn't have a good map for that language or culture. Instead, the model tries to interpret that language by mapping it onto an existing Western framework.</p>
+</div>
+<div class="text-panel" id="panel-s21-openai" aria-hidden="true">
+  <p>Big Tech models rely on &ldquo;one-size-fits-all&rdquo;, profit-first engineering. They prioritise massive-scale data scraping and statistical patterns over deep cultural or linguistic understanding. Here, language is not treated as embodied knowledge; it is treated as a quantifiable resource to be extracted.</p>
+</div>
+<div class="text-panel" id="panel-s21-microsoft" aria-hidden="true">
+  <p>This implies that Big Tech covers only a tiny sliver of human linguistic diversity with high accuracy. This exclusion is cemented by a vicious cycle: because companies invest only where there is a clear return, digitally under-resourced languages become less viable for business.</p>
+  <p>Then, when a language is deemed unprofitable, Big Tech simply walks away&mdash;leaving thousands of languages endangered and excluded.</p>
 </div>
 
 <!-- Scene-30 zoom popup — Awa Ly's message, shown during the interior "stay" hold —
@@ -991,6 +1030,8 @@
 
 <!-- Character speech bubble — repositioned by JS on each cross-btn click -->
 <div id="char-bubble" aria-hidden="true">
+  <svg class="char-bubble-tail-stat" width="110" height="70" viewBox="0 0 55 35" aria-hidden="true"><polygon points="55,10 55,20 38,33" fill="#000000" /></svg>
+  <svg class="char-bubble-tail-dialogue" width="110" height="70" viewBox="0 0 55 35" aria-hidden="true"><polygon points="55,10 55,20 38,33" fill="#FFFFFFF2" /><line class="char-bubble-seam" x1="55" y1="10" x2="55" y2="20" /><path d="M55 10 L38 33 L55 20" fill="none" stroke="#9F2222" stroke-width="0.3" stroke-linejoin="round" /></svg>
   <span class="char-bubble-stat"></span>
   <span class="char-bubble-lang"></span>
 </div>
