@@ -1524,7 +1524,7 @@ function frame(ts) {
   if (ts - _lastNarrationCheck >= 150) {
     _lastNarrationCheck = ts;
     checkNarration();
-    checkSceneExtras(currentScene);
+    checkSceneExtras(currentScene, sceneLocal);
   }
 }
 
@@ -2825,19 +2825,24 @@ function checkNarration() {
 // sceneBeatKeyFor() below derives that key from currentScene on every call; nothing here
 // needs updating if scenes are ever renumbered or SCENE_SCROLL/SCENE_LABELS changes shape
 // — except SCENE_BEAT_KEY_FORCE_SINGLE just below, see its own comment.
-// Not every scene has an entry — a few (6, 33, 46, 56, 57) are dense enough with their own
-// dialogue panels that an extra beat would just be noise. The 8-11 and 13-20 ranges also
-// fold in the #char-bubble stats (language + speaker counts) that the s8/s12 ambient
-// characters show on click — that popup system isn't .text-panel, so checkNarration()
-// never picks it up on its own; this is the only place that content reaches a screen
-// reader. t() falls back to English the same way it does for panels, so a scene with no
-// configured beat simply narrates nothing extra.
+// Not every scene has an entry — a few (33, 46, 56, 57) are dense enough with their own
+// dialogue panels that an extra beat would just be noise. "8" and 13-20 also fold in the
+// #char-bubble stats (language + speaker counts) that the s8/s12 ambient characters show on
+// click — that popup system isn't .text-panel, so checkNarration() never picks it up on its
+// own; this is the only place that content reaches a screen reader. idx7 (real scene-8's
+// slot) is the one place a single SCENE_SCROLL segment covers several real scenes that each
+// get their OWN beat instead of being bundled into one range — see SCENE8_BEAT_THRESHOLDS
+// and sceneBeatKeyFor's scene===7 special case just below; scenes 9 and 10 are Toto Moto's
+// two separate speeches (popup8a/popup8b) and need to narrate as they actually appear, not
+// lumped in with scene 8's arrival or scene 11's exit. t() falls back to English the same
+// way it does for panels, so a scene with no configured beat simply narrates nothing extra.
 // Full key list, cross-checked scene-by-scene against the Figma storyboard screenshots
 // (not just SCENE_SCROLL's own comments, which had drifted stale for the closing chapter):
-// 1-3, 4, 5, 7, 8-11, 12, 13-20, 21-25, 26, 27, 28, 29, 30-31, 32, 34-43, 44, 45, 47-54, 55,
-// 58, 59, 60, 63, 72, 73.
-// "1-3" (the opening jungle drive) is the one range here that spans multiple SCENE_SCROLL
-// segments rather than several real scenes bundled into one — see SCENE_BEAT_KEY_MERGE
+// 1-3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13-20, 21-25, 26-31, 32, 34-43, 44, 45, 47-54, 55, 58,
+// 59, 60, 63, 72, 73.
+// "1-3" (the opening jungle drive) and "26-31" (the 6 interviewees boarding) are the two
+// ranges here that span multiple SCENE_SCROLL segments rather than several real scenes
+// bundled into one — see SCENE_BEAT_KEY_MERGE
 // above. ui.sceneIntroDesc (a static block read once before scrolling starts) is a
 // preamble, not a substitute for this — it still fires as the user actually scrolls in.
 let _lastExtraKey = null;
@@ -2859,13 +2864,30 @@ const SCENE_BEAT_KEY_FORCE_SINGLE = new Set([28, 29]);
 // spans 3 separate SCENE_SCROLL segments, not real-scene-numbers bundled into a single
 // segment. checkSceneExtras below dedupes by the computed KEY rather than the raw scene
 // index specifically so scrolling 0→1→2 doesn't re-fire the same text three times.
-const SCENE_BEAT_KEY_MERGE = { 0: '1-3', 1: '1-3', 2: '1-3' };
+// Indices 11-15 (real scenes 26-31, the 6 interviewees boarding one by one) merge the same
+// way by request — narrated once as a single stretch instead of re-firing at every swap-in.
+const SCENE_BEAT_KEY_MERGE = {
+  0: '1-3', 1: '1-3', 2: '1-3',
+  11: '26-31', 12: '26-31', 13: '26-31', 14: '26-31', 15: '26-31',
+};
 
-// currentScene index -> the "sceneBeats" key that covers it, e.g. 7 -> "8-11" (idx7 is the
-// real scene-8 slot, and covers real scenes 8-11 since scenes 9-11 have no SCENE_SCROLL
+// idx7 (real scene-8's slot) actually contains 4 distinct beats as the viewer scrolls
+// through it — the plaza arrival/zoom, then the conductor's two separate speeches (popup8a
+// then popup8b), then the exit toward Algorithm Avenue — not one continuous moment. These
+// thresholds mirror the popup8a/popup8b show windows above (0.42-0.54 and 0.60-0.68) so the
+// narration switches right as each one actually appears/finishes on screen.
+const SCENE8_BEAT_THRESHOLDS = [[0.42, '9'], [0.60, '10'], [0.75, '11']]; // below first = '8'
+
+// currentScene index -> the "sceneBeats" key that covers it, e.g. 12 -> "13-20" (idx12 is
+// real scene-13's slot, and covers real scenes 13-20 since scenes 14-20 have no SCENE_SCROLL
 // entry of their own — see SCENE_LABELS above). Single-scene stretches return just the
 // number, e.g. "27".
-function sceneBeatKeyFor(scene) {
+function sceneBeatKeyFor(scene, sceneLocal) {
+  if (scene === 7) {
+    let key = '8';
+    for (const [t, k] of SCENE8_BEAT_THRESHOLDS) { if (sceneLocal >= t) key = k; }
+    return key;
+  }
   if (SCENE_BEAT_KEY_MERGE[scene] !== undefined) return SCENE_BEAT_KEY_MERGE[scene];
   const lo = SCENE_LABELS[scene];
   if (lo == null) return null;
@@ -2874,8 +2896,8 @@ function sceneBeatKeyFor(scene) {
   return hi > lo ? `${lo}-${hi}` : String(lo);
 }
 
-function checkSceneExtras(scene) {
-  const key = sceneBeatKeyFor(scene);
+function checkSceneExtras(scene, sceneLocal) {
+  const key = sceneBeatKeyFor(scene, sceneLocal);
   if (key === _lastExtraKey) return;
   _lastExtraKey = key;
   const text = key ? t(`sceneBeats.${key}`) : null;
