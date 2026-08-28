@@ -1,0 +1,180 @@
+{
+  "_readme": "Tigrinya (ትግርኛ) translations. Fill in any string below — leave a value as \"\" to keep showing the English text for that item until translated. Keys must match i18n/en.json exactly.",
+  "_altNote": "The 'alt' and 'sceneBeats' sections below are AI-drafted machine translations, lower-confidence than the Kiswahili draft since Tigrinya is a harder language for automated translation. They have NOT been reviewed by Berhane Achame / Fekadu Gebregziabher (credited for the rest of the Tigrinya translation). Prioritise their review of these sections before treating them as final.",
+  "ui": {
+    "resources": "",
+    "scrollHint": "",
+    "sceneIntroDesc": "",
+    "s8PlazaSign": "ኣደባባይ ሽግር",
+    "s12AvenueSign": ""
+  },
+  "alt": {
+    "truckMeta": "ናይ ሜታ መኪና ትኪ እናውጽአት ኣብ Algorithm Avenue ትሓልፍ ኣላ",
+    "truckOpenai": "ናይ OpenAI መኪና ትኪ እናውጽአት ኣብ Algorithm Avenue ትሓልፍ ኣላ",
+    "matatuOvertaken": "እታ ናይ ፕሪቬይለር ማታቱ፡ ኣብ ማእከል እተን ዓበይቲ ናይ ቢግ ተክ መካይን ንእሽቶ ኮይና ትርአ",
+    "truckGoogle": "ናይ ጉግል መኪና ትኪ እናውጽአት ኣብ Algorithm Avenue ትሓልፍ ኣላ",
+    "busMicrosoft": "ናይ ማይክሮሶፍት ኣውቶቡስ ትኪ እናውጽአ ኣብ Algorithm Avenue ይሓልፍ ኣሎ",
+    "busEmpty": "ባዶ ማታቱ ፕሪቬይለር",
+    "busWithPeople": "ማታቱ ፕሪቬይለር ተሳፈርቲ እናሰፈረት",
+    "busFull": "ማታቱ ፕሪቬይለር ብተሳፈርቲ መሊኣ",
+    "busWithPeople1": "ማታቱ ፕሪቬይለር ተወሳኺ ተሳፈርቲ ሒዛ",
+    "busInterviewees": "ማታቱ ፕሪቬይለር ነቶም እተሓተቱ ሒዛ",
+    "busInside": "ውሽጣዊ ትርኢት ናይ ማታቱ ፕሪቬይለር፡ መንበርን መትሓዚን",
+    "busMunicipal": "ማታቱ ፕሪቬይለር ኣብ ቅድሚ ህንጻ ሚዩኒስፓል ፈደረሽን ደው ኢላ",
+    "awaLyStanding": "ኣዋ ላይ ኣብ ውሽጢ ማታቱ ደው ኢላ",
+    "awaLyHandle": "ኣዋ ላይ ነቲ መትሓዚ ማታቱ ሒዛ",
+    "portraitAsmelash": "ስእሊ ኣስመላሽ ተካ ሓድጉ",
+    "portraitAwaLy": "ስእሊ ኣዋ ላይ",
+    "portraitChris": "ስእሊ ክሪስ ኤመዙ",
+    "portraitKathleen": "ስእሊ ካትሊን ሲሚንዩ",
+    "portraitSadik": "ስእሊ ሳዲቅ ሻሓዱ",
+    "portraitSamuel": "ስእሊ ሳሙኤል ሩቱንዳ",
+    "purpleManFigure": "ስእላዊ ምስሊ ሰብ ኣብ ጎድኒ መንገዲ ደው ኢሉ፡ ማታቱ ክሓልፍ እንከሎ",
+    "logoIsoc": "ኣርማ ኢንተርነት ሶሳይቲ ፋውንዴሽን",
+    "logoWk": "ኣርማ Whose Knowledge?",
+    "logoDair": "ኣርማ DAIR"
+  },
+  "sceneBeats": {
+    "4": "እታ ፕሪቬይለር ኣብቲ ክፉት ሳቫና ብቕልጡፍ ትጓዓዝ፡ ነቲ ጫካ ድሕሪት ገዲፋ።",
+    "5": "ፕሪቬይለር ናብ ከተማ ትኣቱ፡ ኣብ ሓደ ስራሕ ብዙሕ ዘለዎ መዕረፊ ኣውቶቡስ ቅድሚ ምዕራፋ ህንጻታትን ጎደናታትን ሓሊፋ፣ ኣብኡ ብዙሓት ተሳፈርቲ ይሰፍሩን ብዛዕባ እቲ መዓልታዊ ዝጥቀምዎ ቋንቋታት ይዛረቡን።",
+    "7": "ኣብቲ መዕረፊ ኣውቶቡስ፡ ተወሳኺ ተሳፈርቲ ዝዛረብወን ቋንቋታት የካፍሉ፦ ሓንቲ ዓባይ ኣደ ኣደኣ ኦሺዋምቦ ኣቦኣ ከኣ ኦትጂሄሬሮ ዝዛረቡ፡ ሓደ ሰብኣይ ፈረንሳ፡ ማንዲጃን ግባያን ዝዛረብ፡ ከምኡውን ካልእ ቋንቋ ኣደኡ ፉልፉልደ ዝኾነ፡ ንንግዲ ሃውሳ ንትምህርቲ ድማ ዓረብኛ ዝጥቀም።",
+    "12": "እታ መንገዲ ናብ ነዊሕ ክፋል ናይታ ከተማ ትሰፍሕ፡ Algorithm Avenue ኣብ ቅድሚት እናተራእየ፡ እታ ማታቱ ሕጂ ተወሳኺ ተሳፈርቲ ሒዛ ንቕድሚት ትቕጽል።",
+    "26": "ማታቱ ኣብ ሓደ ስራሕ ብዙሕ ዘለዎ ጎደና ትኣቱ፡ ሸየጥትን ቢጫጋትን ይሓልፉ ኣለዉ።",
+    "27": "ኣስመላሽ ተካ ሓድጉ ናይ Lesan AI ከምኡውን ኣዋ ላይ ናይ Galsen AI ይሰፍሩ።",
+    "28": "ክሪስ ኤመዙ ናይ Lanfrica Labs ከምኡውን ካትሊን ሲሚንዩ ናይ Masakane ከምኡውን DAIR ይሰፍሩ።",
+    "29": "ሳዲቅ ሻሓዱ ናይ Dagbani Wikimedians User Group ከምኡውን ሳሙኤል ሩቱንዳ ናይ Digital Umuganda ይሰፍሩ።",
+    "32": "ሕጂ ኣብ ውሽጢ ማታቱ፦ ልሙዳት ተሳፈርቲ ምስቶም እተሓተቱ ብሓደ ይጓዓዙ — ሓንቲ ዓባይ ሰበይቲ፡ ሓንቲ መንእሰይ ጓል ኣብ ሞባይላ ዝጠሓለት፡ ሓንቲ ጥንስቲ ሰበይቲ፡ ከምኡውን ሓደ ቆልዓ ምስ ሎሊፖፕ — ሳሙኤል ሩቱንዳ፡ ኣስመላሽ ተካ ሓድጉን ሳዲቅ ሻሓዱን ከኣ ተራኦም ንክዛረቡ ይረኽቡ።",
+    "44": "ሓድሽ ትርኢት ካብ ላዕሊ ይንሸራተት፦ ቶቶ ሞቶ ጥቓ እቲ ማዕጾ ደው ኢሉ፡ ንመትሓዚታት ማታቱ ሒዙ።",
+    "45": "ናብ ውሽጢ ተወሳኺ፡ ካትሊን ሲሚንዩ ትዛረብ፡ ቶቶ ሞቶ፡ ቀይሕ ሳንጣ ዝሓዘት ሰበይትን ብዊልቸር ዝጥቀም ሰብኣይን እውን ብሓደ ይጓዓዙ።",
+    "55": "ማታቱ ኣብ ቅድሚ ህንጻ ሚዩኒስፓል ፈደረሽን ደው ኢላ ትቐምጥ።",
+    "58": "እታ ጎደና ድሕሪት ትተርፍ፡ እቲ ትርኢት ናብ ክፉትን ጹሩይን ሰማይ ናብ ላዕሊ ይኸይድ።",
+    "59": "ማታቱ ልዕሊ ሓደ ቀላይ ዘሎ ድልድል ትሰግር፡ ብኦም ዛፍታትን ክፉት ፓርክን ተኸቢቡ።",
+    "60": "ቆልዑ ኣብ ጎድኒ እቲ መንገዲ ኩዕሶ ይጻወቱ፡ ሓደ ብሕብሪ ወይኒ ዝተኸደነ ሰብኣይ ኣብ ጥቓኦም ደው ኢሉ፡ እቲ ትርኢት ብቐስታ ንድሕሪት ይምለስ።",
+    "63": "ማታቱ ብህድኣት፡ ብዘይ ህውኸት ትጓዓዝ፡ እታ ዛንታ ናብ መወዳእታኣ ክትበጽሕ እንከላ።",
+    "72": "እታ ዛንታ ኣብዚ ትውዳእ። እዚ መዛዘሚ ስክሪን ንምውራድ ዝኽእሉ ሓበሬታታት ይህብ፦ ምሉእ ጸብጻብ ምርምር፡ መምርሒ ዝበለጹ ተግባራት ንማሕበረሰብ ዘተኮረ ቴክኖሎጂ ቋንቋ፡ ናይ ቀደም ምርምርና ብዛዕባ ቋንቋታት ኢንተርነት፡ ከምኡውን ማእገር ናብ መድረኽ LesanAI።",
+    "73": "እዚ ናይ መወዳእታ ስክሪን ንኹሎም ነዚ ፕሮጀክት ዝተኻእለ ዝገበሩ ምስጋና ይህብ — ሓዊስካ ኢንተርነት ሶሳይቲ ፋውንዴሽን፡ Whose Knowledge?፡ ከምኡውን DAIRን — ብኸመይ ክንራኸብ ከም እንኽእል የርኢ፡ ናይ ፍቓድ ሓበሬታ እውን ይህብ።",
+    "_readme": "መፍትሕታት (keys) ካብ storyboard (ref-row-1/2/3) ዝተወስዱ ናይ ሓቂ ቁጽሪ ትርኢት (scene) እዮም — ናይ ውሽጢ ኮድ ቁጽሪ ኣይኮኑን። ከም \"8-11\" ዝበለ ስፍሓት፡ ትርኢት 8 ክሳብ 11 ብዘይ ፍሉይ ደረት ኣብ ማእከል፡ ከም ሓደ ቀጻሊ ክፋል ከም ዝቐርባ የመልክት፣ ስለዚ እቲ ጽሑፍ ሓደ ግዜ ጥራይ፡ ኣብ መጀመርታ እቲ ክፋል ይዝረብ፡ ንብምሉኡ እቲ ክፋል ከኣ የገልግል።",
+    "1-3": "እታ ፕሪቬይለር ካብ ወጻኢ ስክሪን ትኣቱ፡ ኣብ ሓደ ንጹፍ ጫካ ዝሓልፍ መንገዲ ትጓዓዝ፡ ጫካ ኸበባ እናሃለወ ከኣ ደው ትብል።",
+    "8-11": "ተወሳኺ ኣርባዕተ ተሳፈርቲ ይሓልፉ፡ ነፍሲ ወከፎም ብዝዛረብወን ቋንቋታትን ብዘፍልጦም ተዛረብትን ምልክት ተገይሩሎም — ትዊ፡ ስዋሂልን ወሎፍን ብ230 ሚልዮን ተዛረብቲ፣ ፉልፉልደ፡ ሃውሳን ዓረብኛን ብ300 ሚልዮን፣ ኪንያርዋንዳ፡ ጉሩነን እንግሊዝኛን ብ270 ሚልዮን፣ ፈረንሳ፡ ዳግባኒን ትግርኛን ብ180 ሚልዮን። ደሓር እቲ ትርኢት ናብ ሓደ ምሳልያዊ፡ ብህዝቢ ዝመልአ ኣደባባይ ይቕየር — ኣእላፍ ገጻት ነፍሲ ወከፍ ኣብ ኢንተርነት ዝዝረብ ቋንቋ ዘመልክቱ። እቲ ትርኢት ክሳብ ውሑዳት ዝበላደሙ ናይ ቅሚል ቋንቋታት ጥራይ ብርሃኖም ዝተርፉ ይቐርብ፣ እቶም ካልኦት ናብ ጸልማት ይጠፍኡ።",
+    "13-20": "ተወሳኺ ሰለስተ ተሳፈርቲ ይሓልፉ፡ ነፍሲ ወከፎም ቋንቋኦምን ስፍሓቱን እናሰመዩ — ስዋሂሊ ልዕሊ 200 ሚልዮን ተዛረብቲ፡ ዙሉ 12 ሚልዮን፡ ዮሩባ 45 ሚልዮን። እቲ ትርኢት ኣብዚ ክፋል መንገዲ ይቐርብ፡ ፖፓፕታት ከኣ ክንደይ ካብቶም ቋንቋታት ዓለም ኣብ ኢንተርነት ዘይርኣዩ ከም ዘለዉን ስለምንታይን ይገልጹ።",
+    "21-25": "ካብ ላዕሊ ዝረአ ትርኢት ናይታ መንገዲ፦ መካይን ሜታ፡ OpenAI፡ ጉግልን ማይክሮሶፍትን ብቕልጡፍ ይሓልፋ፡ ብሓንቲ ንእሽቶ ናይ መጓዓዝያ መኪና ተኸቲለን።",
+    "30-31": "ኣዋ ላይ ኣብ ውሽጢ ማታቱ ደው ኢላ፡ ነቲ ናይ ጣራ መትሓዚ ሒዛ፡ ጠውይ ኢላ ትዛረብ።",
+    "34-43": "ካልኦት ተሳፈርቲ ኣብ ኩለን እዋን ጉዕዞ ይመጹን ይኸዱን — ሓደ ንኻልእ ተሳፋራይ ገለ ነገር የረክብ፡ ሓንቲ ጥንስቲ ሰበይቲ ሓሳባታ ተካፍል — ቅድሚ ሳዲቅ ሻሓዱ ኣብ ጫፍ እዚ ክፋል ምዝራቡ።",
+    "47-54": "እቲ ብዊልቸር ዝጥቀም ተሳፋራይ ቀረባ ይጸንሕ፡ ካልኦት ተሳፈርቲ ክመጹን ክኸዱን እንከለዉ፡ ክሪስ ኤመዙ ድማ ኣብ ጥቓኡ ይዛረብ።"
+  },
+  "panels": {
+    "panel-1": "<h3>ደይቡ ናብዛ ተዓዋቲት ታክሲ ማታቱ! ንኺድ ንኺድ!</h3>",
+    "panel-2": "<p>ኣብ ውሽጢ መልክዓምድሪ ቋንቋታት ኣፍሪካ ህዝባ በብዕለቱ ዘጋጥሞ ዲጂታል ዘይፍትሓውነት እናተኣሳሰርና ንዛወር።</p>",
+    "panel-3": "<p>እግረ መንገድና ድማ፥ ታክሲና ማራኺ ምርኢትን ዝሐሸ ተስፋን ናብ ዘለዎ ክትጥወ እያ፤ ሰብ ሰራሕ ኣስተውዕሎ ካብ መሳርሒ ናይ ባዕዳዊ ምዝመዛ ናብ ናይ ማሕበረሰባት ኣፍሪካ ቋንቋታቶም ኣብ መስመር ኢንተርኔት ከመይ እንታይ ከምእተሰጋገረ ዛንታታት እናቖፀርና።</p>",
+
+    "panel-5": "<h3>ኩሉኹም ናብዛ ተዓዋቲት ተሰቐሉ!<strong></strong></h3><svg class=\"bubble__tail\" viewBox=\"0 0 330 108\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polygon points=\"88.2,0 70.2,0 151.9,107.8\" /><line class=\"bubble__seam\" x1=\"88.2\" y1=\"0\" x2=\"70.2\" y2=\"0\" /><path d=\"M88.2 0 L151.9 107.8 L70.2 0\" /></svg>",
+    "panel-6": "<h3></h3><p></p>",
+    "panel-8": "<p></p><p></p>",
+    "panel-8a": "<p></p><svg class=\"bubble__tail\" viewBox=\"0 0 330 108\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polygon points=\"88.2,0 70.2,0 151.9,107.8\" /><line class=\"bubble__seam\" x1=\"88.2\" y1=\"0\" x2=\"70.2\" y2=\"0\" /><path d=\"M88.2 0 L151.9 107.8 L70.2 0\" /></svg>",
+    "panel-8b": "<p></p><p></p><p></p><p></p>",
+    "panel-13a": "<p></p>",
+    "panel-9": "<h3></h3><p></p>",
+    "panel-12": "<p></p><p></p>",
+    "panel-12b": "<p></p>",
+    "panel-s21-meta-1": "<p></p>",
+    "panel-s21-google-1": "<p></p>",
+    "panel-s21-meta-2": "<p></p>",
+    "panel-s21-google-2": "<p></p>",
+    "panel-s21-openai": "<p></p>",
+    "panel-s21-microsoft": "<p></p><p></p>",
+    "panel-55": "<h3></h3><p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-56": "<p></p><p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-57": "<p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-s13-1": "<p></p><p></p><p></p>",
+    "panel-s13-2": "<p></p><p></p>",
+    "panel-s13-3": "<p></p><p></p><p></p>",
+    "panel-30-awayly": "<h3></h3><p>&ldquo;&rdquo;</p>",
+    "panel-32-intro": "<p></p><p></p>",
+    "panel-32-umuganda": "<p></p>",
+    "panel-32-lesan": "<p></p>",
+    "panel-32-samuel": "<p>&ldquo;&rdquo;</p>",
+    "panel-32-asmelash": "<p>&ldquo;&rdquo;</p>",
+    "panel-32-asmelash2": "<p></p><p></p><p></p>",
+    "panel-32-pregnant-up": "<p>&ldquo;&rdquo;</p>",
+    "panel-32-pregnant-down": "<p></p><p></p><p></p>",
+    "panel-32-sadik": "<p>&ldquo;&rdquo;</p>",
+    "panel-44-1": "<p></p>",
+    "panel-45-kathleen": "<p>&ldquo;&rdquo;</p>",
+    "panel-45-totomoto": "<p></p><p></p>",
+    "panel-45-redlady": "<p></p><p></p>",
+    "panel-46-huniki": "<p></p>",
+    "panel-46-bigtech": "<p></p>",
+    "panel-47-chris": "<p>&ldquo;&rdquo;</p>",
+    "panel-59": "<p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-60": "<p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-61": "<p></p>",
+    "panel-purple-man": "<p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-language-justice": "<p></p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>"
+  },
+  "chars": {
+    "s7-red-girl": {
+      "dialogue": "ኣብ ኣህጉር ኣፍሪካ  ተዛረብቲ ብዙሓት ቋንቋታት ኢና! ኣነ፥ ትዊ፣ ፒጂንን እዛረብ፤ ፋንተ ድማ  እሰምዕ።"
+    },
+    "s7-granny": {
+      "dialogue": "ኣደይ፥ ኦሺዋምቦ ትዛረብ፣ ኣቦይ ድማ  ኦጂሀረሮ ይዛረብ። ንኽልቲአን ቋንቋታት ተማሂረየን ፤ እንግሊዝኛ እውን እዛረብ።"
+    },
+    "s7-orange-man": {
+      "dialogue": "ኣነ፥ ፈረንሳይኛ፣ ማንጃን ግባያን እዛረብ።"
+    },
+    "s7-green-man": {
+      "dialogue": "መኽፈቲ ኣፈይ ፉልፉልደ እዩ። ንስራሕቲ መንግድ ሃውሳ፣ ንትምህርቲ ድማ ዓረብኛ እጥቀም።"
+    },
+    "s8-purple-man": {
+      "stat": "ትዊ፣ ኪስዋሂሊ፣ ዎሎፍ- ልዕሊ 230 ሚልዮን ተዛረብቲ",
+      "lang": ""
+    },
+    "s8-blue-girl": {
+      "stat": "ፉልፉልደ፣ ሃውሳ፣ ዓረብኛ - ልዕሊ 300 ሚልዮን ተዛረብቲ",
+      "lang": ""
+    },
+    "s8-lime-man": {
+      "stat": "ኪንያርዋንዳ፣ ጉሩነ፣ እንግሊዝኛ - ልዕሊ 270 ሚልዮን ተዛረብቲ",
+      "lang": ""
+    },
+    "s8-green-man": {
+      "stat": "ፈረንሳይኛ፣ ዳግባኒ፣ ትግርኛ - ልዕሊ 180 ሚልዮን ተዛረብቲ",
+      "lang": ""
+    },
+    "s12-green-man": {
+      "stat": "",
+      "lang": ""
+    },
+    "s12-blue-man": {
+      "stat": "",
+      "lang": ""
+    },
+    "s12-pink-lady": {
+      "stat": "",
+      "lang": ""
+    },
+    "s27-asmelash": {
+      "stat": "",
+      "lang": ""
+    },
+    "s27-awayly": {
+      "stat": "",
+      "lang": ""
+    },
+    "s28-chris": {
+      "stat": "",
+      "lang": ""
+    },
+    "s28-kathleen": {
+      "stat": "",
+      "lang": ""
+    },
+    "s29-sadik": {
+      "stat": "",
+      "lang": ""
+    },
+    "s29-samuel": {
+      "stat": "",
+      "lang": ""
+    }
+  }
+}
