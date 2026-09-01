@@ -9,7 +9,10 @@ const SCENES = 32; // ends after scene-73, the Figma-numbered CREDITS screen (2 
 // Per-scene scroll multipliers — how many viewport-widths of scroll each scene consumes.
 // Lower = faster transition. Scene 4 (savanna) is intentionally quick.
 const SCENE_SCROLL = [
-  1.2,  // 0  → scene-1  (jungle intro)
+  1.8,  // 0  → scene-1  (jungle intro — extra scroll room added as a "start" beat: PARK_AT
+        // and panel-1's timing are local fractions, so this just stretches the existing
+        // bus-drives-in-and-parks entrance over more actual scrolling, no new content, no
+        // index/renumbering risk)
   1.2,  // 1  → scene-2  (jungle story)
   1.2,  // 2  → scene-3  (jungle detail)
   0.4,  // 3  → scene-4  (savanna — intentionally fast)
@@ -18,7 +21,10 @@ const SCENE_SCROLL = [
   1.5,  // 6  → scene-7  (bus stop characters)
   14.0, // 7  → scene-8  (problem plaza + zoom sequence)
   1.5,  // 8  → scene-12 (wide city s12-s15, part A)
-  8.0,  // 9  → scene-13 (wide city — zoom + popups)
+  11.0, // 9  → scene-13 (wide city — zoom + popups — was 8.0, raised so the zoom feels slower
+        // per scroll-tick; the zoom/popup timings are all local fractions of this total, so
+        // raising it stretches everything proportionally without changing any of their
+        // relative timing to each other)
   4.0,  // 10 → scene-21 (top-down road — 3 vehicles in 3 lanes)
   2.0,  // 11 → scene-26 (street arrival — ambient characters)
   1.3,  // 12 → scene-27 (Asmelash Teka Hadgu & Away Ly swap in together)
@@ -155,6 +161,9 @@ const panels = {
   25: document.getElementById('panel-56'),  // scroll index 24 (scene-56)
   26: document.getElementById('panel-57'),  // scroll index 25 (scene-57)
 };
+const panel1Start = document.getElementById('panel-1-start');
+const s1s3Troad = document.querySelector('.s1s3-troad');
+const s1s3Broad = document.querySelector('.s1s3-broad');
 const panel5Driver = document.getElementById('panel-5-driver');
 const popup8a    = document.getElementById('panel-8a');
 const popup8b    = document.getElementById('panel-8b');
@@ -614,9 +623,13 @@ function buildScrollMap() {
   TOTAL_SCROLL = 0;
   for (let i = 0; i < SCENES; i++) {
     const len    = SCENE_SCROLL[i] * vw;
-    // Scene 21 (i=10): margin-left:65vw + width:400vw vs normal 100vw = +365vw for all later scenes
+    // Scene 21 (i=10): real DOM start is 1165vw (1000vw base + margin-left:165vw), 165vw more
+    // than the 1000vw a normal-index scene would land on — was 0.65vw here (a stale value
+    // from before scene-9's display:none was fixed, see that rule in style.css), which put
+    // scene 21's own vehicle/road pan 100vw to the left of its real position for its entire
+    // duration. i>10 term unchanged — scene 21 ends at 1465vw exactly as before either way.
     const stripX = i * vw
-      + (i === 10 ? 0.65 * vw : 0)
+      + (i === 10 ? 1.65 * vw : 0)
       + (i > 10   ? 3.65 * vw : 0);
     SCROLL_MAP.push({ scrollStart: TOTAL_SCROLL, scrollEnd: TOTAL_SCROLL + len, stripX });
     TOTAL_SCROLL += len;
@@ -1119,18 +1132,19 @@ function frame(ts) {
     }
   }
 
-  // -- Fade out #s45-s48-bg once scene 55 begins. It's 520vw wide (2298vw-2818vw), which
-  // overlaps well into #s55-s58-bg's own territory (2665vw-2815vw) — normally invisible
-  // because scenes 55-58 used to have a long scroll runway that panned well clear of the
-  // overlap before the street content came on screen. Now that that scroll length is much
-  // shorter (compressed to match #s55-s58-bg's smaller 150vw width), the pan doesn't clear
-  // it in time, so #s45-s48-bg (z-index:2, above #s55-s58-bg's z-index:1) was still visibly
-  // covering/patchworking with the street scene. Explicit fade instead of relying on pan
-  // position to clear it. Starts easing out during scene 47's last 30% for a smooth handoff.
+  // -- #s45-s48-bg's own right portion is masked out spatially in CSS now (fades out right
+  // where #s55-s58-bg's real content begins, 2665vw — a fixed strip position, independent of
+  // scroll speed/direction — see the mask-image comment on #s45-s48-bg in style.css). That
+  // replaces trying to time a flat opacity fade against sceneLocal, which can't be correct on
+  // both sides at once: the viewport's left edge only reaches 2665vw at the very end of scene
+  // 47, while the right edge starts overlapping #s55-s58-bg's territory from scene 47's very
+  // start, so a scroll-timed fade is always either patchworking (fades too late) or leaving a
+  // premature empty gap (fades too early) on one side. Opacity here now stays 1 through all of
+  // scene 47 itself — the mask handles the real crossfade — and only drops once we're fully
+  // past it, as a safety net so it can't reappear later in the strip.
   if (s4548Bg) {
     let s4548Opacity;
-    if (currentScene < 22) s4548Opacity = 1;
-    else if (currentScene === 22) s4548Opacity = 1 - easeInOutCubic(Math.max(0, sceneLocal - 0.7) / 0.3);
+    if (currentScene <= 22) s4548Opacity = 1;
     else s4548Opacity = 0;
     s4548Bg.style.opacity = s4548Opacity.toFixed(3);
   }
@@ -1195,11 +1209,14 @@ function frame(ts) {
     // Tied to the bus's own front edge approaching the ALGORITHM AVENUE sign, as 3 distance
     // zones (fractions of viewport width) walked through in order as the bus moves right:
     //   OPEN  — fades in over this distance, ending STAY before the sign
-    //   STAY  — fully open for this distance, right up to the sign itself
-    //   HIDE  — fades back out over this distance, starting once the bus has crossed
+    //   STAY  — fully open for this distance, right up to the (delayed) trigger point
+    //   HIDE  — fades back out over this distance, starting once the bus has crossed it
+    // S12_POPUP_DELAY_VW pushes the whole trigger later than the sign's own position — the
+    // bus has to travel this much further past the sign before the popup opens.
     const S12_POPUP_OPEN_VW = 0.01; // fade-in distance, before the stay zone
-    const S12_POPUP_STAY_VW = 0.05; // fully-open distance, ending right at the sign
-    const S12_POPUP_HIDE_VW = 2.15; // fade-out distance, after the sign
+    const S12_POPUP_STAY_VW = 0.05; // fully-open distance, ending right at the trigger point
+    const S12_POPUP_HIDE_VW = 2.15; // fade-out distance, after the trigger point
+    const S12_POPUP_DELAY_VW = 0.35; // how much later than the sign itself to trigger
     const signRect = _signRect;
     const busFrontX = _busRect ? _busRect.right : null;
     let show12op = 0;
@@ -1207,7 +1224,9 @@ function frame(ts) {
       const openPx = S12_POPUP_OPEN_VW * _vw;
       const stayPx = S12_POPUP_STAY_VW * _vw;
       const hidePx = S12_POPUP_HIDE_VW * _vw;
-      const d = busFrontX - (signRect.left - stayPx); // 0 at start of stay zone, +stayPx at sign
+      const delayPx = S12_POPUP_DELAY_VW * _vw;
+      const triggerX = signRect.left + delayPx;
+      const d = busFrontX - (triggerX - stayPx); // 0 at start of stay zone, +stayPx at trigger point
       if (d < -openPx) show12op = 0;                                   // before open zone
       else if (d < 0) show12op = (d + openPx) / openPx;                // opening
       else if (d <= stayPx) show12op = 1;                              // stay
@@ -1246,17 +1265,29 @@ function frame(ts) {
   const _busShiftPx = currentScene === 9 && sceneLocal >= 0.85
     ? easeInOutCubic(Math.min(1, (sceneLocal - 0.85) / 0.10)) * 1.6 * window.innerWidth * _s13TotalScale / 4
     : 0;
+  // Positioned on the bus's live screen rect, same technique as panelS13_3 below (and
+  // panel-8a/8b in scene 8) — a static top/left only lined up with the bus at one specific
+  // zoom/scroll state, and scene 13's bus goes through heavy scale changes (wrapScale/zoom,
+  // up to _s13TotalScale) throughout this range.
   if (panelS13_1) {
     const show = currentScene === 9 && sceneLocal >= 0.64 && sceneLocal < 0.70;
-    panelS13_1.style.top     = '8%';   // ← adjust popup 1 vertical
-    panelS13_1.style.left    = '5%';   // ← adjust popup 1 horizontal
+    const WIN_X = 0.64; // ← horizontal fraction of bus image (0=left, 1=right)
+    const WIN_Y = 0.35; // ← vertical fraction of bus image (0=top, 1=bottom)
+    if (_busRect && show) {
+      panelS13_1.style.left = `${(_busRect.left + _busRect.width  * WIN_X).toFixed(0)}px`;
+      panelS13_1.style.top  = `${(_busRect.top  + _busRect.height * WIN_Y).toFixed(0)}px`;
+    }
     panelS13_1.style.opacity = show ? '1' : '0';
     panelS13_1.style.transform = '';
   }
   if (panelS13_2) {
     const show = currentScene === 9 && sceneLocal >= 0.70 && sceneLocal < 0.72;
-    panelS13_2.style.top     = '8%';   // ← adjust popup 2 vertical
-    panelS13_2.style.left    = '5%';   // ← adjust popup 2 horizontal
+    const WIN_X = 0.64; // ← horizontal fraction of bus image (0=left, 1=right)
+    const WIN_Y = 0.36; // ← vertical fraction of bus image (0=top, 1=bottom)
+    if (_busRect && show) {
+      panelS13_2.style.left = `${(_busRect.left + _busRect.width  * WIN_X).toFixed(0)}px`;
+      panelS13_2.style.top  = `${(_busRect.top  + _busRect.height * WIN_Y).toFixed(0)}px`;
+    }
     panelS13_2.style.opacity = show ? '1' : '0';
     panelS13_2.style.transform = '';
   }
@@ -1359,6 +1390,29 @@ function frame(ts) {
     panels[n].style.opacity = show ? '1' : '0';
     panels[n].classList.toggle('visible', show);
   });
+
+  // Scene 1 opening beat — shown before the bus has driven in at all. Hides at local 0.10,
+  // a bit before panel-1's own PANEL_TIMING[1].start (0.15) — a real gap where neither is
+  // visible, rather than an exact simultaneous handoff, so it reads as two distinct popups
+  // in sequence instead of one instantly morphing into the other (and doesn't compete with
+  // panel-1's own fade-in for paint time in the same instant).
+  if (panel1Start) {
+    // Plain boolean show/hide, same pattern as every other popup on the site — visible from
+    // local 0 (page load) with no fade-in ramp, relying on #panel-1-start's own CSS
+    // transition (opacity 0.4s ease, from the base .text-panel rule) for the smooth part.
+    const HIDE_AT = 0.10;
+    const showStart = currentScene === 0 && sceneLocal < HIDE_AT;
+    panel1Start.style.opacity = showStart ? '1' : '0';
+    panel1Start.classList.toggle('visible', showStart);
+    // Blur uses a plain CSS transition (.s1s3-sharp in style.css), not a per-frame recompute —
+    // recalculating filter:blur() every single frame forces the browser to re-rasterize the
+    // whole image each time, which is expensive and was the actual source of continuous
+    // stutter through the scroll range, worse than a single transition. Now that panel1Start
+    // hides at 0.10 with a real gap before panel-1 shows at 0.15, this no longer collides with
+    // the popup swap, so a simple CSS-timed transition here is smooth on its own.
+    if (s1s3Troad) s1s3Troad.classList.toggle('s1s3-sharp', !showStart);
+    if (s1s3Broad) s1s3Broad.classList.toggle('s1s3-sharp', !showStart);
+  }
 
   // -- Scenes 55-57 popups: kept centered on screen via dynamic `left`, recomputed every
   // frame from the live pan — see the comment above for why a static CSS left doesn't work
@@ -1531,12 +1585,14 @@ function frame(ts) {
   // worth of time, then a ~1-"scroll" gap (both popups hidden) before popup 2 opens.
   if (popup8a) {
     const show = currentScene === 7 && sceneLocal > 0.42 && sceneLocal < 0.54;
+    if (show) positionNearBusDriver(popup8a);
     popup8a.style.opacity = show ? '1' : '0';
     popup8a.classList.toggle('visible', show);
   }
   // Popup 2 — matatu comparison — appears after the gap, clears before bus close-up
   if (popup8b) {
     const show = currentScene === 7 && sceneLocal > 0.60 && sceneLocal < 0.68;
+    if (show) positionNearBusDriver(popup8b);
     popup8b.style.opacity = show ? '1' : '0';
     popup8b.classList.toggle('visible', show);
   }
@@ -1589,9 +1645,14 @@ function animateMatatu(scene, local, tx, junglePhase, opacity) {
         // easeInOutCubic already starts AND ends at zero velocity, so both this curve's start
         // (local=0) and its clamped hold after PARK_AT are jerk-free too, not just the middle.
         const PARK_AT = 0.32; // essentially stopped by here — just past the popup trigger
-        const t = easeInOutCubic(Math.min(1, local / PARK_AT));
+        // Starts already 50% of the way along the ENTRY->CENTER path (and fully visible, no
+        // fade-in) instead of fully off-screen — the bus is on screen from the very first
+        // frame, alongside panel-1-start's "Scroll to get started!" prompt, rather than
+        // appearing to drive in from nothing.
+        const START_T = 0.5;
+        const t = START_T + (1 - START_T) * easeInOutCubic(Math.min(1, local / PARK_AT));
         busX = ENTRY + t * (CENTER - ENTRY);
-        busOpacityLocal = Math.min(1, local / 0.12);
+        busOpacityLocal = 1;
       } else {
         busX = CENTER;
         busOpacityLocal = opacity; // time-based opacity once parked
@@ -2556,6 +2617,24 @@ function animateS44(scene, local) {
 // left:50%/translateX(-50%) — that works as a plain constant there because that scene's own
 // box is exactly one viewport-width; #s45-s48-bg is 520vw wide, so the equivalent "centered"
 // vw value has to be computed live instead of being a fixed 50%).
+// Positions a popup next to #city-bus's driver window, tracking its LIVE on-screen rect —
+// used by panel-8a/8b, which used to sit at a fixed left/top (vw/%) that only lined up with
+// the driver at one specific zoom/scroll state and window width. #city-bus moves and scales
+// (BUS_CLOSE zoom) throughout scene 8, so this recomputes every frame while the popup is
+// shown instead of once. Both panels live at root level (outside #pinned-wrap/#scroll-x), so
+// plain viewport-relative getBoundingClientRect() coordinates apply directly, no containing-
+// block complications from #pinned-wrap's own active transform during the zoom.
+function positionNearBusDriver(el) {
+  if (!el || !cityBus) return;
+  const busRect = cityBus.getBoundingClientRect();
+  const bh = el.offsetHeight;
+  // Simplified to a fixed left margin — the bus-relative formula this used to have was being
+  // pushed so far left it was permanently hitting this same 12px floor anyway, so the formula
+  // was doing nothing. top still tracks the bus's live vertical position.
+  el.style.left = '-512px';
+  el.style.top = (busRect.top + busRect.height * 0.50 - bh / 2) + 'px';
+}
+
 function positionCenteredPopup(el, show, centerVw) {
   if (!el) return;
   el.style.left = `${centerVw.toFixed(2)}vw`;
@@ -3163,14 +3242,20 @@ const bubbleStat    = charBubble.querySelector('.char-bubble-stat');
 const bubbleLang    = charBubble.querySelector('.char-bubble-lang');
 let activeCrossBtn  = null;
 let _lastCharBubbleClass = null; // per-character class (char-bubble-<popup-id>), see click handler below
+let _charBubbleHideTimer = null; // 3s auto-hide, see click handler below
+
+function closeCharBubble() {
+  charBubble.classList.remove('visible', 'dialogue', 'pop-left');
+  activeCrossBtn = null;
+  if (_charBubbleHideTimer) { clearTimeout(_charBubbleHideTimer); _charBubbleHideTimer = null; }
+}
 
 document.querySelectorAll('.cross-btn, .plus-btn').forEach(btn => {
   btn.addEventListener('click', e => {
     e.stopPropagation();
 
     if (activeCrossBtn === btn) {
-      charBubble.classList.remove('visible', 'dialogue', 'pop-left');
-      activeCrossBtn = null;
+      closeCharBubble();
       return;
     }
 
@@ -3196,6 +3281,9 @@ document.querySelectorAll('.cross-btn, .plus-btn').forEach(btn => {
     _lastCharBubbleClass = 'char-bubble-' + btn.dataset.popup;
     charBubble.classList.add(_lastCharBubbleClass);
     positionCharBubble(btn);
+    // Auto-hide 3s after opening, regardless of further interaction.
+    if (_charBubbleHideTimer) clearTimeout(_charBubbleHideTimer);
+    _charBubbleHideTimer = setTimeout(closeCharBubble, 5000);
   });
 });
 
@@ -3221,20 +3309,26 @@ function positionCharBubble(btn) {
   const minLeft = 12;
   const maxLeft = window.innerWidth - bw - 12;
   const clampedLeft = Math.min(Math.max(parseFloat(charBubble.style.left), minLeft), maxLeft);
+  // If clamping has pushed the bubble within 5% of the window's left/right edge, it doesn't
+  // fit its normal spot here — hide it immediately instead of showing it squished against
+  // the edge (also covers scroll/resize moving the character toward the edge while open).
+  const edge = window.innerWidth * 0.05;
+  if (clampedLeft <= edge || clampedLeft + bw >= window.innerWidth - edge) {
+    closeCharBubble();
+    return;
+  }
   charBubble.style.left = clampedLeft + 'px';
   const bh = charBubble.offsetHeight;
   charBubble.style.top = (rect.top + rect.height / 2 - bh / 2 + 26 + n.y) + 'px';
 }
 
 document.addEventListener('click', () => {
-  charBubble.classList.remove('visible', 'dialogue', 'pop-left');
-  activeCrossBtn = null;
+  closeCharBubble();
 });
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    charBubble.classList.remove('visible', 'dialogue', 'pop-left');
-    activeCrossBtn = null;
+    closeCharBubble();
   }
 });
 

@@ -148,7 +148,7 @@ body {
 /* Sky backgrounds — base per scene "biome", overridden per-scene below where needed */
 .scene.jungle  { background: #1C2A15; }
 .scene.savanna { background: linear-gradient(180deg, #87CEEB 0%, #d4e8a0 55%, #c8a96e 100%); }
-.scene.city    { background: linear-gradient(180deg, #87CEEB 0%, #c8ddf0 55%, #b8886e 100%); }
+.scene.city ,div#s12-s15-bg   { background: linear-gradient(180deg, #87CEEB 0%, #c8ddf0 55%, #b8886e 100%); }
 
 /* ================================================================
    GLOBAL — layer system base (shared by every scene's .layer divs)
@@ -783,8 +783,18 @@ body {
    to compensate for that — this is tuned by eye/feedback, not derived from a formula, so
    re-check both edges together if either source SVG changes. */
 .s1s3-road  { left: 0;    width: 100%; top: calc(100% / 3 + 5%);  bottom: auto; height: calc(100% / 3); object-fit: cover; object-position: center;        z-index: 1; }
-.s1s3-troad { left: -5%;  width: 105%; top: 0;                bottom: auto; height: calc(100% / 3 + 20%); object-fit: cover; object-position: bottom center; z-index: 2; }
-.s1s3-broad { left: -5%;  width: 105%; bottom: 0;              top: auto;   height: calc(100% / 3 + 4.7%); object-fit: cover; object-position: top center;    z-index: 3; }
+/* Depth-of-field look for the "Scroll to get started!" opening beat (see panel1Start in
+   scroll.js, which toggles .s1s3-sharp on the same trees) — road/bus stay sharp, top/bottom
+   jungle is blurred BY DEFAULT (so it's already blurred on the very first painted frame, no
+   transition-in on page load) and eases to sharp via a plain CSS transition once panel-1
+   takes over. A per-frame JS-recomputed blur value was tried instead but made things worse —
+   recalculating filter:blur() every frame forces a full repaint of the image each time, which
+   stuttered continuously through the scroll range. This single CSS transition is cheap
+   (GPU-composited) and, now that panel1Start's hide (0.10) has a real gap before panel-1's
+   show (0.15), doesn't collide with the popup swap the way it originally did. */
+.s1s3-troad { left: -5%;  width: 105%; top: 0;                bottom: auto; height: calc(100% / 3 + 20%); object-fit: cover; object-position: bottom center; z-index: 2; filter: blur(6px); transition: filter 0.35s ease; }
+.s1s3-broad { left: -5%;  width: 105%; bottom: 0;              top: auto;   height: calc(100% / 3 + 4.7%); object-fit: cover; object-position: top center;    z-index: 3; filter: blur(6px); transition: filter 0.35s ease; }
+.s1s3-troad.s1s3-sharp, .s1s3-broad.s1s3-sharp { filter: none; }
 
 /* Scenes 1–3 background transparent so spanning bg shows through */
 .scene.jungle.scene-1,
@@ -829,11 +839,13 @@ body {
    Anchored from bottom (not top) so the box grows upward as content wraps, instead of down. */
 .scene-1 .text-panel,
 .scene-2 .text-panel,
-.scene-3 .text-panel { left: 22%; top: auto; bottom: 65%; }
-
+.scene-3 .text-panel { left: 5%; top: auto; bottom: 65%; }
+.scene-1 .text-panel { left: 40% !important; }
 /* Scene 1 panel: mixed-case, no uppercase transform. No font-size override needed here —
    all popup text (.text-panel h3 and p alike) is a uniform 16px now. */
-#panel-1 h3 { text-transform: none; }
+#panel-1 h3, #panel-1-start h3 { text-transform: none; }
+#panel-1-start { min-width: auto; max-width: none; width: auto; white-space: nowrap; }
+#panel-1-start h3 { font-size: 18px; }
 #panel-1 strong { color: #910202; }
 #panel-1 {
   min-width: 430px;
@@ -918,7 +930,15 @@ body {
   position: absolute;
   left: 400vw;
   top: 0;
-  width: 400vw;
+  /* Was exactly 400vw (400vw-800vw), landing flush with #s12-s15-bg's own left edge (now
+     805vw) — extended 15vw further to 815vw so scene 8's own background has real coverage
+     into that boundary zone as backup, instead of relying solely on #s12-s15-bg's buffer.
+     Same z-index (1) as #s12-s15-bg, which comes later in the DOM, so #s12-s15-bg still wins
+     the overlap by DOM order as before — this only adds a fallback, doesn't change who's on
+     top. The child images use width:100% (see #s5-s8-bg img below), so they stretch to fill
+     whatever width this container has, same as scaling any other of this site's "Extended"
+     background art. */
+  width: 415vw;
   height: 100vh;
   pointer-events: none;
   z-index: 1;
@@ -1269,10 +1289,12 @@ body {
 }
 
 /* Scene-8 post-zoom popups — match global big-popup spec */
+/* left/top are set from JS (animateCityBus, tracking #city-bus's live getBoundingClientRect())
+   instead of a fixed vw/% value — the bus moves and scales (BUS_CLOSE zoom) during scene 8,
+   so a static position only lined up with the driver at one specific zoom/scroll state and
+   drifted at other window widths. */
 #panel-8a {
-left: -29vw !important;
   right: auto !important;
-  top: 33% !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -1301,10 +1323,9 @@ left: -29vw !important;
   stroke-linecap: butt;
 }
 
+/* left/top set from JS too — see #panel-8a's comment above. */
 #panel-8b {
-left: -29vw !important;
   right: auto !important;
-  top: 33% !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -1335,8 +1356,12 @@ left: -29vw !important;
 #panel-8a h3, #panel-8b h3 { color: #9F2222; }
 #panel-8a p,  #panel-8b p  { color: #9F2222; }
 
-/* ---- SCENE 9: City – Language Reveal (bus zoom); placeholder, kept out of flex flow ---- */
-.scene-9 { display: none; }
+/* ---- SCENE 9: City – Language Reveal (bus zoom); empty placeholder, unused. Previously
+   display:none, which pulled it out of the flex flow entirely — buildScrollMap()'s stripX
+   formula still counted it as a normal 100vw scene, so every scene from index 8 onward
+   (scene 12 through 63) rendered 100vw further LEFT in the real DOM than the pan system
+   expected. Kept in-flow (no display:none) so it actually reserves its 100vw slot and the
+   formula's assumption holds true again — see [[scene21-width-scrollmap-sync]]. */
 .scene-9 .layer-city-road img      { width: 110%; top: var(--road-sky-line); bottom: auto; z-index: 3; }
 .scene-9 .layer-city-buildings img { bottom: 26%; top: auto; right: 0; left: auto; width: auto !important; height: 100% !important; z-index: 1; }
 .scene-9 .layer-city-clouds img    { width: 120%; top: 2%;  left: -8%; bottom: auto; z-index: 0; }
@@ -1488,13 +1513,13 @@ left: -29vw !important;
 .layer-s13-tree img      { width: 18%;  bottom: 0; left: 0; z-index: 3; }
 
 #panel-s13-1{
-    top: 34% !important;
-    left: 13% !important;
+    /* top: 34% !important;
+    left: 13% !important; */
     min-width: 850px;
     }
     #panel-s13-2{
-      top: 38% !important;
-    left: 12% !important;
+      /* top: 38% !important;
+    left: 12% !important; */
     min-width: 850px;
     }
     #panel-s13-3 {
@@ -1717,10 +1742,13 @@ left: -29vw !important;
 }
    ---- END PREVIEW ---- */
 
-/* Scene 21: 300vw wide — must match buildScrollMap()'s stripX math in scroll.js (the i===10/
-   i>10 terms there assume this exact width+margin), or every scene from 26 onward drifts out
-   of sync with #s26-s30-bg and its own freeze/pan points by the difference. */
-.scene.city.scene-21 { width: 300vw; background: #7B746C; z-index: 2; margin-left: 265vw; }
+/* Scene 21: 300vw wide, margin-left 165vw — must match buildScrollMap()'s stripX math in
+   scroll.js (the i===10/i>10 terms there assume this exact width+margin), or every scene
+   from 26 onward drifts out of sync with #s26-s30-bg and its own freeze/pan points by the
+   difference. margin-left was 265vw before scene-9 was fixed to occupy its real 100vw slot
+   (see the scene-9 rule above) — that fix adds 100vw of real space ahead of this margin, so
+   the margin itself had to drop by the same 100vw to land scene-21 in the same real place. */
+.scene.city.scene-21 { width: 300vw; background: #7B746C; z-index: 2; margin-left: 165vw; }
 
 /* Road: background-repeat tiles the SVG horizontally across the full 400vw scene at full 100vh height */
 .scene-21 .layer-s21-road {
@@ -1810,17 +1838,19 @@ left: -29vw !important;
 /* Single wide background spanning scenes 12–13 (starts at 800vw = after 8 scenes, 200vw covers scenes 12+13 only) */
 #s12-s15-bg {
   position: absolute;
-  /* 800vw would sit exactly flush with scene 8's natural resting viewport position
-     ([700vw,800vw] — true even before scene 8's own zoom/pan logic runs), leaving zero
-     buffer and letting a sliver of this background peek in at the right edge for all of
-     scene 8, worse once the BUS_CLOSE zoom magnifies it. +8vw gives real breathing room;
-     nothing else hardcodes this block's absolute position, so the shift is self-contained. */
+  /* Two separate issues were stacked here: (1) scene-9's dead display:none put this whole
+     block 100vw out of sync with scene 8's real position — fixed by un-hiding scene-9 (see
+     that rule). (2) Independent of that, scene 8's real resting position and this block's
+     left edge land on the exact same 800vw point with zero buffer, so the BUS_CLOSE zoom's
+     scale can still reveal a sliver of this background at scene 8's right edge from sub-pixel
+     rounding alone. +8vw gives real headroom for that without reopening issue (1) — small
+     enough that it shouldn't meaningfully disturb scene 13's zoom framing the way the earlier
+     16vw attempt risked. (Bumped from +5vw after a residual ~10px sliver was still visible.) */
   left: 808vw;
   top: 0;
   width: 265vw;
   height: 100vh;
   overflow: hidden;
-  background: #6FBAE3;
   pointer-events: none;
   z-index: 1;
 }
@@ -1847,7 +1877,7 @@ left: -29vw !important;
 
 /* Scenes 12–15 transparent so the spanning bg shows through */
 .scene.city.scene-12,
-/* .scene.city.scene-13 { background: transparent; } */
+.scene.city.scene-13 { margin-left:-1px }
 
 #s26-s30-bg {
   position: absolute;
@@ -2343,6 +2373,19 @@ left: -29vw !important;
   z-index: 2; /* explicitly above #s32-s43-bg (z-index:1) — their territories overlap
     (#s32-s43-bg now reaches 2415vw, #s45-s48-bg starts at 2298vw), so this must win the
     overlap outright instead of relying on DOM order with an equal z-index. */
+  /* Spatial fade, not a scroll-timed one: #s55-s58-bg starts at 2665vw, which is 70.6% across
+     this element's own 520vw width (2298vw-2818vw) — a fixed point in strip-space, regardless
+     of scroll speed/direction. A JS opacity fade timed to sceneLocal can't get this right: the
+     viewport's LEFT edge only reaches 2665vw at the very end of scene 47, while its RIGHT edge
+     starts overlapping #s55-s58-bg's territory from scene 47's very start — so a flat opacity
+     value is always wrong on one side or the other (patchwork overlap if it fades too late,
+     a premature empty gap if it fades too early — see scroll.js's s4548Opacity comment for
+     both symptoms hit during tuning). Masking out this element's own right portion instead
+     means it's always fully opaque where it should be and fully gone exactly where
+     #s55-s58-bg's real content begins, independent of scroll position entirely.
+  */
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 62%, transparent 88%);
+          mask-image: linear-gradient(to right, black 0%, black 62%, transparent 88%);
 }
 /* Background art + character sprites — the scene-46 pin-zoom (animateS45S48) scales this
    wrapper alone, not #s45-s48-bg itself, so the popups/nameplates (siblings, outside this
