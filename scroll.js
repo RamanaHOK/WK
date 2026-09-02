@@ -293,6 +293,7 @@ const s4TreesPlayer  = document.getElementById('s4-trees-player');
 let _s4TreesPlaying  = false;
 // Fixed trees overlay for scene 5 — sits above #city-bus in root stacking context
 const cityTrees5    = document.getElementById('city-trees-5');
+const s1215TreesFront = document.getElementById('s1215-trees-front');
 // Fixed seller overlay for scenes 55-58 — sits above #s5558-car in root stacking context
 // (see the HTML/CSS comments on #s5558-seller-front for why this can't just be a z-index
 // bump on the in-background .s5558-* version)
@@ -1171,11 +1172,12 @@ function frame(ts) {
     const show8overlay = (s8vx < _vw && s8vx > -_vw) ? '1' : '0';
     cityOverlay8.style.opacity = show8overlay;
     cityOverlay8.style.transform = `translateX(${s8vx.toFixed(1)}px)`;
-    // The sign fades out at the exact same time as the plaza characters (purple-man,
-    // blue-girl, lime-man, green-man) — see s8FadeT in applyCityParallax: local 0.15→0.18.
+    // The sign fades out alongside panel-8's "Language is the foundational..." popup,
+    // which hides at sceneLocal 0.08 (see panels[8] below) — matched here with the same
+    // fade span width (0.03) so it disappears right as that popup does.
     if (s8PlazaSign) {
       const signFadeT = currentScene === 7
-        ? Math.min(1, Math.max(0, (sceneLocal - 0.15) / 0.03))
+        ? Math.min(1, Math.max(0, (sceneLocal - 0.05) / 0.03))
         : 0;
       const signOpacity = show8overlay === '0' ? 0 : (1 - signFadeT);
       s8PlazaSign.style.opacity = signOpacity.toFixed(3);
@@ -1258,6 +1260,11 @@ function frame(ts) {
   } else {
     if (s12s15bg)   s12s15bg.style.opacity   = '1';
     if (s21Preview) s21Preview.style.opacity = '0';
+  }
+  if (s1215TreesFront) {
+    const treesVx = 7.46 * _vw + effectiveTx;
+    s1215TreesFront.style.transform = `translateX(${treesVx.toFixed(1)}px)`;
+    s1215TreesFront.style.opacity   = s12s15bg ? s12s15bg.style.opacity : '0';
   }
 
   // Scene 13 popups — position: fixed, screen-space coordinates
@@ -1683,7 +1690,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
   if (!cityBus) return;
   const vw     = window.innerWidth;
   const vh     = window.innerHeight;
-  const CENTER = 0.25 * vw;  // bus width 50vw → left edge at 5vw, bus sits left of centre
+  const CENTER = 0.225 * vw;  // bus width 55vw → left edge at 22.5vw, dead-centered
   const ENTRY  = -0.1 * vw; // off-screen left (right edge at 0)
 
   let busY = 0; // vertical offset (px) applied to translateY — tune per-scene
@@ -2126,32 +2133,32 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
 }
 
 // ---- Scene 21 vehicles — 3 lanes (top: Meta, center: bus, bottom: Google). Each drives
-// in from off-screen once, staggered 1s apart (bus, then Meta, then Google), and holds
-// at a resting spot on screen once it arrives — a one-time timed reveal, not a scroll-
-// linked loop, so popups can follow each vehicle in on a predictable cadence.
+// in from off-screen, staggered (bus, then Meta, then Google), and holds at a resting
+// spot on screen once it arrives — driven entirely by sceneLocal (scroll position within
+// the scene), so scrolling forward/back scrubs the drive-in directly instead of it playing
+// on its own timer.
 // After the viewer scrolls a bit further (S21_PHASE2_LOCAL), Meta and Google pull forward
 // (not off-screen) to make room, and Microsoft/OpenAI drive into the spots they vacated —
 // so all 4 trucks plus the bus are on screen together.
 let _s21LottiesPlaying = false;
-let _s21EnterTs   = null; // timestamp scene 21 was last (re)entered
-let _s21Phase2Ts  = null; // timestamp phase 2 (forward shift + swap-in) triggered
-const S21_ENTER_MS   = 2000; // drive-in duration per vehicle, phase 1
-const S21_STAGGER_MS = 1000; // delay between each phase-1 vehicle's entrance start
-const S21_PHASE2_LOCAL    = 0.15; // sceneLocal at which phase 2 kicks off (~2 scrolls in)
-const S21_FORWARD_X       = 0.62; // Meta/Google's new forward resting position
-const S21_SHIFT_MS        = 700;  // Meta/Google forward-shift duration
-const S21_PHASE2_ENTER_MS = 900;  // Microsoft/OpenAI drive-in duration — same quick tempo as the shift
-const S21_PHASE2_STAGGER_MS = 600; // delay between Microsoft and OpenAI's entrance
+const S21_ENTER_LOCAL        = 0.09; // drive-in duration per vehicle, phase 1 (fraction of scene scroll)
+const S21_STAGGER_LOCAL      = 0.04; // scroll delay between each phase-1 vehicle's entrance start
+const S21_POPUP_HOLD_LOCAL   = 0.10; // how long each truck's popup-1 stays open before swapping to popup-2
+const S21_PHASE2_LOCAL       = 0.35; // sceneLocal at which phase 2 kicks off (after both trucks' popup-2 have had time to show)
+const S21_FORWARD_X          = 0.62; // Meta/Google's new forward resting position
+const S21_SHIFT_LOCAL        = 0.05; // Meta/Google forward-shift duration (fraction of scene scroll)
+const S21_PHASE2_ENTER_LOCAL = 0.06; // Microsoft/OpenAI drive-in duration — same quick tempo as the shift
+const S21_PHASE2_STAGGER_LOCAL = 0.03; // scroll delay between Microsoft and OpenAI's entrance
 // [element, entrance delay, resting position (fraction of viewport width from the left)] —
 // different restX per vehicle so they don't all line up shoulder-to-shoulder like a race.
 const S21_ORDER = [
-  [s21vMatatu, 0,                  0.40],
-  [s21vMeta,   S21_STAGGER_MS,     0.12],
-  [s21vGoogle, S21_STAGGER_MS * 2, 0.30],
+  [s21vMeta,   0,                        0.22],
+  [s21vGoogle, S21_STAGGER_LOCAL,        0.40],
+  [s21vMatatu, S21_STAGGER_LOCAL * 2,    0.50],
 ];
 const S21_PHASE2_ORDER = [
-  [s21vMicrosoft, 0,                     0.12], // drives into the spot Meta vacated
-  [s21vOpenAI,    S21_PHASE2_STAGGER_MS, 0.30], // drives into the spot Google vacated
+  [s21vMicrosoft, 0,                          0.22], // drives into the spot Meta vacated
+  [s21vOpenAI,    S21_PHASE2_STAGGER_LOCAL,   0.40], // drives into the spot Google vacated
 ];
 function animateS21Vehicles(scene, sceneLocal, ts) {
   const vw     = window.innerWidth;
@@ -2159,12 +2166,9 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
   if (s21Vehicles) s21Vehicles.style.opacity = active ? '1' : '0';
   if (active && !_s21LottiesPlaying) {
     _s21LottiesPlaying = true;
-    _s21EnterTs = ts;
     [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.play === 'function' && el.play());
   } else if (!active && _s21LottiesPlaying) {
     _s21LottiesPlaying = false;
-    _s21EnterTs = null;
-    _s21Phase2Ts = null;
     [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.pause === 'function' && el.pause());
   }
   if (!active) {
@@ -2180,45 +2184,47 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
     });
     return;
   }
-  if (sceneLocal >= S21_PHASE2_LOCAL && _s21Phase2Ts == null) _s21Phase2Ts = ts;
 
-  const elapsed = _s21EnterTs == null ? 0 : (ts - _s21EnterTs);
-  const elapsed2 = _s21Phase2Ts == null ? null : (ts - _s21Phase2Ts);
+  const inPhase2 = sceneLocal >= S21_PHASE2_LOCAL;
+  const elapsed2 = inPhase2 ? (sceneLocal - S21_PHASE2_LOCAL) : null;
   // Each vehicle's own rendered width — sizes vary per truck now, so a shared fixed
   // offset isn't enough to fully hide the wider ones off-screen.
   const offW = el => Math.round((el.offsetWidth || 0.32 * vw) * 1.05);
 
   // Bus stays put throughout — only Meta/Google are affected by phase 2.
-  S21_ORDER.forEach(([el, delayMs, restX]) => {
+  S21_ORDER.forEach(([el, delayLocal, restX]) => {
     if (!el) return;
     const w = offW(el);
     const restPx = restX * vw;
-    const localElapsed = elapsed - delayMs;
+    const localElapsed = sceneLocal - delayLocal;
     let x;
     if (localElapsed <= 0) {
       x = -w; // still waiting its turn, parked off-screen left
     } else if (el !== s21vMatatu && elapsed2 != null) {
-      // Phase 2: pull forward a bit (stay on screen) to make room for the new arrival
-      const t = easeInOutCubic(Math.min(1, elapsed2 / S21_SHIFT_MS));
+      // Phase 2: pull forward a bit (stay on screen) to make room for the new arrival —
+      // linear, not eased, so the truck moves at a constant speed start to finish
+      const t = Math.min(1, elapsed2 / S21_SHIFT_LOCAL);
       const forwardPx = S21_FORWARD_X * vw;
       x = restPx + t * (forwardPx - restPx);
     } else {
-      const t = easeInOutCubic(Math.min(1, localElapsed / S21_ENTER_MS));
+      // Linear drive-in — constant speed, no ease-in/ease-out
+      const t = Math.min(1, localElapsed / S21_ENTER_LOCAL);
       x = -w + t * (restPx - (-w));
     }
     el.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
   });
 
   // Phase 2 entrants — Microsoft/OpenAI, hidden off-screen until phase 2 starts
-  S21_PHASE2_ORDER.forEach(([el, delayMs, restX]) => {
+  S21_PHASE2_ORDER.forEach(([el, delayLocal, restX]) => {
     if (!el) return;
     const w = offW(el);
     const restPx = restX * vw;
     let x = -w;
     if (elapsed2 != null) {
-      const localElapsed2 = elapsed2 - delayMs;
+      const localElapsed2 = elapsed2 - delayLocal;
       if (localElapsed2 > 0) {
-        const t = easeInOutCubic(Math.min(1, localElapsed2 / S21_PHASE2_ENTER_MS));
+        // Linear drive-in — constant speed, no ease-in/ease-out
+        const t = Math.min(1, localElapsed2 / S21_PHASE2_ENTER_LOCAL);
         x = -w + t * (restPx - (-w));
       }
     }
@@ -2229,19 +2235,35 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
   if (s21cRegular) s21cRegular.style.opacity = Math.max(0, Math.min(1, (sceneLocal - 0.60) / 0.20)).toFixed(3);
   if (s21cWhite)   s21cWhite.style.opacity   = Math.max(0, Math.min(1, (sceneLocal - 0.80) / 0.20)).toFixed(3);
 
-  // Truck popups — phase 1 (Meta/Google resting) fades in once each has arrived, fades out
-  // the moment phase 2 starts; phase 2 (Microsoft/OpenAI resting) fades in once each of
-  // those has arrived. As the scene approaches the clouds (starting at sceneLocal 0.60),
-  // the 4 phase-2 popups hide one by one instead of all lingering into the cloud fade.
-  const metaArriveMs   = S21_STAGGER_MS + S21_ENTER_MS;
-  const googleArriveMs = S21_STAGGER_MS * 2 + S21_ENTER_MS;
-  const showMeta1   = elapsed2 == null && elapsed >= metaArriveMs;
-  const showGoogle1 = elapsed2 == null && elapsed >= googleArriveMs;
-  // Staggered hide points, all clear before the clouds start fading in at 0.60
-  const showMeta2      = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_MS && sceneLocal < 0.42;
-  const showMicrosoft  = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_MS && sceneLocal < 0.48;
-  const showGoogle2    = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_MS) >= S21_PHASE2_ENTER_MS && sceneLocal < 0.54;
-  const showOpenAI     = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_MS) >= S21_PHASE2_ENTER_MS && sceneLocal < 0.60;
+  // Truck popups — all 6 now active, in 3 waves:
+  //   wave 1: Meta-1, then Google-1 (staggered by each truck's own arrival)
+  //   wave 2: Meta-2, then Google-2 — same trucks, second message, swaps in after
+  //           S21_POPUP_HOLD_LOCAL of wave 1, runs until phase 2 starts
+  //   wave 3: Microsoft + OpenAI, once phase 2 starts and each has driven in
+  // Each truck's own arrival time anchors its two popups; phase 2 (S21_PHASE2_LOCAL)
+  // is the single hard cutoff where wave 2 ends and wave 3 begins for everyone.
+  const metaArriveLocal    = S21_ENTER_LOCAL;
+  const googleArriveLocal  = S21_STAGGER_LOCAL + S21_ENTER_LOCAL;
+  const metaSwapLocal      = metaArriveLocal   + S21_POPUP_HOLD_LOCAL; // Meta-1 → Meta-2
+  const googleSwapLocal    = googleArriveLocal + S21_POPUP_HOLD_LOCAL; // Google-1 → Google-2
+
+  const showMeta1   = sceneLocal >= metaArriveLocal   && sceneLocal < metaSwapLocal;
+  const showMeta2   = sceneLocal >= metaSwapLocal     && sceneLocal < S21_PHASE2_LOCAL;
+  const showGoogle1 = sceneLocal >= googleArriveLocal && sceneLocal < googleSwapLocal;
+  const showGoogle2 = sceneLocal >= googleSwapLocal   && sceneLocal < S21_PHASE2_LOCAL;
+  const showMicrosoft = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_LOCAL && sceneLocal < 0.60;
+  const showOpenAI    = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_LOCAL) >= S21_PHASE2_ENTER_LOCAL && sceneLocal < 0.60;
+
+  // Anchor each popup just behind its own truck (trailing, left-hand edge, opposite the
+  // direction it's driving) — see positionNearTruckFront below. WIN_X/WIN_Y tune where on
+  // the truck it lands; 0.0 + behind=true flushes the popup's own right edge against the
+  // truck's left edge, so it trails the truck instead of overlapping it. Meta-1/Meta-2 (and
+  // Google-1/Google-2) share the same truck, so the same anchor call covers both.
+  if (showMeta1 || showMeta2)     positionNearTruckFront(showMeta1 ? panelS21Meta1 : panelS21Meta2, s21vMeta, 0.0, 0.30, true);
+  if (showGoogle1 || showGoogle2) positionNearTruckFront(showGoogle1 ? panelS21Google1 : panelS21Google2, s21vGoogle, 0.0, 0.30, true);
+  if (showMicrosoft)              positionNearTruckFront(panelS21Microsoft, s21vMicrosoft, 0.0, 0.30, true);
+  if (showOpenAI)                 positionNearTruckFront(panelS21OpenAI,    s21vOpenAI,    0.0, 0.30, true);
+
   [[panelS21Meta1, showMeta1], [panelS21Google1, showGoogle1],
    [panelS21Meta2, showMeta2], [panelS21Google2, showGoogle2],
    [panelS21Microsoft, showMicrosoft], [panelS21OpenAI, showOpenAI]].forEach(([p, show]) => {
@@ -2633,6 +2655,18 @@ function positionNearBusDriver(el) {
   // was doing nothing. top still tracks the bus's live vertical position.
   el.style.left = '-512px';
   el.style.top = (busRect.top + busRect.height * 0.50 - bh / 2) + 'px';
+}
+
+function positionNearTruckFront(popupEl, truckEl, winX, winY, behind) {
+  if (!popupEl || !truckEl) return;
+  const rect = truckEl.getBoundingClientRect();
+  const bw = popupEl.offsetWidth || 0;
+  const anchorX = rect.left + rect.width * winX;
+  // behind=true flushes the popup's own RIGHT edge against the anchor instead of its left,
+  // so it sits fully outside/trailing the truck (in its wake) rather than overlapping it.
+  popupEl.style.left      = `${(behind ? anchorX - bw : anchorX).toFixed(0)}px`;
+  popupEl.style.top       = `${(rect.top  + rect.height * winY).toFixed(0)}px`;
+  popupEl.style.transform = '';
 }
 
 function positionCenteredPopup(el, show, centerVw) {

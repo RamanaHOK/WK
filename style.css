@@ -357,8 +357,11 @@ body {
 #char-bubble[data-char="s8-lime-man"]    { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s8-green-man"]   { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s12-green-man"]  { --bx: 0px;    --by: 0px; }
-#char-bubble[data-char="s12-blue-man"]   { --bx: 0px;    --by: 0px; }
+#char-bubble[data-char="s12-blue-man"]   {     left: 27vw !important;    --by: 0px; }
 #char-bubble[data-char="s12-pink-lady"]  { --bx: 0px;    --by: 0px; }
+#char-bubble[data-char="s12-green-man"] .char-bubble-tail-stat,
+#char-bubble[data-char="s12-blue-man"]  .char-bubble-tail-stat,
+#char-bubble[data-char="s12-pink-lady"] .char-bubble-tail-stat { display: none; }
 #char-bubble[data-char="s27-asmelash"]   { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s27-awayly"]     { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s28-chris"]      { --bx: 0px;    --by: 0px; }
@@ -592,7 +595,7 @@ body {
   --s8-zoom: 3;
 }
 #city-bus img {
-  width: 50vw;
+  width: 55vw;
   display: block;
   /* No will-change here — browser must NOT pre-rasterize the SVG at scale 1.
      will-change causes a bitmap layer that blurs when the parent div is scaled. */
@@ -1200,7 +1203,7 @@ body {
 #s8-plaza-sign {
     position: absolute;
     top: 12%;
-    left: 35%;
+    left: 28%;
     transform: translateX(-50%);
     transition: opacity 0.4s ease;
     color: #9F2222;
@@ -1285,7 +1288,7 @@ body {
   transition: none;
 }
 #panel-8  p{
-  font-size: 2vmin !important;
+  /* font-size: 2vmin !important; */
 }
 
 /* Scene-8 post-zoom popups — match global big-popup spec */
@@ -1432,7 +1435,9 @@ body {
 .char-s12-green-man  { height: 30vh; bottom: 13%; left: 24%; }
 .char-s12-blue-man   { height: 37vh; bottom: 8%;  left: -25%; }
 .char-s12-pink-lady  { height: 32vh; bottom: 0%;  left: 0%; }
-
+.char-s12-blue-man button{
+  left: 100px;
+}
 .char-s12-green-man .cross-btn {
   right: auto;
   left: 0;
@@ -1526,11 +1531,21 @@ body {
       min-width: 800px;
     }
 #panel-s13-1,
-#panel-s13-2,
+#panel-s13-2 {
+  position: fixed;
+  top: 8%;
+  left: 17% !important;
+  right: auto;
+  bottom: auto;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 50;
+  transition: opacity 0.2s ease;
+}
 #panel-s13-3 {
   position: fixed;
   top: 8%;
-  left: 5%;
   right: auto;
   bottom: auto;
   background: #FFFFFFF2;
@@ -1726,11 +1741,11 @@ body {
 }
 /* 3 lanes: top = Meta, center = bus (matatu), bottom = Google — all move right.
    Microsoft/OpenAI share the top/bottom lanes — they swap in after Meta/Google exit. */
-#s21v-meta      { width: 52vw; height: 40vh; top: 10%; }
+#s21v-meta      { width: 57.2vw; height: 44vh; top: 10%; }
 #s21v-matatu    { width: 42vw; top: 49%; }
-#s21v-google    { width: 52vw; height: 40vh; top: 68%; }
-#s21v-microsoft { width: 42vw; height: 40vh; top: 12%; }
-#s21v-openai    { width: 52vw; height: 40vh; top: 68%; }
+#s21v-google    { width: 57.2vw; height: 44vh; top: 68%; }
+#s21v-microsoft { width: 46.2vw; height: 44vh; top: 12%; }
+#s21v-openai    { width: 57.2vw; height: 44vh; top: 68%; }
 
 /* ---- TRUCK PLACEMENT PREVIEW ----
    Uncomment the block below, refresh, and all vehicles appear at page load so you can
@@ -1761,29 +1776,22 @@ body {
 
 /* Vehicles are in #s21-vehicles fixed overlay — see animateS21Vehicles() in scroll.js */
 
-/* Scene-21 truck popups — Meta (top) and Google (bottom), fixed in the corner, opacity
-   toggled by animateS21Vehicles (phase-1 text while resting near, phase-2 once they pull
-   forward and Microsoft/OpenAI swap in). */
+/* Scene-21 truck popups — position: fixed, screen-space coordinates set live from each
+   truck's own getBoundingClientRect() (see positionNearTruckFront in scroll.js, same
+   live-rect technique as panel-8a/8b and panel-s13-1/2/3) since the trucks are still
+   driving/repositioning while these are shown — a static top/left would only line up with
+   one specific scroll position. */
 #panel-s21-meta-1,
-#panel-s21-meta-2 {
-  position: fixed;
-  top: 20%;
-  left: auto;
-  right: 4%;
-  bottom: auto;
-  background: #FFFFFFF2;
-  border-color: #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 20;
-  transition: opacity 0.3s ease;
-}
+#panel-s21-meta-2,
 #panel-s21-google-1,
-#panel-s21-google-2 {
+#panel-s21-google-2,
+#panel-s21-microsoft,
+#panel-s21-openai {
   position: fixed;
-  top: auto;
-  bottom: 12%;
-  left: auto;
-  right: 4%;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -1792,33 +1800,6 @@ body {
 }
 #panel-s21-meta-1 p, #panel-s21-meta-2 p,
 #panel-s21-google-1 p, #panel-s21-google-2 p { color: #9F2222; }
-
-/* Microsoft (top) and OpenAI (bottom) popups — same phase-2 swap-in, positioned on the
-   left since Microsoft/OpenAI rest near the left while Meta/Google sit forward-right. */
-#panel-s21-microsoft {
-  position: fixed;
-  top: 20%;
-  left: 4%;
-  right: auto;
-  bottom: auto;
-  background: #FFFFFFF2;
-  border-color: #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 20;
-  transition: opacity 0.3s ease;
-}
-#panel-s21-openai {
-  position: fixed;
-  top: auto;
-  bottom: 12%;
-  left: 4%;
-  right: auto;
-  background: #FFFFFFF2;
-  border-color: #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 20;
-  transition: opacity 0.3s ease;
-}
 #panel-s21-microsoft p, #panel-s21-openai p { color: #9F2222; }
 
 /* Scene-21 popup font sizes — one line per popup, edit freely (default matches the
@@ -1873,7 +1854,18 @@ body {
     object-fit: cover;
     object-position: bottom; }
 .s1215-road      { bottom : 0; }
-.s1215-trees     { bottom: -32vh; top: auto; height: 100vh !important; width: 100% !important; z-index: 3; left: -52vw !important; }
+#s1215-trees-front {
+  position: fixed;
+  left: 0;
+  top: auto;
+  bottom: -32vh;
+  height: 100vh;
+  width: 265vw;
+  z-index: 101;
+  pointer-events: none;
+  opacity: 0;
+  clip-path: inset(0 0 0 52vw);
+}
 
 /* Scenes 12–15 transparent so the spanning bg shows through */
 .scene.city.scene-12,
@@ -3577,7 +3569,7 @@ position: absolute;
    a plain rem value as its base/fallback, which stays in effect on phones/tablets (including
    iPad landscape at 1024px). ---- */
 @media (min-width: 1025px) {
-  .text-panel h3, .text-panel p           { font-size: 16px; } /* all popup text, one uniform size */
+  .text-panel h3, .text-panel p           { font-size: 16px !important; } /* all popup text, one uniform size */
   .char-bubble-stat, .char-bubble-lang    { font-size: 2.22vmin; }
   #char-bubble.dialogue .char-bubble-lang { font-size: 2vmin; }
   .sound-caption-s32-name                 { font-size: 3.7vmin; }
