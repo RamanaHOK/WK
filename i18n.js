@@ -65,7 +65,14 @@ function tChar(key) {
 function i18nRenderDOM() {
   document.querySelectorAll('.text-panel[id]').forEach(el => {
     const html = t(`panels.${el.id}`);
-    if (html != null) el.innerHTML = html;
+    if (html == null) return;
+    // Panels with a static bubble__tail arrow (see index.html) keep it out of the
+    // translated string entirely — the arrow's own SVG lives once in the HTML, sourced
+    // from English, and is never touched by a language switch. Translated text goes into
+    // the inner [data-i18n-panel-text] wrapper instead of the panel's own innerHTML, so
+    // this doesn't wipe out that sibling SVG the way overwriting the whole panel would.
+    const textTarget = el.querySelector(':scope > [data-i18n-panel-text]') || el;
+    textTarget.innerHTML = html;
   });
 
   document.querySelectorAll('[data-i18n]').forEach(el => {

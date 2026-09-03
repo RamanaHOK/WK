@@ -3439,7 +3439,6 @@ document.addEventListener('keydown', e => {
 function frameLoop(ts) {
   if (!_paused) {
     frame(ts);
-    if (activeCrossBtn) positionCharBubble(activeCrossBtn);
   }
   requestAnimationFrame(frameLoop);
 }
