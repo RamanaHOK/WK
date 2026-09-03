@@ -1187,11 +1187,10 @@ function frame(ts) {
     const show8overlay = (s8vx < _vw && s8vx > -_vw) ? '1' : '0';
     cityOverlay8.style.opacity = show8overlay;
     cityOverlay8.style.transform = `translateX(${s8vx.toFixed(1)}px)`;
-    // Sign only shows alongside popup8a now (panel-8a, the "2,000 languages" popup — see
-    // its own show window below, sceneLocal 0.42-0.54) — no separate early appearance at
-    // scene entry, so there's just the one simple, synced window for both.
+    // Sign shows/hides together with panels[8] (panel-8, "Language is the foundational
+    // inheritance..." — see its own show condition below, sceneLocal < 0.08).
     if (s8PlazaSign) {
-      const showSign = currentScene === 7 && sceneLocal > 0.42 && sceneLocal < 0.54;
+      const showSign = currentScene === 7 && sceneLocal < 0.08;
       const signOpacity = (show8overlay === '0' || !showSign) ? 0 : 1;
       s8PlazaSign.style.opacity = signOpacity.toFixed(3);
     }
