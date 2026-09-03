@@ -75,10 +75,12 @@
   <lottie-player id="s21v-openai"    src="assets/lottie/Open%20AI.json"          background="transparent" speed="1" loop></lottie-player>
 </div>
 
-<!-- Scene-21 cloud overlays — position:fixed z:2 (below vehicles); fade in near end -->
+<!-- Scene-21 cloud overlay — position:fixed z:2 (below vehicles); fades in near the end.
+     Lottie, not a static image — scrubbed frame-by-frame from scroll position, same
+     technique as the truck lotties (see scrubTruckLottie/s21c-lottie in scroll.js), no
+     autoplay. -->
 <div id="s21-clouds" aria-hidden="true">
-  <img id="s21c-regular" src="assets/s21-s23/clouds.svg"           alt="">
-  <img id="s21c-white"   src="assets/s21-s23/white%20clouds.svg"   alt="">
+  <lottie-player id="s21c-lottie" src="assets/lottie/cloud%20lottie.json" background="transparent"></lottie-player>
 </div>
 
 <!-- Pinned viewport — aria-hidden: see live-region note above -->

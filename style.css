@@ -1721,9 +1721,8 @@ body {
   pointer-events: none;
   transform: translateZ(0);
 }
-#s21-clouds img { position: absolute; display: block; width: 100%; height: 100%; object-fit: cover; top: 0; left: 0; }
-#s21c-regular { opacity: 0; }
-#s21c-white   { opacity: 0; }
+#s21-clouds lottie-player { position: absolute; display: block; width: 100%; height: 100%; top: 0; left: 0; }
+#s21c-lottie { opacity: 0; }
 
 /* Scene-21 vehicle overlay — fixed z:3 (above pinned-wrap z:1); opacity driven by JS */
 #s21-vehicles {
@@ -1776,11 +1775,9 @@ body {
 
 /* Vehicles are in #s21-vehicles fixed overlay — see animateS21Vehicles() in scroll.js */
 
-/* Scene-21 truck popups — position: fixed, screen-space coordinates set live from each
-   truck's own getBoundingClientRect() (see positionNearTruckFront in scroll.js, same
-   live-rect technique as panel-8a/8b and panel-s13-1/2/3) since the trucks are still
-   driving/repositioning while these are shown — a static top/left would only line up with
-   one specific scroll position. */
+/* Scene-21 truck popups — Meta-1 swaps for Meta-2 at the same top spot, Google-1 swaps
+   for Google-2 at the same bottom spot (one visible at a time, not stacked together).
+   Microsoft/OpenAI reuse those same top/bottom spots — see below. */
 #panel-s21-meta-1,
 #panel-s21-meta-2,
 #panel-s21-google-1,
@@ -1788,16 +1785,23 @@ body {
 #panel-s21-microsoft,
 #panel-s21-openai {
   position: fixed;
-  top: 0;
-  left: 0;
+  left: 50%;
   right: auto;
-  bottom: auto;
+  transform: translateX(-50%);
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 20;
   transition: opacity 0.3s ease;
 }
+/* Microsoft drives into Meta's vacated top lane, OpenAI into Google's vacated bottom
+   lane — their popups reuse the exact same spots for the same reason. */
+#panel-s21-meta-1,
+#panel-s21-meta-2,
+#panel-s21-microsoft { top: 8%;  bottom: auto; }
+#panel-s21-google-1,
+#panel-s21-google-2,
+#panel-s21-openai { top: auto; bottom: 8%; }
 #panel-s21-meta-1 p, #panel-s21-meta-2 p,
 #panel-s21-google-1 p, #panel-s21-google-2 p { color: #9F2222; }
 #panel-s21-microsoft p, #panel-s21-openai p { color: #9F2222; }

@@ -372,8 +372,7 @@ const s21vGoogle    = document.getElementById('s21v-google');
 const s21vMicrosoft = document.getElementById('s21v-microsoft');
 const s21vOpenAI    = document.getElementById('s21v-openai');
 // Scene-21 clouds — fixed overlay z:2, fade in near end of scene
-const s21cRegular   = document.getElementById('s21c-regular');
-const s21cWhite     = document.getElementById('s21c-white');
+const s21cLottie    = document.getElementById('s21c-lottie');
 
 // Scene 26–30 overlay — 500vw wide, translates in sync with the strip
 const cityOverlay26 = document.getElementById('city-overlay-26');
@@ -2140,21 +2139,22 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
 // After the viewer scrolls a bit further (S21_PHASE2_LOCAL), Meta and Google pull forward
 // (not off-screen) to make room, and Microsoft/OpenAI drive into the spots they vacated —
 // so all 4 trucks plus the bus are on screen together.
-let _s21LottiesPlaying = false;
-const S21_ENTER_LOCAL        = 0.09; // drive-in duration per vehicle, phase 1 (fraction of scene scroll)
-const S21_STAGGER_LOCAL      = 0.04; // scroll delay between each phase-1 vehicle's entrance start
-const S21_POPUP_HOLD_LOCAL   = 0.10; // how long each truck's popup-1 stays open before swapping to popup-2
-const S21_PHASE2_LOCAL       = 0.35; // sceneLocal at which phase 2 kicks off (after both trucks' popup-2 have had time to show)
-const S21_FORWARD_X          = 0.62; // Meta/Google's new forward resting position
-const S21_SHIFT_LOCAL        = 0.05; // Meta/Google forward-shift duration (fraction of scene scroll)
-const S21_PHASE2_ENTER_LOCAL = 0.06; // Microsoft/OpenAI drive-in duration — same quick tempo as the shift
+const S21_ENTER_LOCAL        = 0.4; // drive-in duration per vehicle, phase 1 (fraction of scene scroll)
+const S21_STAGGER_LOCAL      = 0.05; // scroll delay between each phase-1 vehicle's entrance start
+const S21_POPUP_OPEN_FRACTION = 0.3; // how far into each truck's drive-in its popup opens (0-1)
+const S21_POPUP_HOLD_LOCAL   = 0.20; // how long popup-1 stays open before swapping to popup-2
+const S21_PHASE2_LOCAL       = 0.45; // sceneLocal at which phase 2 kicks off
+const S21_FORWARD_X          = 0.82; // Meta/Google's new forward resting position
+const S21_SHIFT_LOCAL        = 0.5; // Meta/Google forward-shift duration (fraction of scene scroll)
+const S21_PHASE2_ENTER_LOCAL = 0.05; // Microsoft/OpenAI drive-in duration — kept short so their popups open soon after Google-2 closes
 const S21_PHASE2_STAGGER_LOCAL = 0.03; // scroll delay between Microsoft and OpenAI's entrance
+const S21_PHASE2_POPUP_HOLD_LOCAL = 0.10; // how long Microsoft/OpenAI's popups stay open once OpenAI (the later one) arrives
 // [element, entrance delay, resting position (fraction of viewport width from the left)] —
 // different restX per vehicle so they don't all line up shoulder-to-shoulder like a race.
 const S21_ORDER = [
   [s21vMeta,   0,                        0.22],
-  [s21vGoogle, S21_STAGGER_LOCAL,        0.40],
-  [s21vMatatu, S21_STAGGER_LOCAL * 2,    0.50],
+  [s21vGoogle, S21_STAGGER_LOCAL,        0.26],
+  [s21vMatatu, S21_STAGGER_LOCAL * 2,    0.24],
 ];
 const S21_PHASE2_ORDER = [
   [s21vMicrosoft, 0,                          0.22], // drives into the spot Meta vacated
@@ -2164,20 +2164,16 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
   const vw     = window.innerWidth;
   const active = scene === 10;
   if (s21Vehicles) s21Vehicles.style.opacity = active ? '1' : '0';
-  if (active && !_s21LottiesPlaying) {
-    _s21LottiesPlaying = true;
-    [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.play === 'function' && el.play());
-  } else if (!active && _s21LottiesPlaying) {
-    _s21LottiesPlaying = false;
-    [s21vMeta, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => el && typeof el.pause === 'function' && el.pause());
-  }
+  // No .play()/.pause() here — the trucks' own wheel-spin animation is scrubbed frame-by-
+  // frame from how far each has actually travelled (see scrubTruckLottie below), not left
+  // to play on its own timer. That's what makes the whole truck (position AND its internal
+  // animation) purely scroll-driven instead of auto-animating once the scene becomes active.
   if (!active) {
     // Release GPU layers when not in scene 21 so they don't compete with pinnedWrap animations
     [s21vMeta, s21vMatatu, s21vGoogle, s21vMicrosoft, s21vOpenAI].forEach(el => {
       if (el) el.style.transform = 'none';
     });
-    if (s21cRegular) s21cRegular.style.opacity = '0';
-    if (s21cWhite)   s21cWhite.style.opacity   = '0';
+    if (s21cLottie) s21cLottie.style.opacity = '0';
     [panelS21Meta1, panelS21Google1, panelS21Meta2, panelS21Google2,
      panelS21Microsoft, panelS21OpenAI].forEach(p => {
       if (p) { p.style.opacity = '0'; p.classList.remove('visible'); }
@@ -2187,9 +2183,29 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
 
   const inPhase2 = sceneLocal >= S21_PHASE2_LOCAL;
   const elapsed2 = inPhase2 ? (sceneLocal - S21_PHASE2_LOCAL) : null;
+  // When OpenAI (the later of the two) actually arrives, and how far past that Microsoft/
+  // OpenAI's popups stay open — computed from the phase-2 timing constants themselves so
+  // this can never go stale into an impossible (close-before-open) window the way a
+  // hardcoded cutoff did. The clouds' own fade-in (below) waits until this is done.
+  const openAiArriveLocal = S21_PHASE2_LOCAL + S21_PHASE2_STAGGER_LOCAL + S21_PHASE2_ENTER_LOCAL;
+  const s21Phase2PopupEnd = openAiArriveLocal + S21_PHASE2_POPUP_HOLD_LOCAL;
   // Each vehicle's own rendered width — sizes vary per truck now, so a shared fixed
   // offset isn't enough to fully hide the wider ones off-screen.
   const offW = el => Math.round((el.offsetWidth || 0.32 * vw) * 1.05);
+  // Scrubs a truck's own wheel-spin lottie to the frame matching how far it's actually
+  // travelled (xPx), instead of letting it play on its own clock — so the animation is
+  // exactly as scroll-driven as the truck's position. Loops via modulo so the wheels keep
+  // cycling round for however far the truck moves. S21_LOTTIE_PX_PER_FRAME tunes how many
+  // px of travel correspond to one frame — lower = faster-spinning wheels.
+  const S21_LOTTIE_PX_PER_FRAME = 6;
+  const scrubTruckLottie = (el, xPx) => {
+    if (!el || typeof el.getLottie !== 'function') return;
+    const lottie = el.getLottie();
+    if (!lottie || !lottie.totalFrames) return;
+    const raw = (xPx / S21_LOTTIE_PX_PER_FRAME) % lottie.totalFrames;
+    const frame = raw < 0 ? raw + lottie.totalFrames : raw;
+    lottie.goToAndStop(frame, true);
+  };
 
   // Bus stays put throughout — only Meta/Google are affected by phase 2.
   S21_ORDER.forEach(([el, delayLocal, restX]) => {
@@ -2212,6 +2228,7 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
       x = -w + t * (restPx - (-w));
     }
     el.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+    scrubTruckLottie(el, x);
   });
 
   // Phase 2 entrants — Microsoft/OpenAI, hidden off-screen until phase 2 starts
@@ -2229,21 +2246,35 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
       }
     }
     el.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+    scrubTruckLottie(el, x);
   });
 
-  // Regular clouds: 60%→80% (full); white clouds: 80%→100% (full at scene end)
-  if (s21cRegular) s21cRegular.style.opacity = Math.max(0, Math.min(1, (sceneLocal - 0.60) / 0.20)).toFixed(3);
-  if (s21cWhite)   s21cWhite.style.opacity   = Math.max(0, Math.min(1, (sceneLocal - 0.80) / 0.20)).toFixed(3);
+  // Clouds fade in only after Microsoft/OpenAI's popups have actually closed
+  // (s21Phase2PopupEnd, computed above) — a hardcoded start point here would go stale the
+  // same way the popups' own cutoff did whenever phase-2 timing is retuned. The lottie's
+  // own frame is scrubbed across the remaining scroll (not autoplayed), same technique as
+  // scrubTruckLottie — one full play-through spread across s21Phase2PopupEnd→end of scene.
+  const S21_CLOUD_FADE_LOCAL = 0.08; // fade-in duration once clouds start appearing
+  if (s21cLottie) {
+    const cloudSpan = Math.max(0.0001, 1 - s21Phase2PopupEnd);
+    const cloudT = Math.max(0, Math.min(1, (sceneLocal - s21Phase2PopupEnd) / cloudSpan));
+    s21cLottie.style.opacity = Math.max(0, Math.min(1, (sceneLocal - s21Phase2PopupEnd) / S21_CLOUD_FADE_LOCAL)).toFixed(3);
+    if (cloudT > 0 && typeof s21cLottie.getLottie === 'function') {
+      const lottie = s21cLottie.getLottie();
+      if (lottie && lottie.totalFrames) lottie.goToAndStop(cloudT * (lottie.totalFrames - 1), true);
+    }
+  }
 
-  // Truck popups — all 6 now active, in 3 waves:
+  // Truck popups — 3 waves, one popup visible per truck at a time:
   //   wave 1: Meta-1, then Google-1 (staggered by each truck's own arrival)
-  //   wave 2: Meta-2, then Google-2 — same trucks, second message, swaps in after
-  //           S21_POPUP_HOLD_LOCAL of wave 1, runs until phase 2 starts
+  //   wave 2: Meta-2 swaps in for Meta-1 (same top spot), Google-2 swaps in for Google-1
+  //           (same bottom spot) — after S21_POPUP_HOLD_LOCAL of wave 1
   //   wave 3: Microsoft + OpenAI, once phase 2 starts and each has driven in
-  // Each truck's own arrival time anchors its two popups; phase 2 (S21_PHASE2_LOCAL)
-  // is the single hard cutoff where wave 2 ends and wave 3 begins for everyone.
-  const metaArriveLocal    = S21_ENTER_LOCAL;
-  const googleArriveLocal  = S21_STAGGER_LOCAL + S21_ENTER_LOCAL;
+  // Popups open partway through each truck's drive-in, not only once it's fully stopped —
+  // S21_POPUP_OPEN_FRACTION is how far into the drive-in that is (0 = as soon as it starts
+  // entering, 1 = only once fully arrived). Doesn't touch the truck's own drive-in speed.
+  const metaArriveLocal    = S21_ENTER_LOCAL * S21_POPUP_OPEN_FRACTION;
+  const googleArriveLocal  = S21_STAGGER_LOCAL + S21_ENTER_LOCAL * S21_POPUP_OPEN_FRACTION;
   const metaSwapLocal      = metaArriveLocal   + S21_POPUP_HOLD_LOCAL; // Meta-1 → Meta-2
   const googleSwapLocal    = googleArriveLocal + S21_POPUP_HOLD_LOCAL; // Google-1 → Google-2
 
@@ -2251,18 +2282,11 @@ function animateS21Vehicles(scene, sceneLocal, ts) {
   const showMeta2   = sceneLocal >= metaSwapLocal     && sceneLocal < S21_PHASE2_LOCAL;
   const showGoogle1 = sceneLocal >= googleArriveLocal && sceneLocal < googleSwapLocal;
   const showGoogle2 = sceneLocal >= googleSwapLocal   && sceneLocal < S21_PHASE2_LOCAL;
-  const showMicrosoft = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_LOCAL && sceneLocal < 0.60;
-  const showOpenAI    = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_LOCAL) >= S21_PHASE2_ENTER_LOCAL && sceneLocal < 0.60;
+  const showMicrosoft = elapsed2 != null && elapsed2 >= S21_PHASE2_ENTER_LOCAL && sceneLocal < s21Phase2PopupEnd;
+  const showOpenAI    = elapsed2 != null && (elapsed2 - S21_PHASE2_STAGGER_LOCAL) >= S21_PHASE2_ENTER_LOCAL && sceneLocal < s21Phase2PopupEnd;
 
-  // Anchor each popup just behind its own truck (trailing, left-hand edge, opposite the
-  // direction it's driving) — see positionNearTruckFront below. WIN_X/WIN_Y tune where on
-  // the truck it lands; 0.0 + behind=true flushes the popup's own right edge against the
-  // truck's left edge, so it trails the truck instead of overlapping it. Meta-1/Meta-2 (and
-  // Google-1/Google-2) share the same truck, so the same anchor call covers both.
-  if (showMeta1 || showMeta2)     positionNearTruckFront(showMeta1 ? panelS21Meta1 : panelS21Meta2, s21vMeta, 0.0, 0.30, true);
-  if (showGoogle1 || showGoogle2) positionNearTruckFront(showGoogle1 ? panelS21Google1 : panelS21Google2, s21vGoogle, 0.0, 0.30, true);
-  if (showMicrosoft)              positionNearTruckFront(panelS21Microsoft, s21vMicrosoft, 0.0, 0.30, true);
-  if (showOpenAI)                 positionNearTruckFront(panelS21OpenAI,    s21vOpenAI,    0.0, 0.30, true);
+  // Popups are fixed to the center of the window (see #panel-s21-* in style.css) — no
+  // per-frame position tracking needed here, they don't move with their truck.
 
   [[panelS21Meta1, showMeta1], [panelS21Google1, showGoogle1],
    [panelS21Meta2, showMeta2], [panelS21Google2, showGoogle2],
