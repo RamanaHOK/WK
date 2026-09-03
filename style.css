@@ -772,20 +772,19 @@ body {
 #s1-s3-bg img {
   position: absolute;
 }
-/* Three equal-height layers stacked top to bottom (each exactly 1/3 of the viewport) — road
-   in the middle third, trees filling the top and bottom thirds. Back to plain <img> +
-   object-fit:cover (not a background-image div) — the background-image version introduced a
-   worse, unrelated left/right split bug on fresh page load, so this reverts the element type
-   while keeping the tuned overlap heights.
-   Trees are grown by a small overlap (anchored to their own edge, so they grow toward the
-   center) and sit above the road in z-index, so their canopy overlaps the road edge slightly
-   instead of a hard seam between the two.
+/* Three equal-height layers stacked top to bottom, all sharing the same height (1/3 of the
+   viewport plus a shared overlap grown toward the center) — road centered in the middle,
+   trees filling the top and bottom, each overlapping the road's edge slightly instead of a
+   hard seam. Back to plain <img> + object-fit:cover (not a background-image div) — the
+   background-image version introduced a worse, unrelated left/right split bug on fresh page
+   load, so this reverts the element type while keeping the tuned overlap height.
    The two tree source SVGs are NOT the same shape — Top trees Extended.svg is 10107x1358
    (aspect ratio 7.44), Bottom trees Extended.svg is 9957x922 (aspect ratio 10.80, i.e. ~1.45x
-   flatter). troad/broad intentionally use DIFFERENT extra-height values (not the same number)
-   to compensate for that — this is tuned by eye/feedback, not derived from a formula, so
-   re-check both edges together if either source SVG changes. */
-.s1s3-road  { left: 0;    width: 100%; top: calc(100% / 3 + 5%);  bottom: auto; height: calc(100% / 3); object-fit: cover; object-position: center;        z-index: 1; }
+   flatter) — so even at an equal CSS height, the two canopies may still read as slightly
+   different in weight; re-check both edges together if either source SVG changes.
+   IMPORTANT: #jungle-bus's own top:% below is hard-derived from this road's vertical center —
+   retuning any of the three heights/positions here requires updating that too. */
+.s1s3-road  { left: 0;    width: 100%; top: calc(100% / 3 - 6%);  bottom: auto; height: calc(100% / 3 + 12%); object-fit: cover; object-position: center;        z-index: 1; }
 /* Depth-of-field look for the "Scroll to get started!" opening beat (see panel1Start in
    scroll.js, which toggles .s1s3-sharp on the same trees) — road/bus stay sharp, top/bottom
    jungle is blurred BY DEFAULT (so it's already blurred on the very first painted frame, no
@@ -795,8 +794,8 @@ body {
    stuttered continuously through the scroll range. This single CSS transition is cheap
    (GPU-composited) and, now that panel1Start's hide (0.10) has a real gap before panel-1's
    show (0.15), doesn't collide with the popup swap the way it originally did. */
-.s1s3-troad { left: -5%;  width: 105%; top: 0;                bottom: auto; height: calc(100% / 3 + 20%); object-fit: cover; object-position: bottom center; z-index: 2; filter: blur(6px); transition: filter 0.35s ease; }
-.s1s3-broad { left: -5%;  width: 105%; bottom: 0;              top: auto;   height: calc(100% / 3 + 4.7%); object-fit: cover; object-position: top center;    z-index: 3; filter: blur(6px); transition: filter 0.35s ease; }
+.s1s3-troad { left: -5%;  width: 105%; top: 0;                bottom: auto; height: calc(100% / 3 + 12%); object-fit: cover; object-position: bottom center; z-index: 2; filter: blur(6px); transition: filter 0.35s ease; }
+.s1s3-broad { left: -5%;  width: 105%; bottom: 0;              top: auto;   height: calc(100% / 3 + 12%); object-fit: cover; object-position: top center;    z-index: 3; filter: blur(6px); transition: filter 0.35s ease; }
 .s1s3-troad.s1s3-sharp, .s1s3-broad.s1s3-sharp { filter: none; }
 
 /* Scenes 1–3 background transparent so spanning bg shows through */
@@ -818,15 +817,15 @@ body {
 .scene-2 .layer-matatu,
 .scene-3 .layer-matatu { display: none; }
 
-/* Fixed bus that travels continuously across all jungle scenes. top:55% matches the road's
-   own vertical center (.s1s3-road: top:calc(100%/3 + 5%), height:calc(100%/3) → center =
-   33.33+5 + 16.67 = 55%) — combined with the translateY(-50%) scroll.js adds to its
-   translateX each frame, this keeps the bus centered on the road regardless of the bus
-   image's own height, instead of a fixed top guess that drifts out of sync whenever the
-   road's position gets retuned. */
+/* Fixed bus that travels continuously across all jungle scenes. top:50% matches the road's
+   own vertical center (.s1s3-road: top:calc(100%/3 - 6%), height:calc(100%/3 + 12%) → center =
+   27.33 + 22.67 = 50%, the exact middle now that top/road/bottom all share the same height)
+   — combined with the translateY(-50%) scroll.js adds to its translateX each frame, this
+   keeps the bus centered on the road regardless of the bus image's own height, instead of a
+   fixed top guess that drifts out of sync whenever the road's position gets retuned. */
 #jungle-bus {
   position: fixed;
-  top: 55%;
+  top: 50%;
   left: 0;
   z-index: 10;
   pointer-events: none;
@@ -851,7 +850,7 @@ body {
 #panel-1-start h3 { font-size: 18px; }
 #panel-1 strong { color: #910202; }
 #panel-1 {
-  min-width: 430px;
+  min-width: auto;
 }
 
 /* ================================================================

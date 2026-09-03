@@ -1187,14 +1187,12 @@ function frame(ts) {
     const show8overlay = (s8vx < _vw && s8vx > -_vw) ? '1' : '0';
     cityOverlay8.style.opacity = show8overlay;
     cityOverlay8.style.transform = `translateX(${s8vx.toFixed(1)}px)`;
-    // The sign fades out alongside panel-8's "Language is the foundational..." popup,
-    // which hides at sceneLocal 0.08 (see panels[8] below) — matched here with the same
-    // fade span width (0.03) so it disappears right as that popup does.
+    // Sign only shows alongside popup8a now (panel-8a, the "2,000 languages" popup — see
+    // its own show window below, sceneLocal 0.42-0.54) — no separate early appearance at
+    // scene entry, so there's just the one simple, synced window for both.
     if (s8PlazaSign) {
-      const signFadeT = currentScene === 7
-        ? Math.min(1, Math.max(0, (sceneLocal - 0.05) / 0.03))
-        : 0;
-      const signOpacity = show8overlay === '0' ? 0 : (1 - signFadeT);
+      const showSign = currentScene === 7 && sceneLocal > 0.42 && sceneLocal < 0.54;
+      const signOpacity = (show8overlay === '0' || !showSign) ? 0 : 1;
       s8PlazaSign.style.opacity = signOpacity.toFixed(3);
     }
   }
