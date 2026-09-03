@@ -356,8 +356,8 @@ body {
 #char-bubble[data-char="s8-blue-girl"]   { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s8-lime-man"]    { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s8-green-man"]   { --bx: 0px;    --by: 0px; }
-#char-bubble[data-char="s12-green-man"]  { --bx: 0px;    --by: 0px; }
-#char-bubble[data-char="s12-blue-man"]   {     left: 27vw !important;    --by: 0px; }
+#char-bubble[data-char="s12-green-man"]  { left: 61vw !important;     --by: 0px; }
+#char-bubble[data-char="s12-blue-man"]   {     left: 37vw !important;    --by: 0px; }
 #char-bubble[data-char="s12-pink-lady"]  { --bx: 0px;    --by: 0px; }
 #char-bubble[data-char="s12-green-man"] .char-bubble-tail-stat,
 #char-bubble[data-char="s12-blue-man"]  .char-bubble-tail-stat,
@@ -1434,13 +1434,16 @@ body {
 
 .char-s12-green-man  { height: 30vh; bottom: 13%; left: 24%; }
 .char-s12-blue-man   { height: 37vh; bottom: 8%;  left: -25%; }
-.char-s12-pink-lady  { height: 32vh; bottom: 0%;  left: 0%; }
+.char-s12-pink-lady  { height: 38vh; bottom: 0%;  left: 0%; }
+.char-s12-pink-lady button{
+  right: 160px;
+}
 .char-s12-blue-man button{
   left: 100px;
 }
 .char-s12-green-man .cross-btn {
-  right: auto;
-  left: 0;
+  right: 40px;
+  left: -20px;
   transform: translate(-30%, -30%);
 }
 .char-s12-green-man .cross-btn:hover { transform: translate(-30%, -30%) scale(1.15); }
@@ -1610,8 +1613,8 @@ body {
 #panel-26-2 {
   position: absolute;
   top: auto;
-  bottom: 22%;
-  left: 40vw;
+  bottom: 10%;
+  left: 37vw;
   right: auto;
   transform: none;
   transition: none;
@@ -1721,7 +1724,12 @@ body {
   pointer-events: none;
   transform: translateZ(0);
 }
-#s21-clouds lottie-player { position: absolute; display: block; width: 100%; height: 100%; top: 0; left: 0; }
+/* Oversized + centered so the lottie's own aspect-ratio-preserving fit (which fits inside
+   the box, not covers it — like object-fit:contain, not cover) always exceeds the real
+   viewport on both axes, no matter the window's aspect ratio. Without this, any mismatch
+   between the animation's native shape and the window's shape leaves visible gaps on the
+   sides (or top/bottom). */
+#s21-clouds lottie-player { position: absolute; display: block; width: 160%; height: 160%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #s21c-lottie { opacity: 0; }
 
 /* Scene-21 vehicle overlay — fixed z:3 (above pinned-wrap z:1); opacity driven by JS */

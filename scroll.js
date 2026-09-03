@@ -521,8 +521,19 @@ document.addEventListener('mousemove', e => {
   _rawPY = (e.clientY / window.innerHeight - 0.5) * 2;
 }, { passive: true });
 
+// CSS `vw` units resolve against document.documentElement.clientWidth, which excludes any
+// visible vertical scrollbar's own width — window.innerWidth includes it instead. On a page
+// with a scrollbar those two differ (by the scrollbar's width), and since virtually this
+// entire horizontal layout is built in `vw` units, that small per-vw gap compounds across
+// every `vw` in the strip into a real, visible drift by the time you reach later scenes
+// (surfaced as a background seam around scene 26). This is the "vw" every position
+// calculation in this file should read, not window.innerWidth directly.
+function getVw() {
+  return document.documentElement.clientWidth || window.innerWidth;
+}
+
 // ---- Setup: scroll length ----
-// Every value in SCROLL_MAP is a multiple of window.innerWidth, so rebuilding it on resize
+// Every value in SCROLL_MAP is a multiple of getVw(), so rebuilding it on resize
 // (scrollbar toggling, DevTools panel resizing, display scaling, etc.) rescales every scene
 // boundary — but window.scrollY itself is an absolute pixel count that doesn't rescale with
 // it. Without correcting for that, the exact same scrollY can suddenly land on a completely
@@ -618,7 +629,7 @@ let SCROLL_MAP   = [];
 let TOTAL_SCROLL = 0;
 
 function buildScrollMap() {
-  const vw = window.innerWidth;
+  const vw = getVw();
   SCROLL_MAP   = [];
   TOTAL_SCROLL = 0;
   for (let i = 0; i < SCENES; i++) {
@@ -637,7 +648,7 @@ function buildScrollMap() {
 }
 
 function scrollToState(scrollY) {
-  const vw = window.innerWidth;
+  const vw = getVw();
   const y  = Math.min(scrollY, TOTAL_SCROLL);
   for (let i = 0; i < SCROLL_MAP.length; i++) {
     const seg = SCROLL_MAP[i];
@@ -824,10 +835,10 @@ function frame(ts) {
 
   // junglePhase: 0→1 across the jungle scroll segment (scenes 1–3, may differ from scrollPct)
   const jungleScrollLen = SCENE_SCROLL.slice(0, JUNGLE_BUS_SCENES.length)
-                            .reduce((s, r) => s + r, 0) * window.innerWidth;
+                            .reduce((s, r) => s + r, 0) * getVw();
   const junglePhase = Math.min(scrollY / jungleScrollLen, 1);
 
-  const _vw = window.innerWidth;
+  const _vw = getVw();
 
   // Smooth cursor parallax — 4 tiers, each at a different lerp speed.
   // Active across all city scenes (5–19); lerp target goes to 0 just before the bus exits.
@@ -864,8 +875,13 @@ function frame(ts) {
       effectiveTx = s9Freeze;
     }
   } else if (currentScene === 10 && SCROLL_MAP[10]) {
-    // Scene 21: pan full 400vw road — 4vw strip × sceneLocal lands exactly at scene-26 strip start
-    effectiveTx = -(SCROLL_MAP[10].stripX + sceneLocal * 4 * _vw);
+    // Scene 21 is 300vw wide but the viewport only ever shows 1vw of it at a time, so
+    // revealing it edge-to-edge with no overshoot needs (300vw - 100vw) = 2vw of pan across
+    // sceneLocal 0→1, not 3vw (that only matches the distance to scene-26's own strip start,
+    // which overshoots scene-21's own content once sceneLocal passes 2/3 — visible as a
+    // background seam bleeding into scene-26's empty marker div well before the scene ends).
+    // Was 4vw before that, stale from when scene-21 was still 400vw wide.
+    effectiveTx = -(SCROLL_MAP[10].stripX + sceneLocal * 2 * _vw);
   } else if (SCROLL_MAP[11] && (
     (currentScene === 11 && sceneLocal >= 0.77) ||
     (currentScene >= 12 && currentScene <= 13) ||
@@ -1269,7 +1285,7 @@ function frame(ts) {
   // Scene 13 popups — position: fixed, screen-space coordinates
   // Bus exit shift on screen: bus moves right after 85%, amplified by pinnedWrap scale (3×)
   const _busShiftPx = currentScene === 9 && sceneLocal >= 0.85
-    ? easeInOutCubic(Math.min(1, (sceneLocal - 0.85) / 0.10)) * 1.6 * window.innerWidth * _s13TotalScale / 4
+    ? easeInOutCubic(Math.min(1, (sceneLocal - 0.85) / 0.10)) * 1.6 * getVw() * _s13TotalScale / 4
     : 0;
   // Positioned on the bus's live screen rect, same technique as panelS13_3 below (and
   // panel-8a/8b in scene 8) — a static top/left only lined up with the bus at one specific
@@ -1301,7 +1317,7 @@ function frame(ts) {
     const show = currentScene === 9 && sceneLocal >= 0.88;
     // Position popup on the bus's second window using live bus screen rect
     // Tune WIN_X (0–1 = left→right across bus) and WIN_Y (0–1 = top→bottom) to hit the window
-    const WIN_X = 0.35; // ← horizontal fraction of bus image where second window is
+    const WIN_X = 0.36; // ← horizontal fraction of bus image where second window is
     const WIN_Y = 0.24; // ← vertical fraction of bus image where second window is
     if (_busRect && show) {
       panelS13_3.style.left = `${(_busRect.left + _busRect.width  * WIN_X).toFixed(0)}px`;
@@ -1633,7 +1649,7 @@ function frame(ts) {
 // Scene 1: bus enters from off-screen left → parks at center
 // Scene 3 end: scene 4 slides in from right and covers the bus (clip-path)
 function animateMatatu(scene, local, tx, junglePhase, opacity) {
-  const vw     = window.innerWidth;
+  const vw     = getVw();
   const CENTER = 0.31 * vw;  // bus width 38vw → (100-38)/2 = 31vw, centred at 50vw
   const ENTRY  = -0.38 * vw; // off-screen left (right edge at 0)
   const inJungle = JUNGLE_BUS_SCENES.includes(scene + 1);
@@ -1687,7 +1703,7 @@ function animateMatatu(scene, local, tx, junglePhase, opacity) {
 // ---- City bus: starts entering when 30% of scene 4 (savanna) has passed ----
 function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
   if (!cityBus) return;
-  const vw     = window.innerWidth;
+  const vw     = getVw();
   const vh     = window.innerHeight;
   const CENTER = 0.225 * vw;  // bus width 55vw → left edge at 22.5vw, dead-centered
   const ENTRY  = -0.1 * vw; // off-screen left (right edge at 0)
@@ -2144,9 +2160,14 @@ const S21_STAGGER_LOCAL      = 0.05; // scroll delay between each phase-1 vehicl
 const S21_POPUP_OPEN_FRACTION = 0.3; // how far into each truck's drive-in its popup opens (0-1)
 const S21_POPUP_HOLD_LOCAL   = 0.20; // how long popup-1 stays open before swapping to popup-2
 const S21_PHASE2_LOCAL       = 0.45; // sceneLocal at which phase 2 kicks off
-const S21_FORWARD_X          = 0.82; // Meta/Google's new forward resting position
-const S21_SHIFT_LOCAL        = 0.5; // Meta/Google forward-shift duration (fraction of scene scroll)
-const S21_PHASE2_ENTER_LOCAL = 0.05; // Microsoft/OpenAI drive-in duration — kept short so their popups open soon after Google-2 closes
+const S21_FORWARD_X          = 0.95; // Meta/Google's new forward resting position — needs to clear OpenAI's own rest spot (0.30) plus its width (0.572), i.e. >0.872, or the two trucks statically overlap even once both are fully settled
+// Meta/Google's forward-shift and Microsoft/OpenAI's drive-in are kept equal — matching
+// pace means Microsoft/OpenAI arrive at the vacated spot right as Meta/Google actually
+// finish leaving it, instead of parking there while the previous truck is still mid-shift
+// (visible as the two overlapping). S21_SHIFT_LOCAL was 0.5 (Meta/Google) against
+// S21_PHASE2_ENTER_LOCAL's old 0.05 (Microsoft/OpenAI) — a 10x mismatch — before this fix.
+const S21_SHIFT_LOCAL        = 0.15;
+const S21_PHASE2_ENTER_LOCAL = 0.15;
 const S21_PHASE2_STAGGER_LOCAL = 0.03; // scroll delay between Microsoft and OpenAI's entrance
 const S21_PHASE2_POPUP_HOLD_LOCAL = 0.10; // how long Microsoft/OpenAI's popups stay open once OpenAI (the later one) arrives
 // [element, entrance delay, resting position (fraction of viewport width from the left)] —
@@ -2157,11 +2178,11 @@ const S21_ORDER = [
   [s21vMatatu, S21_STAGGER_LOCAL * 2,    0.24],
 ];
 const S21_PHASE2_ORDER = [
-  [s21vMicrosoft, 0,                          0.22], // drives into the spot Meta vacated
-  [s21vOpenAI,    S21_PHASE2_STAGGER_LOCAL,   0.40], // drives into the spot Google vacated
+  [s21vMicrosoft, 0,                          0.14], // drives into the spot Meta vacated — pulled back a bit from 0.22 to clear more room from Meta's shifted-forward position
+  [s21vOpenAI,    S21_PHASE2_STAGGER_LOCAL,   0.30], // drives into the spot Google vacated — pulled back a bit from 0.40 for the same reason
 ];
 function animateS21Vehicles(scene, sceneLocal, ts) {
-  const vw     = window.innerWidth;
+  const vw     = getVw();
   const active = scene === 10;
   if (s21Vehicles) s21Vehicles.style.opacity = active ? '1' : '0';
   // No .play()/.pause() here — the trucks' own wheel-spin animation is scrubbed frame-by-
@@ -2488,7 +2509,7 @@ function animateS32S43(scene, local, etx, ts) {
     } else {
       s32Scale = 1 + 0.5 * asmelashZoomInT; // zoomed-in phase: Lesan-dismiss through Asmelash + pregnant popups
     }
-    const vwPx = window.innerWidth / 100;
+    const vwPx = getVw() / 100;
     const stripXvw = -etx / vwPx;             // strip coordinate currently at the viewport's left edge
     const viewportCenterVw = stripXvw + 50;   // center of the 100vw viewport, in strip coordinates
     const S3243_BG_LEFT_VW = 1965;             // must match #s32-s43-bg's `left` in style.css
@@ -2710,7 +2731,7 @@ function animateS45S48(scene, local, etx, ts) {
   // local coordinate space — recomputed every frame from the live pan (etx), reused below
   // by every popup's positionCenteredPopup() call so they all stay centered on screen.
   const S45S48_BG_LEFT_VW = 2298; // must match #s45-s48-bg's `left` in style.css
-  const vwPx = window.innerWidth / 100;
+  const vwPx = getVw() / 100;
   const viewportCenterVw = -etx / vwPx + 50;
   const popupCenterVw = viewportCenterVw - S45S48_BG_LEFT_VW;
 
