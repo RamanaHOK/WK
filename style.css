@@ -3427,7 +3427,7 @@ position: absolute;
    ================================================================ */
 #navbar-wrap {
   position: fixed;
-  top: 56px;
+  top: 45px;
   left: 44px; right: 44px;
   z-index: 150;
   pointer-events: none;
