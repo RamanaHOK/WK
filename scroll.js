@@ -1258,8 +1258,11 @@ function frame(ts) {
       panel12b.style.opacity = show12op.toFixed(3);
       panel12b.classList.toggle('visible', show12);
     }
-    // s12AvenueSign is now nested inside #city-overlay-12 (painted on the building), so it
-    // just inherits the overlay's own opacity like the characters do — no separate toggle.
+    // Sign now shows/hides together with the panel-10/panel-12b popup pair above, instead
+    // of just always inheriting #city-overlay-12's own opacity for the whole scene.
+    if (s12AvenueSign) {
+      s12AvenueSign.style.opacity = show12op.toFixed(3);
+    }
   }
 
   // Scene 21 preview: fade in road behind pinned-wrap as s12-s15-bg fades out during close-up
@@ -1306,6 +1309,7 @@ function frame(ts) {
     }
     panelS13_1.style.opacity = show ? '1' : '0';
     panelS13_1.style.transform = '';
+    panelS13_1.classList.toggle('visible', show);
   }
   if (panelS13_2) {
     const show = currentScene === 9 && sceneLocal >= 0.70 && sceneLocal < 0.72;
@@ -1317,6 +1321,7 @@ function frame(ts) {
     }
     panelS13_2.style.opacity = show ? '1' : '0';
     panelS13_2.style.transform = '';
+    panelS13_2.classList.toggle('visible', show);
   }
   if (panelS13_3) {
     const show = currentScene === 9 && sceneLocal >= 0.88;
@@ -1330,6 +1335,7 @@ function frame(ts) {
     }
     panelS13_3.style.opacity   = show ? '1' : '0';
     panelS13_3.style.transform = '';
+    panelS13_3.classList.toggle('visible', show);
   }
 
   // -- Progress bar --
@@ -2703,7 +2709,7 @@ function positionNearBusDriver(el) {
   // Simplified to a fixed left margin — the bus-relative formula this used to have was being
   // pushed so far left it was permanently hitting this same 12px floor anyway, so the formula
   // was doing nothing. top still tracks the bus's live vertical position.
-  el.style.left = '-512px';
+  el.style.left = '-350px';
   el.style.top = (busRect.top + busRect.height * 0.50 - bh / 2) + 'px';
 }
 

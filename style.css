@@ -1159,7 +1159,7 @@ body {
     bottom: -7%; }
 
     div#panel-8 {
-    min-width: 750px;
+    min-width: 650px; max-width: 650px !important;
 }
 /* Per-character face positions — right-facing (default right side) */
 .char-s7-red-girl .cross-btn   { top: 22%;
@@ -1300,7 +1300,7 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   overflow: visible;
-  min-width: 800px;
+  min-width: 650px; max-width: 650px !important;
 }
 #panel-8a .bubble__tail {
   position: absolute;
@@ -1331,7 +1331,7 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   overflow: visible;
-  min-width: 800px;
+  min-width: 650px; max-width: 650px !important;
 }
 #panel-8b .bubble__tail {
   position: absolute;
@@ -1411,7 +1411,7 @@ body {
        see S1215_ROAD_HEIGHT_VW in scroll.js for the same fix applied to the bus. */
     bottom: 32vw;
     top: auto;
-    left: 3vw;
+    left: 21vw;
     transition: opacity 0.4s ease;
     color: #9F2222;
     font-family: 'thunderhouse-pro', 'Anton', sans-serif;
@@ -1432,7 +1432,8 @@ body {
 
 .char-s12-green-man  { height: 30vh; bottom: 13%; left: 24%; }
 .char-s12-blue-man   { height: 37vh; bottom: 8%;  left: -25%; }
-.char-s12-pink-lady  { height: 38vh; bottom: 0%;  left: 0%; }
+.char-s12-pink-lady  {     height: 44vh;
+    bottom: -10%; }
 .char-s12-pink-lady button{
   right: 160px;
 }
@@ -1453,7 +1454,7 @@ body {
      .s1215-buildings at any window height — same fix as #s12-avenue-sign. */
   bottom: 35.55vw !important;
   top: auto !important;
-  left: -7% !important;
+  left: 9% !important;
   right: auto !important;
   transform: none !important;
   transition: none !important;
@@ -1494,7 +1495,7 @@ body {
   position: absolute !important;
   top: auto !important;
   bottom: 7% !important;
-  left: 0% !important;
+  left: 11% !important;
   right: auto !important;
   transform: none !important;
   transition: none !important;
@@ -1502,7 +1503,8 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 12;
-  width: 700px;
+  width: 650px !important;
+  max-width: 650px !important;
 }
 #panel-12b p {
   color: #9F2222;
@@ -1521,21 +1523,21 @@ body {
 #panel-s13-1{
     /* top: 34% !important;
     left: 13% !important; */
-    min-width: 850px;
+    min-width: 650px; max-width: 650px !important;
     }
     #panel-s13-2{
       /* top: 38% !important;
     left: 12% !important; */
-    min-width: 850px;
+    min-width: 650px; max-width: 650px !important;
     }
     #panel-s13-3 {
-      min-width: 800px;
+      min-width: 650px; max-width: 650px !important;
     }
 #panel-s13-1,
 #panel-s13-2 {
   position: fixed;
   top: 8%;
-  left: 17% !important;
+  left: 24% !important;
   right: auto;
   bottom: auto;
   background: #FFFFFFF2;
@@ -1605,7 +1607,7 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 150;
-  min-width: 700px;
+  min-width: 650px; max-width: 650px !important;
 
 }
 #panel-26-2 {
@@ -1620,7 +1622,7 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 150;
-  min-width: 700px;
+  min-width: 650px; max-width: 650px !important;
 
 }
 /* Near the 5 interviewees standing (asmelash/awayly/chris/samuel/sadik, left ~86-112vw). */
@@ -1636,7 +1638,7 @@ body {
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 150;
-  min-width: 700px;
+  min-width: 650px; max-width: 650px !important;
 }
 #panel-26-1 p, #panel-26-2 p, #panel-26-3 p { color: #9F2222; font-size: 16px; }
 
@@ -1746,11 +1748,17 @@ body {
 }
 /* 3 lanes: top = Meta, center = bus (matatu), bottom = Google — all move right.
    Microsoft/OpenAI share the top/bottom lanes — they swap in after Meta/Google exit. */
-#s21v-meta      { width: 57.2vw; height: 44vh; top: 10%; }
+#s21v-meta      { 
+      width: 68.2vw;
+    height: 37vh;
+    top: 10%;
+ }
 #s21v-matatu    { width: 42vw; top: 49%; }
-#s21v-google    { width: 57.2vw; height: 44vh; top: 68%; }
-#s21v-microsoft { width: 46.2vw; height: 44vh; top: 12%; }
-#s21v-openai    { width: 57.2vw; height: 44vh; top: 68%; }
+#s21v-google    {     width: 70.2vw;
+    height: 37vh;
+    top: 66%; }
+#s21v-microsoft { width: 52.2vw; height: 37vh; top: 12%; }
+#s21v-openai    { width: 57.2vw; height: 35vh; top: 68%; }
 
 /* ---- TRUCK PLACEMENT PREVIEW ----
    Uncomment the block below, refresh, and all vehicles appear at page load so you can
