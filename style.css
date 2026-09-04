@@ -952,7 +952,7 @@ body {
   height: auto;
 }
 .s5s8-clouds    { top: 2%;   }
-.s5s8-buildings { bottom: 26%; top: auto; width: auto !important; height: 80% !important; }
+.s5s8-buildings { bottom: 37%; top: auto; width: auto !important; height: 80% !important; }
 .s5s8-road      { top: var(--road-sky-line); bottom: 0; height: calc(100% - var(--road-sky-line)); object-fit: contain; object-position: bottom center; }
 /* Tiled trees across the full 400vw wrapper — a <div> with background-repeat (not an <img>)
    since trees.svg is a single tree (793x1402, tall/narrow), not a scene-spanning composite;
@@ -1222,7 +1222,7 @@ body {
 }
 
 .char-s8-purple-man { height: 54vh; left: 26%; bottom: -21%; }
-.char-s8-blue-girl  { height: 36vh; left: 46%; bottom: -5%; }
+.char-s8-blue-girl  { height: 40vh; left: 46%; bottom: -5%; }
 .char-s8-lime-man   { height: 32vh; left: 71%; bottom: 14%; }
 .char-s8-green-man  { height: 38vh; left: 37%; bottom: 5%; }
 
@@ -1919,7 +1919,7 @@ body {
   height: auto;
 }
 .s2630-clouds    { top: 2vh; }
-.s2630-buildings {     bottom: 40vh;
+.s2630-buildings {     bottom: 37vh;
     top: auto;
     width: auto !important;
     height: 70vh !important;
