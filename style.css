@@ -954,7 +954,6 @@ body {
 .s5s8-clouds    { top: 2%;   }
 .s5s8-buildings { bottom: 26%; top: auto; width: auto !important; height: 80% !important; }
 .s5s8-road      { top: var(--road-sky-line); bottom: 0; height: calc(100% - var(--road-sky-line)); object-fit: contain; object-position: bottom center; }
-.s5s8-fence     { bottom: -13%; top: auto; left: 19% !important; height: 25% !important; }
 /* Tiled trees across the full 400vw wrapper — a <div> with background-repeat (not an <img>)
    since trees.svg is a single tree (793x1402, tall/narrow), not a scene-spanning composite;
    tiling gives coverage across scenes 6/7/8 too, not just scene 5 (#city-trees-5 already
@@ -1876,6 +1875,18 @@ body {
   pointer-events: none;
   opacity: 0;
   clip-path: inset(0 0 0 52vw);
+}
+
+#s5s8-fence-front {
+  position: fixed;
+  left: 0;
+  bottom: -13%;
+  top: auto;
+  height: 25%;
+  width: 415vw;
+  z-index: 101;
+  pointer-events: none;
+  opacity: 0;
 }
 
 /* Scenes 12–15 transparent so the spanning bg shows through */

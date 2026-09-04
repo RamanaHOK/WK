@@ -150,7 +150,6 @@
       <img class="s5s8-clouds"    src="assets/s5-s8/Clouds%20extended.svg"       alt="">
       <img class="s5s8-buildings" src="assets/s5-s8/Buildings%20Extended.svg"    alt="">
       <img class="s5s8-road"      src="assets/s5-s8/road%20extended.svg"   alt="">
-      <img class="s5s8-fence"     src="assets/s5-s8/fence%20extended.svg"        alt="">
       <!-- Trees tiled across the whole 400vw wrapper (scenes 5-8), separate from
            #city-trees-5 (which stays as-is, still handling the scene-5-only bus-passes-
            under-trees effect) — this just gives 6/7/8 tree coverage too, not restricted
@@ -655,6 +654,11 @@
 </div>
 
 <img id="s1215-trees-front" src="assets/s12-s15/Trees%20front%20extended.svg" alt="" aria-hidden="true">
+
+<!-- Fence for scenes 5-8 — root-level so its z-index actually beats #city-overlay-7/8
+     (z:100), same escape as #city-trees-5/#s1215-trees-front. Position synced to the pan
+     via JS (see s5s8FenceFront in scroll.js). -->
+<img id="s5s8-fence-front" src="assets/s5-s8/fence%20extended.svg" alt="" aria-hidden="true">
 
 <!-- Scene-8 "bus transition" flourish — disabled (see S8_BUS_TRANS_ENABLED in scroll.js).
      Element removed entirely rather than just hidden: its 1.9MB asset (by far the largest

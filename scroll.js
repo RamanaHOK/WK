@@ -294,6 +294,7 @@ let _s4TreesPlaying  = false;
 // Fixed trees overlay for scene 5 — sits above #city-bus in root stacking context
 const cityTrees5    = document.getElementById('city-trees-5');
 const s1215TreesFront = document.getElementById('s1215-trees-front');
+const s5s8FenceFront = document.getElementById('s5s8-fence-front');
 // Fixed seller overlay for scenes 55-58 — sits above #s5558-car in root stacking context
 // (see the HTML/CSS comments on #s5558-seller-front for why this can't just be a z-index
 // bump on the in-background .s5558-* version)
@@ -1277,6 +1278,13 @@ function frame(ts) {
     const treesVx = 7.46 * _vw + effectiveTx;
     s1215TreesFront.style.transform = `translateX(${treesVx.toFixed(1)}px)`;
     s1215TreesFront.style.opacity   = s12s15bg ? s12s15bg.style.opacity : '0';
+  }
+  if (s5s8FenceFront) {
+    // Absolute strip position = #s5-s8-bg's own left:400vw + the fence's old local
+    // left:19% of that container's 415vw width (400 + 0.19*415 = 478.85vw).
+    const fenceVx = 4.7885 * _vw + effectiveTx;
+    s5s8FenceFront.style.transform = `translateX(${fenceVx.toFixed(1)}px)`;
+    s5s8FenceFront.style.opacity   = (currentScene >= 4 && currentScene <= 7) ? '1' : '0';
   }
 
   // Scene 13 popups — position: fixed, screen-space coordinates
