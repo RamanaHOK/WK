@@ -2118,15 +2118,15 @@ body {
   width: 8vw !important;
   bottom: 0vh;
   top: auto;
-  left: 51vw;
+  left: 23vw;
   opacity: 0;
 }
 #city-awayly-handle {
   position: absolute;
   width: 17vw !important;
-  bottom: 0vh;
+  bottom: -12vh;
   top: auto;
-  left: 54vw;
+  left: 28vw;
   opacity: 0;
 }
 
@@ -2205,37 +2205,41 @@ body {
 #panel-30-awayly {
   position: fixed;
   top: auto;
-  bottom: 60%;
-  right: 5%;
+  bottom: 70%;
+  right: 26%;
+  min-width: 650px !important;
   left: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
+  overflow: visible;
   z-index: 30;
 }
 #panel-30-awayly p { color: #9F2222; }
 
-/* Left-pointing tail — connects the panel back to Awa Ly, who sits to its left.
-   Same double-layer (red border + white fill) technique as #char-bubble.dialogue. */
-#panel-30-awayly::before {
-  content: '';
+/* Down-left-pointing tail — connects the panel back to Awa Ly, who stands lower on
+   screen. Same SVG technique (fill + stroked outline + seam) as panel-8a/8b/12/s13-1/
+   s13-2/29-welcome (this one's polygon is 29-welcome's, mirrored to point down-left). */
+#panel-30-awayly .bubble__tail {
   position: absolute;
-  left: -11px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 8px 11px 8px 0;
-  border-style: solid;
-  border-color: transparent #9F2222 transparent transparent;
+  top: 100%;
+  left: 10%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
 }
-#panel-30-awayly::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 7px 9px 7px 0;
-  border-style: solid;
-  border-color: transparent #FFFFFFF2 transparent transparent;
+#panel-30-awayly .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-30-awayly .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-30-awayly .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
 }
 
 /* ================================================================
@@ -3136,12 +3140,24 @@ position: absolute;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-.char-s32-oldlady   { width: 13vw;  bottom: 0vh; top: auto; left: 85vw;  }
-.char-s33-girlphone { width: 7vw;   bottom: 0vh; top: auto; left: 96vw; }
+.char-s32-oldlady   { width: 11vw;
+    bottom: 7vh;
+    top: auto;
+    left: 65vw;  }
+.char-s33-girlphone {
+    display: block;
+    position: absolute;
+    width: 7vw;
+    height: 38vh;
+    bottom: 0vh;
+    top: auto;
+    left: 74vw;
+    transform: scaleX(-1);
+}
 .char-s34-kid1       { width: 7vw;   bottom: 8vh;  top: auto; left: 280vw; }
 /* Repositioned near the 7th/8th popups (was left:340vw, scene-35's slot) — appears here,
    fading in after the flipped Asmelash sequence, timed in animateS32S43. */
-.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 230vw; }
+.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 167vw; }
 /* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. */
 .char-s32-sadik      { width: 13vw;  bottom: 0vh; top: auto; left: 253vw; }
 .char-s36-kid2       { width: 4vw;   bottom: 8vh;  top: auto; left: 440vw; }
@@ -3150,20 +3166,20 @@ position: absolute;
 .char-s37-asmelash   {     width: 12vw;
     bottom: -1vh;
     top: auto;
-    left: 164vw; }
+    left: 136vw; }
 /* Same asset as .char-s37-asmelash, mirrored (facing right instead of left) and further
    along the strip — shown after the 5th popup hides, see animateS32S43 in scroll.js. */
 .char-s37-asmelash2 {
     width: 12vw;
     bottom: -1vh;
     top: auto;
-    left: calc(200vw + 100px);
+    left: calc(145vw + 100px);
     transform: scaleX(-1);
 }
 .char-s38-awayly     { width: 7vw;   bottom: 10vh; top: auto; left: 640vw; }
 /* Repositioned near the zoom-out point (was left:740vw, scene-39's slot) — appears here
    with the same fade-in as old lady/girl-with-phone, timed after the zoom-out finishes. */
-.char-s39-samuel     { width: 12vw;   bottom: 0vh; top: auto; left: 114vw; }
+.char-s39-samuel     { width: 12vw;   bottom: 0vh; top: auto; left: 89vw; }
 
 /* Scene-32 intro popup — lives inside #city-overlay-32 now (not standalone/fixed), so it
    pans with the scene instead of staying pinned on screen as you keep scrolling.
@@ -3173,7 +3189,8 @@ position: absolute;
   position: absolute;
   top: auto;
   bottom: 58vh;
-  left: 55vw;
+  left: 35vw;
+  min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3188,8 +3205,9 @@ position: absolute;
 #panel-32-umuganda {
   position: absolute;
   top: auto;
-  bottom: 55vh;
-  left: 90vw;
+  bottom: 58vh;
+  left: 72vw;
+  min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3205,7 +3223,7 @@ position: absolute;
   position: absolute;
   top: auto;
   bottom: 45vh;
-  left: 159vw;
+  left: 127vw;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3219,8 +3237,9 @@ position: absolute;
 #panel-32-asmelash {
   position: absolute;
   top: auto;
-  bottom: 57vh;
-  left: 175vw;
+  bottom: 67vh;
+  left: 145vw;
+  min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3235,8 +3254,9 @@ position: absolute;
   position: absolute;
   top: auto;
   bottom: 55vh;
-  left: calc(210vw + 100px);
-  right: auto;
+      left: calc(164vw);
+    right: auto;
+    min-width: 650px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -3312,8 +3332,9 @@ position: absolute;
 #panel-32-samuel {
   position: absolute;
   top: auto;
-  bottom: 70vh;
-  left: 120vw;
+      bottom: 65vh;
+    left: 100vw;
+    min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3321,17 +3342,41 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-samuel p { color: #9F2222; }
+/* Down-pointing tail — connects the panel back to Samuel/his name plate below it.
+   Same SVG technique (fill + stroked outline + seam) as panel-8a/8b/12/s13-1/s13-2/
+   29-welcome/30-awayly, replacing the smaller .popup-tail triangle used elsewhere. */
+#panel-32-samuel .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 5%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-32-samuel .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-32-samuel .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-32-samuel .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 
 /* Name plate — pans with the strip (same vw/vh coordinate space as #panel-32-samuel,
    sits directly under it), not a separate fixed/footer element. Red "name" segment +
    white "role" segment + circular sound-icon button, all one continuous pill. */
 .sound-caption-s32 {
   position: absolute;
-  bottom: 58vh;
-  left: 130vw;
+  bottom: 57vh;
+  left: 124vw;
   display: flex;
   align-items: stretch;
-  border-radius: 24px;
+  border-radius: 10px;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 30;
   border: 1px solid #9F2222;
@@ -3340,6 +3385,10 @@ position: absolute;
   /* Ancestor #city-overlay-32 has pointer-events:none — override it here too (not just
      on the button) so nothing in this subtree accidentally inherits none from above. */
   pointer-events: auto;
+  /* Hidden by default — each instance's JS toggle (scroll.js) shows it only alongside
+     its own popup. Shared by Samuel/Asmelash/Sadik/Kathleen/TotoMoto/Chris. */
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 .sound-caption-s32-name {
   color: #9F2222;
@@ -3403,11 +3452,27 @@ position: absolute;
   opacity: 1;
 }
 
+/* Samuel's sound icon — independent size/placement override, separate from the other
+   name plates (.sound-icon-s32 sets the shared defaults; tweak size/position/offsets
+   here instead of touching the shared class). Starts equal to the shared default. */
+.sound-icon-samuel {
+  width: 80px;
+  height: 80px;
+  bottom: -20px;
+  right: -20px;
+}
+.sound-icon-samuel .sound-icon-state {
+  width: 60px;
+  height: 60px;
+  top: 25px;
+  left: 25px;
+}
+
 /* Asmelash's name plate — same style as Samuel's (.sound-caption-s32), just repositioned
    under panel-32-asmelash instead. */
 #sound-caption-asmelash {
-  bottom: 45vh;
-  left: 176vw;
+  bottom: 60vh;
+  left: 164vw;
 }
 
 /* Asmelash's sound icon — independent size/placement override, separate from Samuel's
@@ -3416,8 +3481,8 @@ position: absolute;
 .sound-icon-asmelash {
   width: 60px;
   height: 60px;
-  top: -40px;
-  left: 50%;
+    top: -43px;
+    left: 52%;
 }
 .sound-icon-asmelash .sound-icon-state {
   width: 60px;
@@ -3436,6 +3501,29 @@ position: absolute;
   left: 50%;
 }
 .sound-icon-sadik .sound-icon-state {
+  width: 60px;
+  height: 60px;
+}
+
+/* Awa Ly's name plate — same sound-caption-s32 visual style, but position:fixed (not
+   absolute) since it lives outside any panning wrapper, same as panel-30-awayly itself. */
+#sound-caption-awayly {
+  position: fixed;
+  top: auto;
+bottom: 63%;
+    right: 20%;
+  left: auto;
+  z-index: 30;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sound-icon-awayly {
+  width: 60px;
+  height: 60px;
+  top: -40px;
+  left: 50%;
+}
+.sound-icon-awayly .sound-icon-state {
   width: 60px;
   height: 60px;
 }

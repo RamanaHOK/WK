@@ -847,7 +847,7 @@
        stay outside this wrapper so they never get scaled, only panned. -->
   <div id="s32-people">
     <img class="char-s32-oldlady"   src="assets/s32-s43/Old%20lady.svg"                  alt="">
-    <img class="char-s33-girlphone" src="assets/s32-s43/Small%20girl%20with%20phone.svg" alt="">
+    <lottie-player class="char-s33-girlphone" src="assets/lottie/Small-girl-with-phone.json" background="transparent" speed="1" loop autoplay></lottie-player>
     <img class="char-s39-samuel"    src="assets/s32-s43/Samuel%20Rutunda.svg"            alt="">
     <img class="char-s37-asmelash"  src="assets/s32-s43/Asmelash_Teka_Hadgu.svg"         alt="">
     <!-- Same asset, mirrored, further along the strip — shown after the 5th popup
@@ -874,10 +874,13 @@
 
   <!-- Shown near Samuel Rutunda, after he fades in post zoom-out — see animateS32S43 -->
   <div class="text-panel" id="panel-32-samuel" aria-hidden="true">
-    <p>&ldquo;So the founders of Digital Umuganda, who were Audace and Ali, sat down, looked at Rwanda and they looked at Digital Umuganda and realised that&rsquo;s the model that made sense, bringing together the community by making them understand what we are trying to achieve and have them contribute. The rest is history.&rdquo;</p>
-    <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-      <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-      <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
+    <div data-i18n-panel-text>
+      <p>&ldquo;So the founders of Digital Umuganda, who were Audace and Ali, sat down, looked at Rwanda and they looked at Digital Umuganda and realised that&rsquo;s the model that made sense, bringing together the community by making them understand what we are trying to achieve and have them contribute. The rest is history.&rdquo;</p>
+    </div>
+    <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="72,0 48,0 10,90" />
+      <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+      <path d="M72 0 L10 90 L48 0" />
     </svg>
   </div>
 
@@ -887,7 +890,7 @@
   <div class="sound-caption-s32" id="sound-caption-s32">
     <span class="sound-caption-s32-name">SAMUEL RUTUNDA</span>
     <span class="sound-caption-s32-role">CTO - Digital<br> Umuganda</span>
-    <button class="sound-icon-s32" aria-label="Play audio" data-sound-state="landing"
+    <button class="sound-icon-s32 sound-icon-samuel" aria-label="Play audio" data-sound-state="landing"
       data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Samuel_Rutunda.mp3"
       data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Samuel_Rutunda.mp3"
       data-audio-ti="assets/Tigrinya-CLT-Audio/Tigrinya CLT Audio Quotes/[TG]_Samuel_Rutunda.mp3">
@@ -1077,8 +1080,35 @@
 <!-- Scene-30 zoom popup — Awa Ly's message, shown during the interior "stay" hold —
      standalone root-level fixed element, controlled directly in animateCityBus. -->
 <div class="text-panel" id="panel-30-awayly" aria-hidden="true">
-  <h3>AWA LY — GALSEN AI</h3>
-  <p>&ldquo;This is why GalsenAI is trying to work on our languages by trying to build machine translations or speech to text technologies for our communities&mdash;because we are the ones who know how our language is spoken, we are the ones who know what the language needs. We don&rsquo;t want to be here waiting for some Americans or any others to come and do this for us.&rdquo;</p>
+  <div data-i18n-panel-text>
+    <h3>AWA LY — GALSEN AI</h3>
+    <p>&ldquo;This is why GalsenAI is trying to work on our languages by trying to build machine translations or speech to text technologies for our communities&mdash;because we are the ones who know how our language is spoken, we are the ones who know what the language needs. We don&rsquo;t want to be here waiting for some Americans or any others to come and do this for us.&rdquo;</p>
+  </div>
+  <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="72,0 48,0 10,90" />
+    <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+    <path d="M72 0 L10 90 L48 0" />
+  </svg>
+</div>
+
+<!-- Awa Ly's name plate + sound icon — same sound-caption-s32 style as Samuel/Asmelash/
+     Sadik/Kathleen, but positioned as a root-level fixed element (not panned) since
+     panel-30-awayly itself is fixed, not part of any scrolling wrapper. Shown/hidden
+     alongside panel-30-awayly — see animateCityBus in scroll.js. Audio data-audio-ti
+     points to a file that doesn't exist yet (UI only, same as Kathleen's) — the existing
+     sound-icon click handler already fails gracefully (icon just reverts to "pause" state)
+     if the file 404s. -->
+<div class="sound-caption-s32 sound-caption-awayly" id="sound-caption-awayly" aria-hidden="true">
+  <span class="sound-caption-s32-name">AWA LY</span>
+  <span class="sound-caption-s32-role">Galsen AI</span>
+  <button class="sound-icon-s32 sound-icon-awayly" aria-label="Play audio" data-sound-state="landing"
+    data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Awa_Ly.mp3"
+    data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Awa_Ly.mp3"
+    data-audio-ti="assets/Tigrinya-CLT-Audio/Tigrinya CLT Audio Quotes/[TG]_Awa_Ly.mp3">
+    <img class="sound-icon-state sound-icon-landing" src="assets/sound-landing.svg" alt="">
+    <img class="sound-icon-state sound-icon-play" src="assets/sound-play.svg" alt="">
+    <img class="sound-icon-state sound-icon-pause" src="assets/sound-pause.svg" alt="">
+  </button>
 </div>
 
 <!-- Debug scale — remove when done tuning -->

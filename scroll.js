@@ -32,7 +32,8 @@ const SCENE_SCROLL = [
   1.3,  // 14 → scene-29 (Sadik Shahadu & Samuel Rutunda swap in together)
   3.5,  // 15 → scene-30 (zoom + Awa Ly's message — widened so the hold has real scroll room)
   5.0,  // 16 → scene-32 (inside the matatu — extra "dummy" scroll runway, not new visual content, so the 4 popups/characters don't feel clubbed together)
-  1.5,  // 17 → scene-33
+  16.0,  // 17 → scene-33 (extra scroll runway — 5 popups + 4 characters (Asmelash x2,
+        // pregnant woman x2, Sadik) packed into a small scene, was 1.5)
   1.5,  // 18 → scene-34
   1.5,  // 19 → scene-44 (slides down from the top over scene-34 — see #s44-overlay/animateS44 in scroll.js)
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
@@ -125,7 +126,7 @@ const S46_HOLD_END = 0.8;
 // Scene 59->61 zoom+clouds-cover trigger point — how far through scene 59 (sceneLocal, 0-1)
 // before the wall-clock auto-play sequence starts (see _s5960T0 below). 0.8 gives more scroll
 // runway before it triggers than earlier values (0.3, then 0.7) did.
-const S5960_ZOOM_START_PHASE = 0.8;
+const S5960_ZOOM_START_PHASE = 0.2;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
 // against the old, much larger values and became badly mismatched once those shrank, causing
@@ -246,10 +247,16 @@ const s6061Puffs = Array.from(document.querySelectorAll('.s6061-puff')); // 8 wa
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
 const cityBusHandleProp = document.getElementById('city-bus-handle-prop');
+const s30ZoomPeople  = document.getElementById('s30-zoom-people');
 const panel29Welcome = document.getElementById('panel-29-welcome');
 const panel30Popup1  = document.getElementById('panel-30-popup1');
 const panel30Popup2  = document.getElementById('panel-30-popup2');
 const panel30AwayLy  = document.getElementById('panel-30-awayly');
+const soundCaptionAwaLy = document.getElementById('sound-caption-awayly');
+const soundCaptionSamuel   = document.getElementById('sound-caption-s32');
+const soundCaptionAsmelash = document.getElementById('sound-caption-asmelash');
+const soundCaptionSadik    = document.getElementById('sound-caption-sadik');
+const char27Asmelash = document.querySelector('.char-wrap.char-s27-asmelash'); // scene-27 boarding portrait — distinct from char37Asmelash's later in-bus quote
 const panel32Intro   = document.getElementById('panel-32-intro');
 const panel32Umuganda = document.getElementById('panel-32-umuganda');
 const panel32Lesan    = document.getElementById('panel-32-lesan');
@@ -459,8 +466,8 @@ const POPUP_SCROLL_FREEZE_MS = 700;
 // Counted in distinct scroll GESTURES ("ticks"), not accumulated deltaY — a single physical
 // scroll (mouse click or trackpad swipe) fires many rapid wheel events that sum past any
 // pixel threshold within the same gesture, so a deltaY accumulator alone still felt instant.
-// Same burst-debounce technique as the Lesan-popup dismiss counter above (_s32LesanBurstActive):
-// only the START of each burst (150ms of inactivity apart) counts as one tick.
+// Only the START of each burst (150ms of inactivity apart) counts as one tick, not every
+// individual wheel event within it.
 let _s6263Active     = false; // true once we've entered the locked slide-switch zone
 let _s6263Index      = 0;     // which slide is showing: 0 = scene 62, 1 = scene 63
 let _s6263TransT0    = null;  // wall-clock start of the current crossfade; null = settled
@@ -475,12 +482,16 @@ let _panel32IntroShown     = false;
 let _panel32UmugandaShown  = false;
 let _panel32LesanShown     = false;
 let _panel32SamuelShown    = false;
-let _s32LesanTicks = 0;        // wheel-scroll count since the 4th popup (Lesan AI) opened
-let _s32LesanDismissed = false; // becomes true once 2 wheel scrolls happen — hides the popup
+let _s32LesanDismissed = false; // becomes true on the next scroll input once the 4th popup (Lesan AI) is shown
+let _s33AsmelashShown     = false;
+let _s33AsmelashTicks     = 0;     // scroll-gesture count since the 5th popup (Asmelash) opened
+let _s33AsmelashDismissed = false; // becomes true once 2 scroll gestures happen — hides the popup
+let _s33AsmelashBurstActive = false;
+let _s33AsmelashBurstTimer  = null;
 
 // Scene-32 timing anchors — no zoom/pan-freeze effect anymore, just reference points
 // the popup/character fade timing below is built around (PEOPLE_FADE_END, SAMUEL_FADE_END).
-const S32_ZOOM_TRIGGER = 0.32; // matches "scene 32  14%" on the debug bar — two women start showing here
+const S32_ZOOM_TRIGGER = 0.20; // two women (old lady + girl-with-phone) start showing here
 const S32_ZOOM_HOLD    = 0.68; // gap after panel-32-umuganda hides (0.60) — Samuel's zoom-out/reveal triggers here, Lesan (4th) follows once Samuel hides at local 0.90 (see animateS32S43)
 
 
@@ -698,8 +709,6 @@ window.addEventListener('scroll', () => {
 // scene-32 popup opens (see _scrollFreezeUntil, set in animateS32S43) so it doesn't get
 // scrolled past before there's been any time to read it. Native wheel scroll only —
 // programmatic scrollTo (dot nav) and touch-drag are untouched. ----
-let _s32LesanBurstActive = false;
-let _s32LesanBurstTimer  = null;
 window.addEventListener('wheel', e => {
   pauseAutoAdvance(); // manual scroll input — user is taking control themselves
   if (Date.now() < _scrollFreezeUntil) { e.preventDefault(); return; }
@@ -755,18 +764,30 @@ window.addEventListener('wheel', e => {
     return;
   }
 
-  // 4th popup (Lesan AI) has no auto-hide timer — it dismisses itself after a few wheel
-  // *scrolls* once it's open, instead. One physical scroll (a wheel turn or trackpad
-  // swipe) fires many rapid 'wheel' events, not one — so this only counts the START of
-  // each burst (debounced by 150ms of inactivity) as a single "scroll", not every event.
-  if (_panel32LesanShown) {
-    if (!_s32LesanBurstActive) {
-      _s32LesanBurstActive = true;
-      _s32LesanTicks++;
-      if (_s32LesanTicks >= 3) _s32LesanDismissed = true;
+  // 4th popup (Lesan AI): freezes the scene entirely while it's up — no background
+  // panning behind it — and dismisses on the very next scroll input instead of counting
+  // several scroll bursts while the scene kept moving underneath. That one scroll is
+  // swallowed (e.preventDefault) so the scene doesn't jump the instant it dismisses;
+  // normal scrolling (toward Asmelash's popup next) resumes from the following input.
+  if (_panel32LesanShown && !_s32LesanDismissed) {
+    e.preventDefault();
+    _s32LesanDismissed = true;
+    return;
+  }
+
+  // 5th popup (Asmelash — "Many people may not know...") dismisses itself after 3 wheel
+  // *scrolls* once it's open, same burst-debounce technique as the old Lesan counter: one
+  // physical scroll fires many rapid 'wheel' events, not one, so only the START of each
+  // burst (150ms of inactivity apart) counts as a single "scroll". Doesn't freeze/preventDefault
+  // — the scene keeps panning normally underneath while these 3 scrolls happen.
+  if (_s33AsmelashShown && !_s33AsmelashDismissed) {
+    if (!_s33AsmelashBurstActive) {
+      _s33AsmelashBurstActive = true;
+      _s33AsmelashTicks++;
+      if (_s33AsmelashTicks >= 3) _s33AsmelashDismissed = true;
     }
-    clearTimeout(_s32LesanBurstTimer);
-    _s32LesanBurstTimer = setTimeout(() => { _s32LesanBurstActive = false; }, 150);
+    clearTimeout(_s33AsmelashBurstTimer);
+    _s33AsmelashBurstTimer = setTimeout(() => { _s33AsmelashBurstActive = false; }, 150);
   }
 }, { passive: false });
 
@@ -1970,24 +1991,38 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
       const SWAP_START   = 0.45;
       const SWAP_END     = 0.50;
       const S30_HOLD_END = 0.90; // stays at peak scale until here — the "stay" the quote reads during
-      const PEAK_SCALE   = 4.0;
-      const BUS_FADE_START = 0.85; // fades gradually, but only down to 0.8 (not 0) — see busFadeT below
+      const PEAK_SCALE   = 4.5;
+      const FADE_ZOOM_IN_PEAK = 4.10; // zooms in even further during the fade-out (punch-in),
+                                      // continuing the same direction as the entry ramp
+                                      // instead of pulling back out.
+      // Nudges the zoom's vertical anchor point (busCenterY()'s % from the top) — negative
+      // moves the zoom-in focus UP (reveals more of the bottom), positive moves it DOWN
+      // (reveals more of the top). 0 = unchanged (just busCenterY() on its own).
+      const ZOOM_ORIGIN_Y_OFFSET = -5;
+      // Nudges the zoom's horizontal anchor point (% from the left, base 50%) — negative
+      // moves the zoom-in focus LEFT (reveals more of the right side), positive moves it
+      // RIGHT (reveals more of the left side). 0 = unchanged (dead center).
+      const ZOOM_ORIGIN_X_OFFSET = -8;
+      const BUS_FADE_START = 0.95; // fades gradually, but only down to 0.8 (not 0) — see busFadeT below
+
+      // Crossfade, not a hard cut and not a fade-to-nothing: this side fades from full
+      // down to 0.8 (never further) by the end of scene 30. The scene-32 overlay (see
+      // animateS32S43) starts its own fade-in AT 0.5 and ramps up to 1 — so the two meet
+      // in the middle instead of leaving an empty gap or a washed-out lingering ghost.
+      const busFadeT = Math.min(1, Math.max(0, (local - BUS_FADE_START) / (1 - BUS_FADE_START)));
 
       let s30Scale;
       if (local < ZOOM_IN_END) {
         const tIn = easeInOutCubic(Math.min(1, (local - 0.34) / (ZOOM_IN_END - 0.34)));
         s30Scale = 1 + (PEAK_SCALE - 1) * tIn;
       } else {
-        // No further zoom past peak — stays flat through the fade-out and into scene 32.
-        s30Scale = PEAK_SCALE;
+        // Holds flat at peak through the quote, then punches in FURTHER (up to
+        // FADE_ZOOM_IN_PEAK) once the fade-out begins, instead of pulling back out.
+        const tOut = easeInOutCubic(busFadeT);
+        s30Scale = PEAK_SCALE + (FADE_ZOOM_IN_PEAK - PEAK_SCALE) * tOut;
       }
 
       const insideT = Math.min(1, Math.max(0, (local - SWAP_START) / (SWAP_END - SWAP_START)));
-      // Crossfade, not a hard cut and not a fade-to-nothing: this side fades from full
-      // down to 0.8 (never further) by the end of scene 30. The scene-32 overlay (see
-      // animateS32S43) starts its own fade-in AT 0.5 and ramps up to 1 — so the two meet
-      // in the middle instead of leaving an empty gap or a washed-out lingering ghost.
-      const busFadeT = Math.min(1, Math.max(0, (local - BUS_FADE_START) / (1 - BUS_FADE_START)));
       const busFadeMul = 1 - busFadeT * 0.2; // floor at 0.8, not 0
       if (cityBusS26)    cityBusS26.style.opacity    = ((1 - insideT) * busFadeMul).toFixed(3);
       if (cityBusInside) cityBusInside.style.opacity = (insideT * busFadeMul).toFixed(3);
@@ -2010,6 +2045,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
         const showQuote = local >= 0.76 && local < S30_HOLD_END;
         panel30AwayLy.style.opacity = showQuote ? '1' : '0';
         panel30AwayLy.classList.toggle('visible', showQuote);
+        if (soundCaptionAwaLy) soundCaptionAwaLy.style.opacity = showQuote ? '1' : '0';
       }
 
       // Fade the whole #city-bus container too (not just its children) — floor at 0.8,
@@ -2018,7 +2054,14 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
 
       if (cityBus) cityBus.style.transformOrigin = '50% 50%';
       if (pinnedWrap) {
-        pinnedWrap.style.transformOrigin = `50% ${busCenterY().toFixed(1)}%`;
+        const originX = Math.max(0, Math.min(100, 50 + ZOOM_ORIGIN_X_OFFSET));
+        const originYBase = Math.max(0, Math.min(100, busCenterY() + ZOOM_ORIGIN_Y_OFFSET));
+        // Nudges the anchor UP as the fade-out progresses — shrinking toward a higher anchor
+        // pulls content up and opens up room at the BOTTOM of the frame, so the zoom-out
+        // above reveals more of the floor/bottom instead of the ceiling (anchoring down did
+        // the opposite — revealed more of the top).
+        const originY = Math.max(0, Math.min(100, originYBase - busFadeT * 4.5));
+        pinnedWrap.style.transformOrigin = `${originX.toFixed(1)}% ${originY.toFixed(1)}%`;
         pinnedWrap.style.transform = `scale(${s30Scale.toFixed(3)})`;
       }
     } else {
@@ -2156,6 +2199,14 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
     cityBus.style.clipPath  = 'none';
   }
 
+  // Stick Awa Ly (#s30-zoom-people, a separate root-level fixed overlay — see the scene-30
+  // zoom block) to the bus's own parallax drift (bpx/bpy above) during scene 30, so she
+  // rides along with it instead of staying put while the bus shifts under mouse parallax.
+  if (s30ZoomPeople) {
+    s30ZoomPeople.style.transform = (scene === 15 && local >= 0.34)
+      ? `translateX(${bpx.toFixed(1)}px) translateY(${bpy.toFixed(1)}px)`
+      : 'none';
+  }
 }
 
 // ---- Scene 21 vehicles — 3 lanes (top: Meta, center: bus, bottom: Google). Each drives
@@ -2431,7 +2482,7 @@ function animateS32S43(scene, local, etx, ts) {
     // finishes (see the crossfade in animateS32S43 below) — showing it any sooner made
     // its white background look washed-out/translucent since it inherits the still-
     // fading-in ancestor's opacity.
-    const showIntro = scene === 16 && local >= 0.15 && local < 0.30;
+    const showIntro = scene === 16 && local >= 0.01 && local < 0.20;
     if (showIntro && !_panel32IntroShown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     _panel32IntroShown = showIntro;
     panel32Intro.style.opacity = showIntro ? '1' : '0';
@@ -2468,6 +2519,11 @@ function animateS32S43(scene, local, etx, ts) {
     : easeInOutCubic(Math.min(1, Math.max(0, (ts - _s32ZoomOutT0) / S32_ZOOMOUT_MS)));
   if (char39Samuel) char39Samuel.style.opacity = samuelT.toFixed(3);
 
+  // True the instant Samuel's popup hides (local 0.90+) and the Lesan popup takes over —
+  // used below to start the Asmelash zoom-in right away instead of waiting for Lesan to
+  // actually be dismissed by scrolling.
+  const lesanTriggered = scene > 16 || (scene === 16 && local >= 0.90);
+
   // Pregnant woman: plain quick fade-in in place (not tied to the zoom below — she just
   // needs to be visible while the scene stays zoomed in around her and Asmelash).
   const PREGNANT_FADE_END = 0.80;
@@ -2475,10 +2531,12 @@ function animateS32S43(scene, local, etx, ts) {
     : easeInOutCubic(Math.min(1, Math.max(0, (local - 0.75) / (PREGNANT_FADE_END - 0.75))));
   if (char35Pregnant) char35Pregnant.style.opacity = pregnantT.toFixed(3);
 
-  // Zoom IN once the 4th popup (Lesan) is dismissed (see _s32LesanDismissed, set in the
-  // 'wheel' listener) — ramps 1x -> 1.5x, wall-clock timed like the other zooms here.
-  if (_s32LesanDismissed && _sAsmelashZoomInT0 === null) _sAsmelashZoomInT0 = ts;
-  if (!_s32LesanDismissed) _sAsmelashZoomInT0 = null; // scrolled back out — reset so re-entering replays it
+  // Zoom IN starts right away once Samuel's popup hides and Lesan takes over
+  // (lesanTriggered, hoisted above) — used to wait for Lesan to actually be dismissed
+  // (_s32LesanDismissed) instead, which made the zoom-in start noticeably later.
+  // Ramps 1x -> 1.5x, wall-clock timed like the other zooms here.
+  if (lesanTriggered && _sAsmelashZoomInT0 === null) _sAsmelashZoomInT0 = ts;
+  if (!lesanTriggered) _sAsmelashZoomInT0 = null; // scrolled back out — reset so re-entering replays it
   const asmelashZoomInT = _sAsmelashZoomInT0 === null ? 0
     : easeInOutCubic(Math.min(1, Math.max(0, (ts - _sAsmelashZoomInT0) / ASMELASH_ZOOMIN_MS)));
 
@@ -2507,7 +2565,7 @@ function animateS32S43(scene, local, etx, ts) {
     let s32Scale;
     if (scene < 16) {
       s32Scale = 1;
-    } else if (scene === 16 && !_s32LesanDismissed) {
+    } else if (scene === 16 && !lesanTriggered) {
       s32Scale = 1.5 - 0.5 * samuelT; // original scene-32 zoom-out for Samuel's reveal
     } else if (scene >= 19) {
       // Scene 44: zoom in on the frozen scene-34 content underneath while the new scene
@@ -2518,7 +2576,7 @@ function animateS32S43(scene, local, etx, ts) {
     } else if (scene > 17 || (scene === 17 && local >= S33_ZOOM_HOLD)) {
       s32Scale = 1.5 - 0.5 * pregnantZoomT; // zoom-out after both pregnant-woman popups
     } else {
-      s32Scale = 1 + 0.5 * asmelashZoomInT; // zoomed-in phase: Lesan-dismiss through Asmelash + pregnant popups
+      s32Scale = 1 + 0.2 * asmelashZoomInT; // zoomed-in phase: Lesan-dismiss through Asmelash + pregnant popups
     }
     const vwPx = getVw() / 100;
     const stripXvw = -etx / vwPx;             // strip coordinate currently at the viewport's left edge
@@ -2556,6 +2614,7 @@ function animateS32S43(scene, local, etx, ts) {
     _panel32SamuelShown = showSamuel;
     panel32Samuel.style.opacity = showSamuel ? '1' : '0';
     panel32Samuel.classList.toggle('visible', showSamuel);
+    if (soundCaptionSamuel) soundCaptionSamuel.style.opacity = showSamuel ? '1' : '0';
   }
 
   // Lesan AI / community-centred practices popup — 4th popup, appears after Samuel's
@@ -2565,11 +2624,9 @@ function animateS32S43(scene, local, etx, ts) {
     // Stays triggered even after scrolling past scene 32 into 33+ (unlike the popup
     // itself, which is scene-32-only) — otherwise, scrolling through the tail of scene
     // 32 skips straight past the "popup dismissed, show Asmelash" state before it ever
-    // gets a chance to happen.
-    const lesanTriggered = scene > 16 || (scene === 16 && local >= 0.90);
+    // gets a chance to happen. (lesanTriggered itself now hoisted above, near samuelT.)
     if (!lesanTriggered) {
       _s32LesanDismissed = false; // scrolled back out — reset so re-entering replays it
-      _s32LesanTicks = 0;
     }
     const showLesan = lesanTriggered && !_s32LesanDismissed;
     if (showLesan && !_panel32LesanShown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
@@ -2578,41 +2635,58 @@ function animateS32S43(scene, local, etx, ts) {
     panel32Lesan.classList.toggle('visible', showLesan);
   }
 
-  // Asmelash — same rules as Samuel (3rd popup): a plain scroll-position window,
-  // recalculated fresh every frame, no unlock/dismiss ratchet state to get stuck —
-  // so scrolling back and forth always shows/hides him correctly.
-  if (char37Asmelash) {
-    const showAsmelash = scene > 17 || (scene === 17 && local >= 0.32);
-    char37Asmelash.style.opacity = showAsmelash ? '1' : '0';
+  // 5th popup — near Asmelash's head. Starts almost immediately on entering scene 17
+  // (was 0.32) so he opens right after Lesan's popup is dismissed, instead of leaving a
+  // long gap of empty scrolling before he shows up. Dismisses after 2 scroll gestures
+  // (_s33AsmelashDismissed, counted in the 'wheel' listener) instead of waiting for a
+  // fixed local threshold — local < 0.55 stays as a safety-net upper bound in case the
+  // 2-scroll counter is somehow never reached (e.g. keyboard/programmatic scroll).
+  if (!(scene === 17 && local >= 0.02)) {
+    _s33AsmelashDismissed = false; // scrolled back out — reset so re-entering replays it
+    _s33AsmelashTicks = 0;
   }
-
-  // 5th popup — near Asmelash's head, same rules as Samuel's popup: a plain
-  // scroll-position window (local 0.32-0.55 in scene 33), not a scroll-gesture count.
+  const showAsmelashPopup = scene === 17 && local >= 0.02 && local < 0.15 && !_s33AsmelashDismissed;
+  _s33AsmelashShown = showAsmelashPopup;
+  // Explicit guaranteed hide for the earlier scene-27 boarding portrait (a distinct
+  // element from char37Asmelash above) — forced off by the time this popup is up,
+  // regardless of whatever else is meant to have already faded it out by here. Only
+  // ever forces it OFF — never touches its opacity otherwise, so animateS26S30's own
+  // fade animation (which runs earlier in the same frame) is left alone the rest of
+  // the time.
+  if (char27Asmelash && showAsmelashPopup) char27Asmelash.style.opacity = '0';
   if (panel32Asmelash) {
-    const showAsmelashPopup = scene === 17 && local >= 0.32 && local < 0.55;
     if (showAsmelashPopup && panel32Asmelash.style.opacity !== '1') {
       _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     }
     panel32Asmelash.style.opacity = showAsmelashPopup ? '1' : '0';
     panel32Asmelash.classList.toggle('visible', showAsmelashPopup);
   }
+  // Asmelash (character) now hides/shows together with his popup above, instead of
+  // staying visible independently through the rest of the scene.
+  if (char37Asmelash) char37Asmelash.style.opacity = showAsmelashPopup ? '1' : '0';
 
-  // Flipped Asmelash (facing right) — same simple scroll-position rules, shown right
-  // after the 5th popup hides.
-  if (char37Asmelash2) {
-    const showAsmelash2 = scene > 17 || (scene === 17 && local >= 0.55);
-    char37Asmelash2.style.opacity = showAsmelash2 ? '1' : '0';
-  }
+  // The 5th popup is "done" the instant it's dismissed by the 2-scroll counter above, OR
+  // (fallback, e.g. keyboard/programmatic scroll never fired the wheel counter) once local
+  // reaches its old 0.55 cutoff anyway — whichever comes first.
+  const asmelash1Done = _s33AsmelashDismissed || local >= 0.20;
 
-  // 6th popup — near the flipped Asmelash, same rules as the others: a plain
-  // scroll-position window (local 0.55-0.75 in scene 33).
+  // 6th popup ("Here, data collection is an act of shared reflection...") — opens
+  // together with the flipped Asmelash, right when the 5th popup is dismissed.
+  const showAsmelash2Popup = scene === 17 && asmelash1Done && local < 0.35;
+  // Flipped Asmelash (facing right) now hides/shows together with this popup, instead
+  // of staying visible independently for the rest of the scene.
+  if (char37Asmelash2) char37Asmelash2.style.opacity = showAsmelash2Popup ? '1' : '0';
   if (panel32Asmelash2) {
-    const showAsmelash2Popup = scene === 17 && local >= 0.55 && local < 0.75;
     if (showAsmelash2Popup && panel32Asmelash2.style.opacity !== '1') {
       _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     }
     panel32Asmelash2.style.opacity = showAsmelash2Popup ? '1' : '0';
     panel32Asmelash2.classList.toggle('visible', showAsmelash2Popup);
+  }
+  // Name plate + sound icon tied only to the 5th popup ("Many people may not know..."),
+  // not the 6th ("data collection...") — hides the moment this one does.
+  if (soundCaptionAsmelash) {
+    soundCaptionAsmelash.style.opacity = showAsmelashPopup ? '1' : '0';
   }
 
   // Sadik — last man in this sequence. Plain scroll-position rule (not tied to
@@ -2654,6 +2728,7 @@ function animateS32S43(scene, local, etx, ts) {
     panel32Sadik.style.opacity = showSadik ? '1' : '0';
     panel32Sadik.classList.toggle('visible', showSadik);
   }
+  if (soundCaptionSadik) soundCaptionSadik.style.opacity = showSadik ? '1' : '0';
 }
 
 // ---- Scene 44: slides down from the top over scene-34, instead of panning in
@@ -2766,9 +2841,8 @@ function animateS45S48(scene, local, etx, ts) {
   // takes over.
   const showKathleen = scene === 20 && local > 0.25 && local < 0.4;
   positionCenteredPopup(panel45Kathleen, showKathleen, popupCenterVw);
-  // Name plate + sound icon stay up always (not tied to the quote popup's narrower window),
-  // so the audio is reachable any time Kathleen's around, not just while her quote is showing.
-  if (soundCaptionKathleen) soundCaptionKathleen.style.opacity = '1';
+  // Name plate + sound icon now hide/show together with her quote popup.
+  if (soundCaptionKathleen) soundCaptionKathleen.style.opacity = showKathleen ? '1' : '0';
 
   // Red lady's quote — shown once she's been visible a moment, hides again before toto
   // moto's own popup takes its turn.
@@ -2823,7 +2897,7 @@ function animateS45S48(scene, local, etx, ts) {
   // the art is roughly centered on screen (confirmed in-browser: scene 47, local ~4%).
   const showChris = scene === 22 && local >= 0.03 && local < 0.3;
   positionCenteredPopup(panel47Chris, showChris, popupCenterVw);
-  if (soundCaptionChris) soundCaptionChris.style.opacity = (scene === 22 && local >= 0.03) ? '1' : '0';
+  if (soundCaptionChris) soundCaptionChris.style.opacity = showChris ? '1' : '0';
 }
 
 // ---- Layer reveals — all layers static, clear any previously set transforms ----
@@ -3450,6 +3524,10 @@ document.addEventListener('keydown', e => {
 function frameLoop(ts) {
   if (!_paused) {
     frame(ts);
+    // Re-track the open popup's position every frame so it stays anchored to its
+    // character's marker while scrolling continues (the marker itself keeps moving —
+    // see #city-overlay-7's per-frame scroll sync — so the popup must follow it too).
+    if (activeCrossBtn) positionCharBubble(activeCrossBtn);
   }
   requestAnimationFrame(frameLoop);
 }
