@@ -37,29 +37,29 @@ const SCENE_SCROLL = [
   1.5,  // 18 → scene-34
   1.5,  // 19 → scene-44 (slides down from the top over scene-34 — see #s44-overlay/animateS44 in scroll.js)
   4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
-  1.5,  // 21 → scene-46 (red lady with bag ambient)
-  1.5,  // 22 → scene-47 (wheelchair man ambient)
-  0.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  2.0,  // 21 → scene-46 (wheelchair man: approach pan -> zoom-in -> hold with the Huniki/Big
+        // Tech popups -> release; extra scroll runway so each beat plays out gradually
+        // instead of racing past, same reasoning as scene-45 above. Was 1.5.)
+  20.5,  // 22 → scene-47 (wheelchair man ambient)
+  10.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
   0.4,  // 24 → scene-56 (second popup)
   0.4,  // 25 → scene-57 (third, bigger popup)
   0.3,  // 26 → scene-58 (pans past the street into clear sky)
   // Total 1.5 viewport-widths, matching #s55-s58-bg's new 150vw width (was 5.7/400vw) — no
   // dead scroll past where the content actually ends.
-  1,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup) —
+  2.5,  // 27 → scene-59 (park/lake — bridge, trees, bus driving through; first popup) —
     // slowed down further (was 0.3, then 0.7): the bus's own drive-in and the zoom-out
     // already use the full scene-local range, so more scroll room is the only way to make
     // both play out more gradually — same lever for "bus speed" and "scroll speed" here
-  1.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
-    // zoom-out-leaving-scene-59 transition, was 0.3 — much more scroll room so it plays out
-    // slowly and smoothly instead of snapping through in a fraction of a scroll)
-  0.15, // 29 → scene-63 (closing message — "would you like to learn more" — was mislabeled
-    // scene-61 here; the Figma storyboard renumbered the closing chapter at some point and
-    // this comment/SCENE_LABELS entry was never updated to match. The very short scroll
-    // length (shortest in this whole array) means this is just a text overlay on scene-60's
-    // existing background, not new visual content of its own — so scenes 64-71 (which the
-    // Figma numbering skips to next) are NOT covered here; they appear to be leftover/cut
-    // storyboard frames from before that rework, not part of the live site. See sceneBeats
-    // "63-71" in i18n/<lang>.json for the caveat on that gap.
+  2.3,  // 28 → scene-60 (second popup — kids playing catch on the path; also the dramatic
+    // zoom-out-leaving-scene-59 transition, was briefly bumped to 40 while the cloud cover was
+    // scroll-scrubbed — that made reaching the end of the scene take tens of thousands of px
+    // of scrolling (read as "stuck"). Reverted back now that s5973CloudsLottie triggers
+    // instantly off s61PostZoomT instead of being scrubbed by scroll amount.)
+  0.3,  // 29 → scene-63 (closing message — was briefly bumped to 40 for the same
+    // now-obsolete scroll-scrub reason as scene-60 above; reverted (was 0.15 originally,
+    // nudged up slightly so the ending message has a bit more comfortable scroll room)
+
   0.4,  // 30 → scene-72 (RESOURCES screen — was mislabeled scene-62 here, same renumbering)
   0.4,  // 31 → scene-73 (CREDITS screen — was mislabeled scene-63 here — story ends here)
 ];
@@ -121,8 +121,11 @@ const S45_STICKY_RANGE = 1.0;
 // screen by S46_HOLD_START, stays pinned there through S46_HOLD_END while he zooms in and
 // his popup shows, then eases back to the normal continuous pan by the scene's end. Slower/
 // gentler than a hard freeze+snap — see frame()'s effectiveTx and animateS45S48.
-const S46_HOLD_START = 0.45;
-const S46_HOLD_END = 0.8;
+const S46_HOLD_START = 0.05;
+// Shrunk from 0.8 — the zoom itself finishes at S46_ZOOM_END_LOCAL (0.62), so the gap between
+// there and the old 0.8 was pure "dummy" scroll: pan pinned, zoom already done, popups playing
+// on their own wall-clock timer regardless. Only a small buffer past the zoom now.
+const S46_HOLD_END = 0.65;
 // Scene 59->61 zoom+clouds-cover trigger point — how far through scene 59 (sceneLocal, 0-1)
 // before the wall-clock auto-play sequence starts (see _s5960T0 below). 0.8 gives more scroll
 // runway before it triggers than earlier values (0.3, then 0.7) did.
@@ -131,14 +134,32 @@ const S5960_ZOOM_START_PHASE = 0.2;
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
 // against the old, much larger values and became badly mismatched once those shrank, causing
 // it to overshoot and run the background out of content too early — see #s55-s58-bg's width.)
-// The zoom-in itself is wall-clock timed, not scroll-driven — once the pan settles him into
-// center (S46_HOLD_START), it plays out on its own like a video over S46_ZOOM_MS, no further
-// scrolling needed, then stays zoomed for the rest of scene 46 (see _s46ZoomT0 in frame()).
+// The zoom-in is scroll-driven (was a wall-clock S46_ZOOM_MS timer that fired once the pan
+// settled him into center — that played out on its own regardless of scroll speed, which read
+// as a jerk, and never reversed on scroll-back). Now it eases 0->1 across sceneLocal
+// S46_HOLD_START -> S46_ZOOM_END_LOCAL, exactly like scene 30's s30Scale ramp: a pure
+// function of scroll position, so it tracks the wheel smoothly and is symmetric both
+// directions. S46_ZOOM_MS is kept only for the popups' own wall-clock queue below.
+// Was 0.62, then 0.20 — the pan is completely frozen at targetTx for the WHOLE zoom
+// (S46_HOLD_START through here), and since tx itself always moves a fixed ~1 full
+// viewport-width across a scene's entire local range regardless of SCENE_SCROLL, freezing
+// across any chunk of that range banks up a proportional catch-up gap — a gap no easing can
+// make gentle, and the direct cause of the release "jump"/rush. 0.20 was fine while
+// SCENE_SCROLL[21] was 10.0, but once that got raised (to slow the scene's overall feel), the
+// SAME pixel-sized gap suddenly had to be paid back against a much slower baseline pan speed —
+// same absolute catch-up motion, now standing out far more by contrast (measured: ~0.2px/tick
+// baseline vs ~4.5px/tick sustained during the catch-up, a 23x difference — read as "scrolling
+// too fast" through a big chunk of the scene, not a single jump). Shrunk further so the banked
+// gap stays small regardless of SCENE_SCROLL — 0.03 of local range at SCENE_SCROLL[21]=35.0 is
+// still ~1 viewport-width of real scroll for the zoom to play out over, plenty smooth.
+const S46_ZOOM_END_LOCAL = 0.08;
 const S46_ZOOM_MS = 900;
-// Once zoomed in, the Huniki popup shows first, stays up for S46_HUNIKI_MS, then fades out
-// and the Big Tech popup queues in behind it — both wall-clock timed off the same
-// _s46ZoomT0, same "plays on its own" approach as the zoom itself (see animateS45S48).
-const S46_HUNIKI_MS = 4500;
+// Once the (now scroll-driven) zoom-in finishes, the Huniki popup shows first for a stretch of
+// local, then fades out and the Big Tech popup takes over for the next stretch, then that
+// hides too and plain scrolling resumes — scroll-driven (via sceneLocal), not wall-clock, so
+// they open/close on scroll position instead of playing out on their own regardless of it.
+const S46_HUNIKI_LOCAL_END = 0.23;
+const S46_BIGTECH_LOCAL_END = 0.38;
 
 // ---- DOM ----
 const pinnedWrap  = document.getElementById('pinned-wrap');
@@ -162,6 +183,7 @@ const panels = {
   25: document.getElementById('panel-56'),  // scroll index 24 (scene-56)
   26: document.getElementById('panel-57'),  // scroll index 25 (scene-57)
 };
+const panel55b = document.getElementById('panel-55b'); // second half of panel-55's own window — kept outside `panels` (not numeric-key-driven, just a straight handoff from show55)
 const panel1Start = document.getElementById('panel-1-start');
 const s1s3Troad = document.querySelector('.s1s3-troad');
 const s1s3Broad = document.querySelector('.s1s3-broad');
@@ -241,8 +263,9 @@ const s6263Bg = document.getElementById('s62-s63-bg');
 const s6263Slides = [
   document.querySelector('.s6263-slide-0'),
   document.querySelector('.s6263-slide-1'),
+  document.querySelector('.s6263-slide-2'),
 ];
-const s6263Panels = [62,63].map(n => document.getElementById(`panel-${n}`));
+const s6263Panels = [62,63,64].map(n => document.getElementById(`panel-${n}`));
 const s6061Puffs = Array.from(document.querySelectorAll('.s6061-puff')); // 8 waterfall puffs, staggered
 const cityAwayStand  = document.getElementById('city-awayly-stand');
 const cityAwayHandle = document.getElementById('city-awayly-handle');
@@ -274,18 +297,22 @@ const char45Kathleen   = document.querySelector('.char-s45-kathleen');
 const char45TotoMoto   = document.querySelector('.char-s45-totomoto');
 const char45RedLady    = document.querySelector('.char-s45-redlady');
 const char45Wheelchair = document.querySelector('.char-s45-wheelchair');
+const char47NewGuy     = document.querySelector('.char-s47-newguy'); // PLACEHOLDER — see index.html
 const panel45Kathleen = document.getElementById('panel-45-kathleen');
 const soundCaptionKathleen = document.getElementById('sound-caption-kathleen');
 const soundCaptionTotoMoto = document.getElementById('sound-caption-totomoto');
+const s47CrossingMatatu = document.getElementById('s47-crossing-matatu');
+const s47CrossingFrame  = document.getElementById('s47-crossing-frame');
+const s5973BridgeFront = document.getElementById('s5973-bridge-front');
 const panel45TotoMoto = document.getElementById('panel-45-totomoto');
+const panel47NewGuy = document.getElementById('panel-47-newguy'); // PLACEHOLDER — see index.html
+const soundCaptionS47NewGuy = document.getElementById('sound-caption-s47newguy');
 const panel45RedLady = document.getElementById('panel-45-redlady');
 const panel46Huniki = document.getElementById('panel-46-huniki');
 const panel46BigTech = document.getElementById('panel-46-bigtech');
-const panel47Chris = document.getElementById('panel-47-chris');
-const soundCaptionChris = document.getElementById('sound-caption-chris');
 // Chris Emezue + the last red-topped woman are baked directly into Seats%20extended.svg's
 // own art (not a separate movable sprite) — confirmed in-browser at scene 47, local ~17%,
-// see panel-47-chris's showChris window below.
+// see panel-47-newguy's showChris window below.
 const char32OldLady   = document.querySelector('.char-s32-oldlady');
 const char33GirlPhone = document.querySelector('.char-s33-girlphone');
 const char39Samuel     = document.querySelector('.char-s39-samuel');
@@ -313,6 +340,7 @@ const s8PlazaSign   = document.getElementById('s8-plaza-sign');
 const cityOverlay9   = document.getElementById('city-overlay-9');
 const cityOverlay12  = document.getElementById('city-overlay-12');
 const s12AvenueSign  = document.getElementById('s12-avenue-sign');
+const s55HunikiSign  = document.getElementById('s55-huniki-sign');
 const panel12b       = document.getElementById('panel-12b');
 
 // City scene parallax — img elements targeted directly.
@@ -381,6 +409,8 @@ const s21vMicrosoft = document.getElementById('s21v-microsoft');
 const s21vOpenAI    = document.getElementById('s21v-openai');
 // Scene-21 clouds — fixed overlay z:2, fade in near end of scene
 const s21cLottie    = document.getElementById('s21c-lottie');
+const s5973CloudsLottie = document.getElementById('s5973-clouds-lottie');
+const s60ZoomExtras = Array.from(document.querySelectorAll('.s60-zoom-extra'));
 
 // Scene 26–30 overlay — 500vw wide, translates in sync with the strip
 const cityOverlay26 = document.getElementById('city-overlay-26');
@@ -424,6 +454,20 @@ const S32_ZOOMOUT_MS = 1200; // duration of the auto-playing zoom-out — plays 
 // is what fixed the "stuck/jerky" bugs from an earlier version that froze both directions.
 let _s5960T0 = null;         // wall-clock timestamp the sequence started (null = not playing)
 let _s5960FrozenTx = null;   // pan held stable for the whole sequence
+// Set true the first time each sequence's trigger fires and NEVER reset back to false
+// (unlike _s5960T0/_s61PostZoomT0, which DO reset so the forward trigger can replay) — lets
+// s5960ZoomT/s61PostZoomT tell "backing out after having already played" (should ease
+// smoothly back down as you scroll, see the reverse-ease branches below) apart from
+// "approaching the trigger for the very first time" (should stay flat until the trigger
+// actually fires, not ease in early).
+let _s5960EverTriggered = false;
+let _s61PostZoomEverTriggered = false;
+// Second pull-back stage, same wall-clock/freeze-scroll technique as _s5960T0 above but
+// triggered once panel-61 has closed (combinedLocal5973 crosses S61_POSTZOOM_TRIGGER_LOCAL)
+// instead of the original sceneLocal threshold — see the matching branch in frame()'s
+// effectiveTx chain and s61PostZoomT's computation just below s5960ZoomT's.
+let _s61PostZoomT0 = null;
+let _s61PostZoomFrozenTx = null;
 // Plays every time sceneLocal crosses S5960_ZOOM_START_PHASE in scene 59, scrolling FORWARD
 // (see _scrollingForward in frame() — without that direction check, re-entering scene 27 from
 // above by scrolling backward also satisfied "sceneLocal >= threshold" and kept re-triggering
@@ -438,6 +482,9 @@ const S5960_TOTAL_MS = 3400; // total duration of the whole cinematic sequence
 const S5960_ZOOM_END_FRAC  = 0.4;  // bus/background finish zooming out by this fraction
 const S5960_COVER_END_FRAC = 0.8;  // clouds finish covering (and just stay) by this fraction
 
+const S61_POSTZOOM_TRIGGER_LOCAL = 1.2; // combinedLocal5973 point where panel-61 has closed — must match show61's own close bound above
+const S61_POSTZOOM_TOTAL_MS = 2000; // duration of the second (0.5 -> 0.3) pull-back's auto-play
+
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
 // both pregnant-woman popups, then zooms back OUT once local reaches S33_ZOOM_HOLD
@@ -451,25 +498,54 @@ const S33_ZOOMOUT_MS   = 1200;
 
 let _s44FrozenTx = null; // pan held stable during scene 44 (see animateS44) — the strip freezes, only the overlay slides
 
-let _s46ZoomT0 = null; // wall-clock timestamp when the wheelchair-man zoom-in started (see frame() and animateS45S48)
+let _s46ZoomT0 = null; // wall-clock timestamp when the wheelchair-man hold was entered (see frame() and animateS45S48)
+let _s46HoldReleased = false; // true the instant the zoom-in finishes — pan starts releasing right away, no extra scroll wait
+let _s46ReleaseStartLocal = null; // sceneLocal captured at the exact moment of release, so the release-ease math has a valid start point
+
+let _panel55Shown = false; // same, for panel-55/55b/56/57 (scenes 55-57)
+let _panel55bShown = false;
+let _panel56Shown = false;
+let _panel57Shown = false;
+let _panel47NewGuyShown = false; // same, for the PLACEHOLDER popup near scene 47's two people
+let _panel47PrevDiff = null; // previous frame's (popup center - viewport center), for sign-flip crossing detection
+let _panel47FreezeEndsAt = null; // when the center-freeze below will end
+let _panel47FreezeReleaseScrollY = null; // scrollY at the moment the freeze timer finishes — popup hides once scrollY moves away from this (i.e. on the next actual scroll), not on the timer itself
+let _s47PopupHiddenLocal = null; // scene 22's local fraction captured the instant the popup hides — the crossing-matatu sequence starts from here instead of a fixed local fraction
+let _s47CrossingFreezeTriggered = false; // edge-trigger latch for the crossing-matatu's own end-of-sequence freeze
+let _s47CrossingFreezeEndsAt = null; // when that freeze will end
+let _s47CrossingFreezeReleaseScrollY = null; // same hide-on-next-scroll pattern as Chris's popup, not a timer
+let _s47CrossingSkipDone = false; // edge-trigger latch — skips the rest of scene 47's dead scroll budget straight to scene 55's start once the crossing sequence is dismissed
+let _s47CrossingBackSkipDone = false; // mirror of the above for backward scrolling — skips back to just before the crossing's own end instead of crawling through the dead zone in reverse
+let _s47PrevScrollY = null; // for detecting scroll direction around the dead zone (raw scrollY, not local/effectiveTx, which can be pinned/blended)
 
 
 // Popup scroll-freeze: the instant a scene-32 popup opens, wheel scroll is swallowed for
 // a short grace period (see the 'wheel' listener below) so it doesn't get scrolled past
 // before there's been any time to read it.
 let _scrollFreezeUntil = 0; // Date.now() timestamp; wheel input is ignored while now < this
+let _frozenScrollY = null; // scrollY hard-pinned to this while frozen (see frame()) — defeats trackpad momentum, which keeps scrolling with no further 'wheel' events to block
 const POPUP_SCROLL_FREEZE_MS = 700;
+const S47_CENTER_FREEZE_MS = 1500; // Chris popup's own longer hold-at-center (see animateS45S48) — needs to read as a deliberate lock, not just a brief pause
+const S47_CROSSING_FREEZE_MS = 1500; // crossing-matatu sequence's own end-of-sequence freeze (see animateS45S48)
+const S47_CROSSING_DURATION = 0.1; // shared by both the effectiveTx scene-55 reveal blend AND animateS45S48's own crossingT — must match, or the two fall out of sync
+const S47_CROSSING_FADE_START_T = 0.985; // crossingT fraction where the bus/frame start fading out — reaches opacity 0 exactly as crossingT reaches 1, no separate wait afterward (was 0.95 — narrower window here makes the opacity drop faster/snappier)
+const S47_REVEAL_START_T = 0.1; // crossingT fraction where the background starts blending toward scene 55's start position
 
-// Scenes 62-63 — discrete screen-by-screen slide switching (see the 'wheel' listener and
+// Scenes 62-64 — discrete screen-by-screen slide switching (see the 'wheel' listener and
 // frame() below). Once _s6263Active is true, wheel input drives _s6263Index directly instead
-// of native scroll; a crossfade plays between the two slides on each step.
+// of native scroll; a crossfade plays between adjacent slides on each step. Generalized to
+// any slide count via S6263_SLIDE_COUNT/_s6263FromIndex (was hardcoded to exactly 2 slides —
+// s6263Pos used to infer "which slide we're transitioning FROM" purely from the destination
+// index, which only works for 2 states; a 3rd slide needs the from-index tracked explicitly).
 // Counted in distinct scroll GESTURES ("ticks"), not accumulated deltaY — a single physical
 // scroll (mouse click or trackpad swipe) fires many rapid wheel events that sum past any
 // pixel threshold within the same gesture, so a deltaY accumulator alone still felt instant.
 // Only the START of each burst (150ms of inactivity apart) counts as one tick, not every
 // individual wheel event within it.
+const S6263_SLIDE_COUNT = 3; // 0 = Resources (62), 1 = Credits (63), 2 = Contact (64)
 let _s6263Active     = false; // true once we've entered the locked slide-switch zone
-let _s6263Index      = 0;     // which slide is showing: 0 = scene 62, 1 = scene 63
+let _s6263Index      = 0;     // which slide is showing/target of the current crossfade
+let _s6263FromIndex  = 0;     // which slide we're crossfading AWAY from (only meaningful while _s6263TransT0 !== null)
 let _s6263TransT0    = null;  // wall-clock start of the current crossfade; null = settled
 let _s6263Ticks      = 0;     // distinct scroll gestures counted so far in _s6263TickDir
 let _s6263TickDir    = 0;     // direction (+1/-1) the current tick count applies to
@@ -740,10 +816,15 @@ window.addEventListener('wheel', e => {
       if (_s6263Ticks >= S6263_TICKS_REQUIRED) {
         _s6263Ticks = 0;
         if (dir > 0) {
-          if (_s6263Index === 0) { _s6263Index = 1; _s6263TransT0 = performance.now(); }
-          // else: already on the last slide (scene 63) — nothing further to advance to.
-        } else if (_s6263Index === 1) {
-          _s6263Index = 0;
+          if (_s6263Index < S6263_SLIDE_COUNT - 1) {
+            _s6263FromIndex = _s6263Index;
+            _s6263Index += 1;
+            _s6263TransT0 = performance.now();
+          }
+          // else: already on the last slide (Contact) — nothing further to advance to.
+        } else if (_s6263Index > 0) {
+          _s6263FromIndex = _s6263Index;
+          _s6263Index -= 1;
           _s6263TransT0 = performance.now();
         } else if (SCROLL_MAP[29]) {
           // Already on the first slide (scene 62), scrolling back further — release the lock
@@ -775,6 +856,10 @@ window.addEventListener('wheel', e => {
     return;
   }
 
+  // Wheelchair man's hold (scene 46) now releases the instant his zoom-in finishes — see
+  // frame()'s currentScene===21 branch. No gesture-count/wheel-listener wiring needed here
+  // any more.
+
   // 5th popup (Asmelash — "Many people may not know...") dismisses itself after 3 wheel
   // *scrolls* once it's open, same burst-debounce technique as the old Lesan counter: one
   // physical scroll fires many rapid 'wheel' events, not one, so only the START of each
@@ -804,6 +889,7 @@ let hasScrolled = true;
 // ---- Continuous animation loop ----
 let lastTs = 0;
 let _prevScrollYForS5960 = 0; // see _scrollingForward in frame()
+let _scrollingForwardState = false; // persists across idle frames — see _scrollingForward in frame()
 let _lastNarrationCheck = 0;
 
 function frame(ts) {
@@ -815,14 +901,39 @@ function frame(ts) {
   // forces a synchronous reflow every frame instead of using the previous frame's layout.
   const _signRect = s12AvenueSign ? s12AvenueSign.getBoundingClientRect() : null;
 
+  // Hard-pin scrollY itself while any freeze is active (universal — covers every
+  // _scrollFreezeUntil use on the site, not just one popup). The 'wheel' listener's
+  // preventDefault() only blocks scrolling from NEW wheel events — it can't stop a trackpad
+  // flick's own momentum/inertia, which keeps animating scrollY on its own with no further
+  // 'wheel' events firing at all. Actively resetting scrollY back every frame stops that too.
+  if (Date.now() < _scrollFreezeUntil) {
+    if (_frozenScrollY === null) _frozenScrollY = window.scrollY;
+    else if (window.scrollY !== _frozenScrollY) window.scrollTo(0, _frozenScrollY);
+  } else {
+    _frozenScrollY = null;
+  }
+
   const scrollY = window.scrollY;
   const { tx, currentScene, sceneLocal, scrollPct } = scrollToState(scrollY);
   // Not-decreasing since last frame — used to gate the scene 59->61 trigger below so it only
   // fires while actually scrolling FORWARD into it, not when arriving already past the
   // threshold by scrolling BACKWARD from scene 60/61 (sceneLocal starts near 1 re-entering
   // scene 27 from above, which used to satisfy ">= threshold" and re-trigger every time).
-  const _scrollingForward = scrollY >= _prevScrollYForS5960;
-  _prevScrollYForS5960 = scrollY;
+  // Only update the remembered direction when scrollY actually MOVED this frame — on idle
+  // animation frames where it hasn't (very common at 60fps between real wheel events),
+  // leave it exactly as it was. A plain scrollY > prev (or >=) recomputed every frame instead
+  // breaks in both directions: >= treats an idle no-movement frame as "forward" (this caused
+  // the double-zoom-on-the-way-back bug — an idle frame landing right as sceneLocal was back
+  // near 1 after crossing back into this scene re-armed the whole forward sequence); a bare >
+  // instead treats that same idle frame as "not forward", which can just as easily land on the
+  // one frame where a real forward trigger needs "still scrolling forward" to be true, silently
+  // missing the trigger (this broke the scene-60 zoom extras — s61PostZoomT's own trigger uses
+  // this same flag). Persisting the last REAL direction across idle frames avoids both.
+  if (scrollY !== _prevScrollYForS5960) {
+    _scrollingForwardState = scrollY > _prevScrollYForS5960;
+    _prevScrollYForS5960 = scrollY;
+  }
+  const _scrollingForward = _scrollingForwardState;
 
   // Scenes 62-63 — engage the discrete slide lock the first time continuous scroll reaches
   // this zone (forward from scene 61, or landing here directly e.g. on page reload/dot-nav).
@@ -843,15 +954,16 @@ function frame(ts) {
     _s6263TransT0 = null;
   }
 
-  // Scenes 62-63 — continuous "position" across both slides (0 = fully scene 62, 1 = fully
-  // scene 63), including any in-progress crossfade. Single source of truth reused below for
-  // both the bus/background zoom-reversal and the slide-opacity render block further down.
+  // Scenes 62-64 — continuous "position" across all slides (0 = fully Resources, 1 = fully
+  // Credits, 2 = fully Contact), including any in-progress crossfade. Single source of truth
+  // reused below for both the bus/background zoom-reversal and the slide-opacity render block
+  // further down. Uses _s6263FromIndex (set explicitly at tick-time) rather than inferring the
+  // "from" slide purely from the destination index — that only worked for exactly 2 slides.
   let s6263Pos = _s6263Index;
   if (_s6263TransT0 !== null) {
     const s6263T  = Math.min(1, (ts - _s6263TransT0) / S6263_TRANS_MS);
     const s6263Te = easeInOutCubic(s6263T);
-    const from = _s6263Index === 1 ? 0 : 1;
-    s6263Pos = from + (_s6263Index - from) * s6263Te;
+    s6263Pos = _s6263FromIndex + (_s6263Index - _s6263FromIndex) * s6263Te;
     if (s6263T >= 1) _s6263TransT0 = null;
   }
 
@@ -988,7 +1100,7 @@ function frame(ts) {
     // position to the real tx so they meet exactly by sceneLocal=S45_STICKY_RANGE. Stays
     // stateless (pure function of sceneLocal and tx, no captured variables) so it's still
     // exactly reversible scrolling either direction.
-    const S45_RELEASE_START = 0.8;
+    const S45_RELEASE_START = 0.402;
     if (sceneLocal >= S45_RELEASE_START) {
       const bridgeT = easeInOutCubic((sceneLocal - S45_RELEASE_START) / (S45_STICKY_RANGE - S45_RELEASE_START));
       effectiveTx = slowTx + bridgeT * (tx - slowTx);
@@ -1004,24 +1116,74 @@ function frame(ts) {
     // either direction. The zoom-in triggered below is the one piece of wall-clock state —
     // it plays out on its own once he's centered, independent of further scrolling.
     const S46_CHAR_CENTER_VW = 250.5;
-    const S45S48_BG_LEFT_VW = 2298; // must match #s45-s48-bg's `left` in style.css
+    const S45S48_BG_LEFT_VW = 2250; // must match #s45-s48-bg's `left` in style.css — was stale at 2256
     const targetStripXvw = S45S48_BG_LEFT_VW + S46_CHAR_CENTER_VW - 50;
-    const targetTx = -(targetStripXvw * _vw / 100);
     const entryTx = -SCROLL_MAP[21].stripX; // natural tx at local=0 — matches where scene
       // 45's own release-bridge was already easing toward, so there's no jump at entry.
+    // Clamped so the approach never pans backward (right-to-left only, matching the
+    // story's own forward travel direction): his target position sits slightly BEHIND
+    // where scene 46 naturally starts (targetStripXvw < entry's own stripX by ~8.5vw), so
+    // interpolating there un-clamped meant a brief backward/rightward blip before
+    // continuing forward. Math.min picks whichever pan value is further forward already —
+    // if the target is behind the entry point, just hold at the entry point instead of
+    // stepping back to reach him (he ends up ~8.5vw off perfectly-centered, traded for
+    // never visibly reversing direction).
+    const targetTx = Math.min(-(targetStripXvw * _vw / 100), entryTx);
     if (sceneLocal < S46_HOLD_START) {
       const approachT = easeInOutCubic(sceneLocal / S46_HOLD_START);
       effectiveTx = entryTx + approachT * (targetTx - entryTx);
-    } else if (sceneLocal < S46_HOLD_END) {
-      // He's centered — start the wall-clock zoom-in the first frame we get here (see
-      // wheelchairZoomT in animateS45S48). It plays out on its own from this point, no
-      // further scrolling needed — the pan itself already stays pinned at targetTx for the
-      // whole hold window regardless of how much local advances underneath it.
+      _s46HoldReleased = false; // reset so re-entering the hold zone replays it
+      _s46ReleaseStartLocal = null;
+    } else if (!_s46HoldReleased) {
+      // He's centered — the zoom-in itself is scroll-driven now (see wheelchairZoomT in
+      // animateS45S48). Releases the INSTANT the zoom finishes (no extra scroll wait) — used
+      // to wait for a 2-scroll gesture count first, but since this hold is non-blocking
+      // (scroll keeps advancing sceneLocal underneath while the pan stays visually pinned),
+      // any extra waiting let the natural pan (tx) drift arbitrarily far ahead of the frozen
+      // targetTx before release ever fired — the longer/faster you scrolled during that wait,
+      // the bigger the gap, and the release then had to close that whole gap at once, which
+      // read as a jump no matter how it was eased (tried spreading it over the remaining
+      // scene, then over a fixed 700ms — both just relocated the rush instead of removing
+      // it). Releasing right at S46_ZOOM_END_LOCAL keeps that gap fixed and small. The
+      // Huniki/Big Tech popups (see animateS45S48) are scroll-driven off local too now, not
+      // wall-clock, so they just play out naturally as panning resumes.
       if (_s46ZoomT0 === null) { _s46ZoomT0 = ts; }
+      if (sceneLocal >= S46_ZOOM_END_LOCAL) {
+        _s46HoldReleased = true;
+      }
       effectiveTx = targetTx;
     } else {
-      const releaseT = easeInOutCubic((sceneLocal - S46_HOLD_END) / (1 - S46_HOLD_END));
+      // Capture wherever sceneLocal actually was at the exact moment of release as the
+      // interpolation's start point (always S46_ZOOM_END_LOCAL now, but computed rather than
+      // hardcoded in case a future tweak decouples them again).
+      // Linear, not eased — an eased S-curve necessarily peaks faster than its own average
+      // rate partway through (measured live: ~4x the steady pan speed right around scene 46's
+      // 55% mark), and viewed through the permanent 1.5x zoom on this scene that peak reads as
+      // a jump even though the underlying value is continuous. Linear removes the peak
+      // entirely — constant speed for the whole release, matching the ordinary pan rate.
+      if (_s46ReleaseStartLocal === null) _s46ReleaseStartLocal = sceneLocal;
+      const releaseT = Math.min(1, Math.max(0, (sceneLocal - _s46ReleaseStartLocal) / (1 - _s46ReleaseStartLocal)));
       effectiveTx = targetTx + releaseT * (tx - targetTx);
+    }
+  } else if (currentScene === 22 && SCROLL_MAP[23]) {
+    // Tail of scene 47 — once the crossing-matatu sequence (see animateS45S48) is
+    // S47_REVEAL_START_T (60%) of the way through, start blending the actual background pan
+    // toward scene 55's own start position, hidden behind the frame+bus overlay — so by the
+    // time the bus finishes crossing and the freeze holds, scene 55 is already sitting there
+    // instead of a hard cut once currentScene actually reaches 23. Mirrors animateS45S48's own
+    // crossingT calculation exactly (duplicated here since crossingT itself isn't computed
+    // until later in the frame, and effectiveTx has to be set before then) — reads
+    // _s47PopupHiddenLocal, set by the previous frame's animateS45S48 call (one-frame lag,
+    // imperceptible).
+    const _revealStart = _s47PopupHiddenLocal !== null ? _s47PopupHiddenLocal : 0.3;
+    const _revealEnd = _revealStart + S47_CROSSING_DURATION;
+    const _revealCrossingT = Math.min(1, Math.max(0, (sceneLocal - _revealStart) / (_revealEnd - _revealStart)));
+    if (_revealCrossingT >= S47_REVEAL_START_T) {
+      const revealT = easeInOutCubic(Math.min(1, (_revealCrossingT - S47_REVEAL_START_T) / (1 - S47_REVEAL_START_T)));
+      const scene55Tx = -SCROLL_MAP[23].stripX;
+      effectiveTx = tx + revealT * (scene55Tx - tx);
+    } else {
+      effectiveTx = tx;
     }
   } else if (_s5960T0 !== null && ts - _s5960T0 < S5960_TOTAL_MS) {
     // Mid wall-clock sequence (see the state comment above _s5960T0) — checked by STATE, not
@@ -1030,6 +1192,10 @@ function frame(ts) {
     // direct thing to check.
     if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
     effectiveTx = _s5960FrozenTx;
+  } else if (_s61PostZoomT0 !== null && ts - _s61PostZoomT0 < S61_POSTZOOM_TOTAL_MS) {
+    // Mid second wall-clock sequence — same "checked by STATE" reasoning as _s5960T0 above.
+    if (_s61PostZoomFrozenTx === null) { _s61PostZoomFrozenTx = tx; }
+    effectiveTx = _s61PostZoomFrozenTx;
   } else if (currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE && _scrollingForward && _s5960T0 === null) {
     // Trigger: crossing this point starts the sequence, but only while actually scrolling
     // FORWARD (_scrollingForward, computed above from raw scrollY) — arriving here already
@@ -1045,11 +1211,23 @@ function frame(ts) {
     // read as a periodic "jump". Now it only re-arms once you've actually left (currentScene
     // < 29 resets it in the fallback below).
     _s5960T0 = ts;
+    _s5960EverTriggered = true;
     _scrollFreezeUntil = Date.now() + S5960_TOTAL_MS;
     _s5960FrozenTx = tx;
     effectiveTx = _s5960FrozenTx;
+  } else if (currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) >= S61_POSTZOOM_TRIGGER_LOCAL && _scrollingForward && _s5960T0 === null && _s61PostZoomT0 === null) {
+    // Trigger for the second pull-back — same reasoning as the _s5960T0 trigger above (forward-
+    // only, state-gated so it can't re-fire while already played and sitting past the
+    // threshold). _s5960T0 === null guard keeps this from firing WHILE the first sequence is
+    // still active (it can't be, since that branch is checked first above, but matches the
+    // defensive style of the original).
+    _s61PostZoomT0 = ts;
+    _s61PostZoomEverTriggered = true;
+    _scrollFreezeUntil = Date.now() + S61_POSTZOOM_TOTAL_MS;
+    _s61PostZoomFrozenTx = tx;
+    effectiveTx = _s61PostZoomFrozenTx;
   } else {
-    if (currentScene < 21) _s46ZoomT0 = null; // scrolled back out — reset so re-entering replays it
+    if (currentScene < 21) { _s46ZoomT0 = null; } // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
     _s32DampedTx = null;
     _s32ZoomOutT0 = null; // scrolled back out — reset so re-entering replays the animation
@@ -1057,6 +1235,7 @@ function frame(ts) {
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
     _s5960FrozenTx = null;
+    _s61PostZoomFrozenTx = null;
     // Reset _s5960T0 UNLESS we're sitting right in the trigger zone itself (scene 27, at/past
     // the threshold) — that exact condition is what the retrigger branch above requires
     // _s5960T0 to stay non-null through, to know "already played, don't restart". Resetting it
@@ -1071,8 +1250,13 @@ function frame(ts) {
     if (!(currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE)) {
       _s5960T0 = null; // reset so crossing forward again replays the whole sequence
     }
+    // Same reset reasoning as _s5960T0 above, for the second pull-back's own trigger zone.
+    if (!(currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) >= S61_POSTZOOM_TRIGGER_LOCAL)) {
+      _s61PostZoomT0 = null;
+    }
     effectiveTx = tx;
   }
+
 
   // Reset whole-scene zoom when outside scene 8 and scene 13
   if (currentScene !== 7 && currentScene !== 9 && pinnedWrap) {
@@ -1098,10 +1282,12 @@ function frame(ts) {
     // behind, it wasn't serving its original purpose anyway. Scene 61 is now reached by
     // ordinary continued scrolling after the zoom-out finishes, same as any other scene.)
   } else if (_s6263Active) {
-    // Scenes 62-63 (content one/two) — the zoom REVERSES here, easing scale back from 0.5 up
-    // to 1 (full size) across both screens combined, instead of staying permanently zoomed.
-    // Driven by s6263Pos (computed above from _s6263Index/_s6263TransT0), not currentScene/
-    // sceneLocal — scroll is locked once inside this zone, so sceneLocal stops advancing.
+    // Scenes 62-64 (Resources/Credits/Contact) — the zoom REVERSES here, easing scale back
+    // from 0.5 up to 1 (full size) over the Resources->Credits step, staying at full size for
+    // Contact too (Math.max saturates once s6263Pos passes 1) — instead of staying permanently
+    // zoomed. Driven by s6263Pos (computed above from _s6263Index/_s6263FromIndex/
+    // _s6263TransT0), not currentScene/sceneLocal — scroll is locked once inside this zone, so
+    // sceneLocal stops advancing.
     s5960ZoomT = Math.max(0, 1 - s6263Pos);
     s5960CoverT = 1;
     s5960Overall = 1;
@@ -1115,7 +1301,40 @@ function frame(ts) {
     s5960ZoomT = 1;
     s5960CoverT = 1;
     s5960Overall = 1;
+  } else if (_s5960EverTriggered && currentScene === 27) {
+    // Smooth reverse — scrolling back below S5960_ZOOM_START_PHASE after having already
+    // played this sequence once eases s5960ZoomT back down to 0 over a small scroll range
+    // instead of instantly snapping (the bug: bus scale used to jump 0.5 -> 1 in one frame
+    // the moment sceneLocal crossed back under the threshold, since s5960ZoomT had no source
+    // at all once _s5960T0 got reset to null here).
+    const S5960_REVERSE_EASE_SPAN = 0.05;
+    s5960ZoomT = Math.max(0, Math.min(1, (sceneLocal - (S5960_ZOOM_START_PHASE - S5960_REVERSE_EASE_SPAN)) / S5960_REVERSE_EASE_SPAN));
   }
+
+  // Second pull-back stage (0.5 -> 0.3 combined scale), same wall-clock technique as
+  // s5960ZoomT above, driven by _s61PostZoomT0 instead of _s5960T0. Once triggered it stays
+  // non-null (see the reset condition in the effectiveTx chain above) for as long as you're
+  // still past S61_POSTZOOM_TRIGGER_LOCAL, so this naturally clamps at 1 and stays there
+  // rather than needing its own separate "permanent hold" branch — except for a direct-nav
+  // jump straight into scene 29 (never having played the trigger), where scene 29 alone is
+  // enough to know it should already be fully applied.
+  let s61PostZoomT = 0;
+  if (_s61PostZoomT0 !== null) {
+    s61PostZoomT = easeInOutCubic(Math.min(1, (ts - _s61PostZoomT0) / S61_POSTZOOM_TOTAL_MS));
+  } else if (currentScene === 29) {
+    s61PostZoomT = 1;
+  } else if (_s61PostZoomEverTriggered && currentScene >= 27 && currentScene <= 29) {
+    // Same smooth-reverse fix as s5960ZoomT above — scrolling back below
+    // S61_POSTZOOM_TRIGGER_LOCAL after having already played this stage once eases back down
+    // over a small combinedLocal5973 range instead of snapping straight from 0.3 to 0.5.
+    const S61_POSTZOOM_REVERSE_EASE_SPAN = 0.05;
+    const combinedLocalNow = (currentScene - 27) + sceneLocal;
+    s61PostZoomT = Math.max(0, Math.min(1, (combinedLocalNow - (S61_POSTZOOM_TRIGGER_LOCAL - S61_POSTZOOM_REVERSE_EASE_SPAN)) / S61_POSTZOOM_REVERSE_EASE_SPAN));
+  }
+
+  // .scene-60 extras (matatu 5/8, Group 898) — fade in together with the second bus/background
+  // pull-back, same s61PostZoomT driving the zoom itself (not a separate scroll-based window).
+  s60ZoomExtras.forEach(el => { el.style.opacity = s61PostZoomT.toFixed(3); });
 
   // -- Horizontal strip --
   scrollX.style.transform = `translateX(${effectiveTx.toFixed(1)}px)`;
@@ -1157,14 +1376,10 @@ function frame(ts) {
   if (s5558TransitionFrameFront && SCROLL_MAP[23]) {
     const frameVx = SCROLL_MAP[23].stripX + 1.22 * _vw + effectiveTx;
     if (currentScene >= 23 && currentScene <= 26) {
-      if (frameVx <= 0) {
-        s5558TransitionFrameFront.style.opacity   = '1';
-        s5558TransitionFrameFront.style.transform = 'translateX(0px)';
-      } else {
-        const frameOpacity = Math.max(0, 1 - frameVx / _vw);
-        s5558TransitionFrameFront.style.opacity   = frameOpacity.toFixed(3);
-        s5558TransitionFrameFront.style.transform = `translateX(${frameVx.toFixed(1)}px)`;
-      }
+      // Hard on/off now, no gradual cross-fade — opacity is 1 by default whenever the frame
+      // is in reach, snapping straight to 0 only once it's slid a full viewport past center.
+      s5558TransitionFrameFront.style.opacity   = (frameVx <= _vw) ? '1' : '0';
+      s5558TransitionFrameFront.style.transform = `translateX(${Math.max(0, frameVx).toFixed(1)}px)`;
     } else {
       s5558TransitionFrameFront.style.opacity = '0';
     }
@@ -1384,7 +1599,7 @@ function frame(ts) {
 
   // -- Matatu drive-in --
   animateMatatu(currentScene, sceneLocal, tx, junglePhase, busOpacity);
-  animateCityBus(currentScene, sceneLocal, busOpacity, s5960ZoomT, ts);
+  animateCityBus(currentScene, sceneLocal, busOpacity, s5960ZoomT, ts, s61PostZoomT);
   animateS21Vehicles(currentScene, sceneLocal, ts);
   animateS26S30(currentScene, sceneLocal, effectiveTx);
   animateS32S43(currentScene, sceneLocal, effectiveTx, ts);
@@ -1468,26 +1683,43 @@ function frame(ts) {
     if (s1s3Broad) s1s3Broad.classList.toggle('s1s3-sharp', !showStart);
   }
 
-  // -- Scenes 55-57 popups: kept centered on screen via dynamic `left`, recomputed every
-  // frame from the live pan — see the comment above for why a static CSS left doesn't work
-  // here anymore. S5558_BG_LEFT_VW must match #s55-s58-bg's `left` in style.css.
+  // -- Scenes 55-57 popups: true CSS position:fixed now (see style.css) — moved to root level
+  // in index.html specifically so they're genuinely relative to the viewport, not #scroll-x's
+  // panning transform. No position math needed here at all any more, only opacity/.visible.
   if (SCROLL_MAP[23]) {
-    const S5558_BG_LEFT_VW = 2665;
-    const vwPx = _vw / 100;
-    const viewportCenterVw = -effectiveTx / vwPx + 50;
-    const popupCenterVw = viewportCenterVw - S5558_BG_LEFT_VW;
     // combinedLocal: 0 at scene-55 start .. 3 at scene-57 end (same combined scale as the
     // pan-speed blend above). Used so panel-55/56 can overlap (both open together for a
     // stretch) instead of being strictly one-scene-each — 56 opens before 55 closes, then
     // 56 closes exactly as 57 opens (no overlap there, a clean handoff).
     const inHoldRange = currentScene >= 23 && currentScene <= 25;
     const combinedLocal = inHoldRange ? (currentScene - 23) + sceneLocal : -1;
-    const show55 = inHoldRange && combinedLocal > 0.4 && combinedLocal < 0.9;
-    const show56 = inHoldRange && combinedLocal > 0.6 && combinedLocal < 0.9;
-    const show57 = inHoldRange && combinedLocal > 0.9 && combinedLocal < 1.2;
-    positionCenteredPopup(panels[24], show55, popupCenterVw);
-    positionCenteredPopup(panels[25], show56, popupCenterVw);
-    positionCenteredPopup(panels[26], show57, popupCenterVw);
+    // panel-55's own window split into two sequential popups (55 then 55b) instead of one
+    // popup with two paragraphs — same total range (0.28-0.35), just handed off partway
+    // through instead of both paragraphs showing at once.
+    const show55  = inHoldRange && combinedLocal > 0.28  && combinedLocal < 0.315;
+    const show55b = inHoldRange && combinedLocal > 0.315 && combinedLocal < 0.35;
+    const show56 = inHoldRange && combinedLocal > 0.39 && combinedLocal < 0.41;
+    const show57 = inHoldRange && combinedLocal > 0.42 && combinedLocal < 0.5;
+    // Freeze scroll briefly on open — same universal pattern every other popup in this file
+    // uses (POPUP_SCROLL_FREEZE_MS).
+    if (show55 && !_panel55Shown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
+    if (show55b && !_panel55bShown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
+    if (show56 && !_panel56Shown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
+    if (show57 && !_panel57Shown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
+    _panel55Shown = show55;
+    _panel55bShown = show55b;
+    _panel56Shown = show56;
+    _panel57Shown = show57;
+    const setPanel = (el, show) => {
+      if (!el) return;
+      el.style.opacity = show ? '1' : '0';
+      el.classList.toggle('visible', show);
+    };
+    setPanel(panels[24], show55);
+    setPanel(panel55b, show55b);
+    setPanel(panels[25], show56);
+    setPanel(panels[26], show57);
+    if (s55HunikiSign) s55HunikiSign.style.opacity = (show55 || show55b) ? '1' : '0';
   }
 
   // -- Scenes 59-73 popups: same dynamic-centering technique as scenes 55-57 above (this
@@ -1500,43 +1732,82 @@ function frame(ts) {
     const vwPx2 = _vw / 100;
     const viewportCenterVw2 = -effectiveTx / vwPx2 + 50;
     const popupCenterVw2 = viewportCenterVw2 - S5973_BG_LEFT_VW;
-    s5973Panels.forEach((el, i) => {
-      const sceneIdx = 27 + i; // 27..29 only now (59-61) — 62/63 moved to their own block below
-      let show;
-      if (sceneIdx === 27) {
-        // panel-59: the intro message — hides by SCROLL AMOUNT (sceneLocal), not the bus
-        // zoom's own progress — 0.75 is just before S5960_ZOOM_START_PHASE (0.8, where the
-        // freeze/zoom triggers), so it's gone before the zoom even starts, handing off to
-        // panel-60 (right below) instead of the two overlapping.
-        show = currentScene === 27 && sceneLocal > 0.15 && sceneLocal < 0.45;
-      } else if (sceneIdx === 28) {
-        // panel-60: disabled — it has the same "Would you like to learn more?" text as
-        // panel-61, and only the LAST one (panel-61, the true final scene) should open now.
-        show = false;
-      } else {
-        // panel-61: was a 5% sliver (0.05-0.1) of scene 61's already-small scroll budget —
-        // easy to scroll straight past without ever seeing it. Wide open now since this is
-        // the actual ending message and there's nothing after it to hand off to.
-        show = currentScene === sceneIdx && sceneLocal > 0.02;
-      }
-      positionCenteredPopup(el, show, popupCenterVw2);
-    });
 
-    // Second popup — tied to the purple-man character (.s5973-purple-man in style.css,
-    // left:60vw), not a scene boundary. Shows in the gap between panel-59 hiding and
-    // panel-60/61's window — retune this sceneLocal range directly if it doesn't line up
-    // with where the character actually scrolls into view.
-    if (panelPurpleMan) {
-      const showPurpleMan = currentScene === 27 && sceneLocal > 0.45 && sceneLocal < 0.7;
-      positionCenteredPopup(panelPurpleMan, showPurpleMan, popupCenterVw2);
+    // Root-level bridge (see #s5973-bridge-front in style.css) — its local `left` (within
+    // #s5973-bg-art) is 0vw, so its on-screen X (in vw from the viewport's left edge) is
+    // S5973_BG_LEFT_VW - viewportCenterVw2 + 50; only shown during scenes 59-60 (27-28), the
+    // same window #city-bus is actually on the bridge.
+    if (s5973BridgeFront) {
+      const bridgeOnScreenVw = S5973_BG_LEFT_VW - viewportCenterVw2 + 50;
+      // Same scale as the background art (bgScale below) — so the bridge shrinks WITH the
+      // rest of the scene during the zoom-out instead of staying a fixed size on its own
+      // while everything around it pulls back (needs its own copy here since it's root-level,
+      // not a child of #s5973BgArt that would inherit its transform automatically).
+      const bridgeScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT;
+      s5973BridgeFront.style.transform = `translateX(${(bridgeOnScreenVw * vwPx2).toFixed(1)}px) scale(${bridgeScale.toFixed(3)})`;
+      s5973BridgeFront.style.opacity = (currentScene === 27 || currentScene === 28) ? '1' : '0';
     }
 
-    // Third popup — opens once the bus finishes zooming out to scale 0.5 (s5960ZoomT reaches
-    // 1, partway through the wall-clock freeze sequence — see S5960_ZOOM_END_FRAC), not a
-    // scroll-number threshold like the others.
-    if (panelLanguageJustice) {
-      const showLanguageJustice = currentScene === 27 && s5960ZoomT >= 1;
-      positionCenteredPopup(panelLanguageJustice, showLanguageJustice, popupCenterVw2);
+    // 4 popups here, same combinedLocal technique as scenes 55-57's inHoldRange/combinedLocal
+    // above — one continuous value spanning scenes 27-29 (59-61) so all 4 windows read as
+    // plain sequential bands instead of scattered separate blocks. panel-60 stays disabled
+    // (duplicate text of panel-61, only the true final scene should open). showLanguageJustice
+    // is the one exception — it's wall-clock driven (bus zoom-out finishing, s5960ZoomT
+    // reaching 1, see S5960_ZOOM_END_FRAC), not a combinedLocal band, so retune its timing
+    // there instead of the number below.
+    const inHoldRange5973 = currentScene >= 27 && currentScene <= 29;
+    const combinedLocal5973 = inHoldRange5973 ? (currentScene - 27) + sceneLocal : -1;
+
+    const show59              = inHoldRange5973 && combinedLocal5973 > 0.15 && combinedLocal5973 < 0.45;
+    const showPurpleMan       = inHoldRange5973 && combinedLocal5973 > 0.45 && combinedLocal5973 < 0.7;
+    const showLanguageJustice = inHoldRange5973 && combinedLocal5973 > 0.7  && combinedLocal5973 < 1.0;
+    const show61              = inHoldRange5973 && combinedLocal5973 > 1.02 && combinedLocal5973 < 1.2;
+
+    positionCenteredPopup(s5973Panels[0], show59, popupCenterVw2);
+    if (panelPurpleMan) positionCenteredPopup(panelPurpleMan, showPurpleMan, popupCenterVw2);
+    if (panelLanguageJustice) positionCenteredPopup(panelLanguageJustice, showLanguageJustice, popupCenterVw2);
+
+    // #panel-61: track bus position — same technique as #panel-5 (see the "#panel-5: track
+    // bus position" block below), sitting above #city-bus with its long bubble__tail (left:
+    // 66% of the box, per its CSS) pointing down at the bus's top-center. Root-level/
+    // position:fixed (see style.css) so the live px coordinates from getBoundingClientRect()
+    // line up correctly — a descendant of #scroll-x's transform would not (same gotcha as
+    // #panel-5/#s47-crossing-matatu).
+    const panel61 = s5973Panels[2];
+    if (panel61) {
+      panel61.style.opacity = show61 ? '1' : '0';
+      panel61.classList.toggle('visible', show61);
+      if (show61 && _busRect) {
+        const boxWidth  = panel61.offsetWidth  || 0;
+        const boxHeight = panel61.offsetHeight || 0;
+        const tailTargetX = _busRect.left + _busRect.width * 0.5;
+        const tailTargetY = _busRect.top;
+        panel61.style.left   = `${(tailTargetX - boxWidth * 0.66).toFixed(0)}px`;
+        panel61.style.top    = `${(tailTargetY - boxHeight - 20).toFixed(0)}px`;
+        panel61.style.bottom = 'auto';
+        panel61.style.right  = 'auto';
+        panel61.style.transform = 'none';
+      }
+    }
+
+    // Scenes 60-61 cloud cover — scrubbed frame-by-frame from combinedLocal5973 (not
+    // autoplaying), same technique as scene 21's s21cLottie above (now that SCENE_SCROLL[28]/
+    // [29] are back to normal values, this scrubs at a normal pace instead of needing tens of
+    // thousands of px like it did while they were bumped to 40). Triggers right where the
+    // second pull-back (s61PostZoomT) finishes — "after zoom out" — then scrubs as an ordinary
+    // function of scroll for the rest of the closing chapter (combinedLocal5973 up to 3.0,
+    // same upper bound show61 uses). Opacity tracks cloudT directly (not a separate shorter
+    // fade span) so it and the lottie frame always move at the same rate.
+    const cloudStart = S61_POSTZOOM_TRIGGER_LOCAL;
+    const CLOUD_REVEAL_SPAN = 0.6; // smaller = clouds fully cover over less scroll (faster); was 3.0-cloudStart (1.8)
+    const cloudSpan = CLOUD_REVEAL_SPAN;
+    const cloudT = (inHoldRange5973 && s61PostZoomT >= 1) ? Math.max(0, Math.min(1, (combinedLocal5973 - cloudStart) / cloudSpan)) : 0;
+    if (s5973CloudsLottie) {
+      s5973CloudsLottie.style.opacity = cloudT.toFixed(3);
+      if (cloudT > 0 && typeof s5973CloudsLottie.getLottie === 'function') {
+        const lottie = s5973CloudsLottie.getLottie();
+        if (lottie && lottie.totalFrames) lottie.goToAndStop(cloudT * (lottie.totalFrames - 1), true);
+      }
     }
 
     // -- Whole-background zoom: auto-playing, wall-clock driven by s5960ZoomT (computed once,
@@ -1547,7 +1818,10 @@ function frame(ts) {
     // strip. --
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
-        const bgScale = 1 - 0.3 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
+        // Same wall-clock s61PostZoomT as animateCityBus's zoom (computed once, alongside
+        // s5960ZoomT, near the top of frame()) — background's multiplier goes 0.3 -> 0.42
+        // (same 0.6 ratio to the bus's 0.5 -> 0.7) so the two stay in sync.
+        const bgScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT; // dramatic pull-back: 1.0 -> 0.2
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
         s5973BgArt.style.opacity = '1';
@@ -1577,15 +1851,19 @@ function frame(ts) {
     // with hiding the park art above — same reasoning, leave the background as-is.)
   }
 
-  // -- Scenes 62-63 (content screens) — root-level fixed overlay, screen-by-screen switching.
+  // -- Scenes 62-64 (content screens) — root-level fixed overlay, screen-by-screen switching.
   // Not part of the pan strip at all anymore: #s62-s63-bg's own opacity shows/hides the whole
   // overlay, and each .s6263-slide crossfades via s6263Pos (computed above from _s6263Index/
-  // _s6263TransT0, driven by the wheel-lock listener, not scroll position). --
+  // _s6263FromIndex/_s6263TransT0, driven by the wheel-lock listener, not scroll position).
+  // Each slide's own opacity is a "tent" centered on its own index — 1 exactly at s6263Pos===i,
+  // fading to 0 by the time s6263Pos is 1 away — which generalizes correctly to any slide
+  // count (the old hardcoded 2-slide version was `1-pos`/`pos`, a triangle across just 0..1). --
   if (s6263Bg) {
     s6263Bg.classList.toggle('active', _s6263Active);
-    if (s6263Slides[0]) s6263Slides[0].style.opacity = Math.max(0, 1 - s6263Pos).toFixed(3);
-    if (s6263Slides[1]) s6263Slides[1].style.opacity = Math.max(0, s6263Pos).toFixed(3);
-    // Content panels (.s6263-content-panel, the real Resources/Contact+Credits design) fade
+    s6263Slides.forEach((el, i) => {
+      if (el) el.style.opacity = Math.max(0, 1 - Math.abs(s6263Pos - i)).toFixed(3);
+    });
+    // Content panels (.s6263-content-panel, the real Resources/Credits/Contact design) fade
     // with their parent .s6263-slide's own opacity above — no separate opacity toggle needed.
     // pointer-events is toggled here instead: only the currently-active, settled slide's panel
     // should be clickable/scrollable — the other one sits at opacity:0 in the same spot and
@@ -1733,7 +2011,7 @@ function animateMatatu(scene, local, tx, junglePhase, opacity) {
 }
 
 // ---- City bus: starts entering when 30% of scene 4 (savanna) has passed ----
-function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
+function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0) {
   if (!cityBus) return;
   const vw     = getVw();
   const vh     = window.innerHeight;
@@ -2091,7 +2369,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
       // 0.4 for the 150vw-wide background — same local fraction now means much less actual
       // scroll, so it read as fast) — this is the slowest it can be within that unchanged
       // scroll budget, not a scroll-length change.
-      const FAR_ENTRY = -0.6 * vw;
+      const FAR_ENTRY = -0.36 * vw;
       const t = easeInOutCubic(Math.min(1, local / 1.0));
       busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
       eff  = opacity * Math.min(1, local / 0.4);
@@ -2137,8 +2415,8 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
     driveCar(s5558Car,  { farEntry: -0.75 * vw, ahead:  0.15 * vw, entryWindow: 0.5,  fadeInWindow: 0.2,  swayPhase: 0,   swayAmp: 0.015 * vw });
     // Trails further back and enters slower — reads as a second car catching up from behind.
     driveCar(s5558Car2, { farEntry: -0.95 * vw, ahead: -0.35 * vw, entryWindow: 0.65, fadeInWindow: 0.3,  swayPhase: 0.4, swayAmp: 0.02  * vw });
-    // Quick little car darting in ahead of both, own independent sway phase.
-    driveCar(s5558Car3, { farEntry: -0.55 * vw, ahead:  0.55 * vw, entryWindow: 0.4,  fadeInWindow: 0.15, swayPhase: 0.8, swayAmp: 0.018 * vw });
+    // s5558Car3 (toyota probox) hidden per request — no driveCar() call, stays at its
+    // default opacity 0 (set below) instead of driving in.
   } else if (scene >= 27 && scene <= 29) {
     // Scenes 59-61: closing chapter — matatu drives in once at scene 59, then keeps "driving"
     // continuously (a gentle bob, not literally translating) through the park/lake stretch
@@ -2156,7 +2434,9 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts) {
     // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
     // a locally-redeclared scroll-driven copy here, which is exactly how it drifted out of
     // sync with the background's own copy before.
-    zoom = 1 - 0.5 * s5960ZoomT; // dramatic pull-back: 1.0 -> 0.2
+    // dramatic pull-back: 1.0 -> 0.5 (s5960ZoomT), then a further 0.5 -> 0.3 once panel-61
+    // has closed (s61PostZoomT) — combined multiplier goes 0.5 -> 0.7 total.
+    zoom = 1 - 0.5 * s5960ZoomT - 0.2 * s61PostZoomT;
     if (scene === 27 && s5960ZoomT === 0) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
@@ -2524,12 +2804,9 @@ function animateS32S43(scene, local, etx, ts) {
   // actually be dismissed by scrolling.
   const lesanTriggered = scene > 16 || (scene === 16 && local >= 0.90);
 
-  // Pregnant woman: plain quick fade-in in place (not tied to the zoom below — she just
-  // needs to be visible while the scene stays zoomed in around her and Asmelash).
-  const PREGNANT_FADE_END = 0.80;
-  const pregnantT = scene < 17 ? 0 : scene > 17 ? 1
-    : easeInOutCubic(Math.min(1, Math.max(0, (local - 0.75) / (PREGNANT_FADE_END - 0.75))));
-  if (char35Pregnant) char35Pregnant.style.opacity = pregnantT.toFixed(3);
+  // The 5th popup ("Many people may not know...") is "done" the instant it's dismissed
+  // by the 3-scroll counter, or (fallback) once local reaches 0.20 anyway.
+  const asmelash1Done = _s33AsmelashDismissed || local >= 0.30;
 
   // Zoom IN starts right away once Samuel's popup hides and Lesan takes over
   // (lesanTriggered, hoisted above) — used to wait for Lesan to actually be dismissed
@@ -2539,6 +2816,22 @@ function animateS32S43(scene, local, etx, ts) {
   if (!lesanTriggered) _sAsmelashZoomInT0 = null; // scrolled back out — reset so re-entering replays it
   const asmelashZoomInT = _sAsmelashZoomInT0 === null ? 0
     : easeInOutCubic(Math.min(1, Math.max(0, (ts - _sAsmelashZoomInT0) / ASMELASH_ZOOMIN_MS)));
+
+  // Pregnant woman: visible only within this local window in scene 17 — was fade-in-only
+  // (never hid again once shown, staying visible into scene 18 too). Both edges ease over
+  // PREGNANT_FADE_WIDTH.
+  const PREGNANT_SHOW_LOCAL = 0.40; // starts fading in here
+  const PREGNANT_HIDE_LOCAL = 0.95; // starts fading out here
+  const PREGNANT_FADE_WIDTH = 0.05;
+  let pregnantT;
+  if (scene !== 17) {
+    pregnantT = 0;
+  } else {
+    const fadeIn  = easeInOutCubic(Math.min(1, Math.max(0, (local - PREGNANT_SHOW_LOCAL) / PREGNANT_FADE_WIDTH)));
+    const fadeOut = easeInOutCubic(Math.min(1, Math.max(0, (local - PREGNANT_HIDE_LOCAL) / PREGNANT_FADE_WIDTH)));
+    pregnantT = fadeIn * (1 - fadeOut);
+  }
+  if (char35Pregnant) char35Pregnant.style.opacity = pregnantT.toFixed(3);
 
   // Zoom OUT once local reaches S33_ZOOM_HOLD (after both pregnant-woman popups have had
   // time to show) — wall-clock timed via _s33ZoomOutT0/S33_ZOOMOUT_MS in frame().
@@ -2568,11 +2861,9 @@ function animateS32S43(scene, local, etx, ts) {
     } else if (scene === 16 && !lesanTriggered) {
       s32Scale = 1.5 - 0.5 * samuelT; // original scene-32 zoom-out for Samuel's reveal
     } else if (scene >= 19) {
-      // Scene 44: zoom in on the frozen scene-34 content underneath while the new scene
-      // slides down over it (see animateS44) — continuously tied to its own local, so
-      // scrolling back out eases the zoom back to 1x in step with the slide sliding back up.
-      const s44ZoomT = scene > 19 ? 1 : easeInOutCubic(local);
-      s32Scale = 1 + 0.3 * s44ZoomT;
+      // Scene 44: no longer zooms the frozen scene-34 content underneath while the new
+      // scene slides down over it — stays flat at 1x per request.
+      s32Scale = 1;
     } else if (scene > 17 || (scene === 17 && local >= S33_ZOOM_HOLD)) {
       s32Scale = 1.5 - 0.5 * pregnantZoomT; // zoom-out after both pregnant-woman popups
     } else {
@@ -2665,13 +2956,9 @@ function animateS32S43(scene, local, etx, ts) {
   // staying visible independently through the rest of the scene.
   if (char37Asmelash) char37Asmelash.style.opacity = showAsmelashPopup ? '1' : '0';
 
-  // The 5th popup is "done" the instant it's dismissed by the 2-scroll counter above, OR
-  // (fallback, e.g. keyboard/programmatic scroll never fired the wheel counter) once local
-  // reaches its old 0.55 cutoff anyway — whichever comes first.
-  const asmelash1Done = _s33AsmelashDismissed || local >= 0.20;
-
   // 6th popup ("Here, data collection is an act of shared reflection...") — opens
   // together with the flipped Asmelash, right when the 5th popup is dismissed.
+  // (asmelash1Done hoisted above, near samuelT/lesanTriggered.)
   const showAsmelash2Popup = scene === 17 && asmelash1Done && local < 0.35;
   // Flipped Asmelash (facing right) now hides/shows together with this popup, instead
   // of staying visible independently for the rest of the scene.
@@ -2711,7 +2998,7 @@ function animateS32S43(scene, local, etx, ts) {
   // 8th popup — below the pregnant woman, shown after scrolling past the 7th, hides
   // again once Sadik shows up.
   if (panel32PregnantDown) {
-    const showPregnantDown = !showSadik && scene === 17 && local >= 0.87;
+    const showPregnantDown = !showSadik && scene === 17 && local >= 0.57;
     if (showPregnantDown && panel32PregnantDown.style.opacity !== '1') {
       _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     }
@@ -2816,7 +3103,7 @@ function animateS45S48(scene, local, etx, ts) {
   // Where the viewport's horizontal center currently sits, in #s45-s48-bg's own container-
   // local coordinate space — recomputed every frame from the live pan (etx), reused below
   // by every popup's positionCenteredPopup() call so they all stay centered on screen.
-  const S45S48_BG_LEFT_VW = 2298; // must match #s45-s48-bg's `left` in style.css
+  const S45S48_BG_LEFT_VW = 2250; // must match #s45-s48-bg's `left` in style.css — was stale at 2256
   const vwPx = getVw() / 100;
   const viewportCenterVw = -etx / vwPx + 50;
   const popupCenterVw = viewportCenterVw - S45S48_BG_LEFT_VW;
@@ -2827,20 +3114,28 @@ function animateS45S48(scene, local, etx, ts) {
   // then Kathleen (with popup) → toto moto → red lady (with popup) → toto moto's popup →
   // wheelchair man, one at a time. Each one stays visible once shown (no fade-out) — they
   // accumulate instead of replacing each other.
-  // Kathleen stays seated next to the wheelchair man through scenes 46-48 too (see the
-  // scene-47/48 popups below) — same "stays visible once shown" pattern as wheelchair man.
-  if (char45Kathleen)   char45Kathleen.classList.toggle('visible',   scene > 20 || (scene === 20 && local >= 0.2));
+  // Kathleen now hides together with her own quote popup (showKathleen) instead of staying
+  // seated through scenes 46-48 the way the wheelchair man does.
+  const showKathleen = scene === 20 && local > 0.25 && local < 0.4;
+  if (char45Kathleen)   char45Kathleen.classList.toggle('visible',   showKathleen);
   const showTotoMoto = scene === 20 && local >= 0.45;
   if (char45TotoMoto)   char45TotoMoto.classList.toggle('visible',   showTotoMoto);
-  if (soundCaptionTotoMoto) soundCaptionTotoMoto.style.opacity = showTotoMoto ? '1' : '0';
-  if (char45RedLady)    char45RedLady.classList.toggle('visible',    scene === 20 && local >= 0.65);
+  const showRedLadyChar = scene === 20 && local >= 0.65;
+  if (char45RedLady)    char45RedLady.classList.toggle('visible',    showRedLadyChar);
+  // Toto moto's name plate + quote hand off to the red lady — they hide the moment she
+  // shows up, even though toto moto himself stays in frame.
+  const showTotoMotoLabel = showTotoMoto && !showRedLadyChar;
+  if (soundCaptionTotoMoto) soundCaptionTotoMoto.style.opacity = showTotoMotoLabel ? '1' : '0';
   // Toto moto and red lady don't carry into 46-48 — only Kathleen and wheelchair man stay
   // seated together for the scene-47/48 popups below.
 
-  // Kathleen's quote — shown once she's been visible a moment, hides again before toto moto
-  // takes over.
-  const showKathleen = scene === 20 && local > 0.25 && local < 0.4;
-  positionCenteredPopup(panel45Kathleen, showKathleen, popupCenterVw);
+  // Kathleen's quote — same window as Kathleen herself (showKathleen, hoisted above), so
+  // the two open and hide together. Plain opacity/visible toggle only — no auto left/
+  // transform (positioned via CSS instead, unlike the other positionCenteredPopup() calls).
+  if (panel45Kathleen) {
+    panel45Kathleen.style.opacity = showKathleen ? '1' : '0';
+    panel45Kathleen.classList.toggle('visible', showKathleen);
+  }
   // Name plate + sound icon now hide/show together with her quote popup.
   if (soundCaptionKathleen) soundCaptionKathleen.style.opacity = showKathleen ? '1' : '0';
 
@@ -2849,23 +3144,25 @@ function animateS45S48(scene, local, etx, ts) {
   const showRedLady = scene === 20 && local > 0.7 && local < 0.82;
   positionCenteredPopup(panel45RedLady, showRedLady, popupCenterVw);
 
-  // Toto moto's quote — shown after red lady's popup, hides again before wheelchair man's turn.
-  const showTotoMotoQuote = scene === 20 && local > 0.85 && local < 0.95;
-  positionCenteredPopup(panel45TotoMoto, showTotoMotoQuote, popupCenterVw);
+  // Toto moto's quote — opens with toto moto himself and hides as soon as the red lady
+  // shows up (showTotoMotoLabel above), same as his name plate.
+  positionCenteredPopup(panel45TotoMoto, showTotoMotoLabel, popupCenterVw);
 
   // Wheelchair man — next guy in the sequence, stays for the rest of the scene once he
   // appears, giving him real time on screen before scene 46 begins.
   // Stays visible even past scene 45 (scrolling into 46/47/48) — no hide once he's appeared.
   if (char45Wheelchair) char45Wheelchair.classList.toggle('visible', scene > 20 || (scene === 20 && local >= 0.9));
 
+
   // Wheelchair man zoom-in — wall-clock timed (see _s46ZoomT0, stamped in frame() the moment
   // the pan settles him into center), so it plays out on its own like a video, no further
   // scrolling needed. Stays fully zoomed through the rest of scene 46 and scenes 47/48 too,
   // since Kathleen and he stay in frame together for their popups there (see below).
+  // Scroll-driven (see S46_ZOOM_END_LOCAL) — eases 0->1 across the pan's own hold window, so
+  // it follows the wheel smoothly and reverses on scroll-back, instead of a one-shot timer.
   const wheelchairZoomT = scene < 21 ? 0
     : scene > 21 ? 1
-    : _s46ZoomT0 === null ? 0
-    : easeInOutCubic(Math.min(1, Math.max(0, (ts - _s46ZoomT0) / S46_ZOOM_MS)));
+    : easeInOutCubic(Math.min(1, Math.max(0, (local - S46_HOLD_START) / (S46_ZOOM_END_LOCAL - S46_HOLD_START))));
   if (s4548Visual) {
     const s46Scale = 1 + 0.5 * wheelchairZoomT;
     // Same "recompute origin from the current viewport center" technique as
@@ -2882,22 +3179,178 @@ function animateS45S48(scene, local, etx, ts) {
     s4548Visual.style.transform = `scale(${s46Scale.toFixed(3)})`;
   }
 
-  // Huniki popup shows first once the zoom-in finishes, stays up for S46_HUNIKI_MS, then
-  // fades out and the Big Tech popup queues in behind it — both wall-clock timed off the
-  // same _s46ZoomT0 as the zoom itself, so the whole sequence plays on its own, no further
-  // scrolling needed. sinceFinish is negative/NaN until the zoom has actually completed.
-  const sinceZoomFinish = _s46ZoomT0 === null ? -Infinity : ts - (_s46ZoomT0 + S46_ZOOM_MS);
-  const showHuniki = scene === 21 && sinceZoomFinish >= 0 && sinceZoomFinish < S46_HUNIKI_MS;
+  // Huniki popup shows first once the zoom-in finishes (S46_ZOOM_END_LOCAL), stays up until
+  // S46_HUNIKI_LOCAL_END, then the Big Tech popup takes over until S46_BIGTECH_LOCAL_END —
+  // scroll-driven off local (like every other popup in this file), not wall-clock, so they
+  // open/close on scroll position — was wall-clock (2s each, off a stamp taken the instant the
+  // zoom finished), which made them open and close automatically regardless of scrolling.
+  const showHuniki = scene === 21 && local >= S46_ZOOM_END_LOCAL && local < S46_HUNIKI_LOCAL_END;
   positionCenteredPopup(panel46Huniki, showHuniki, popupCenterVw);
-  const showBigTech = scene === 21 && sinceZoomFinish >= S46_HUNIKI_MS;
+  const showBigTech = scene === 21 && local >= S46_HUNIKI_LOCAL_END && local < S46_BIGTECH_LOCAL_END;
   positionCenteredPopup(panel46BigTech, showBigTech, popupCenterVw);
 
   // Chris Emezue's quote — he and the last red-topped woman are baked into the seat art
   // itself, so there's no character reveal here, just the popup timed to when that part of
   // the art is roughly centered on screen (confirmed in-browser: scene 47, local ~4%).
-  const showChris = scene === 22 && local >= 0.03 && local < 0.3;
-  positionCenteredPopup(panel47Chris, showChris, popupCenterVw);
-  if (soundCaptionChris) soundCaptionChris.style.opacity = showChris ? '1' : '0';
+  // Triggers right at the scene 46/47 boundary (scene 22 local=0) — no early offset. A "200px
+  // earlier" adjustment used to live here, which meant the freeze often fired and finished
+  // before the pan actually reached this exact frame, leaving nothing frozen by the time you
+  // got here.
+  // Excludes !showHuniki && !showBigTech so this can NEVER overlap those two, regardless of
+  // whatever local thresholds end up chosen above/below — confirmed live they were opening
+  // at the same time (both visible, overlapping text) once this popup's own window was
+  // widened to start earlier in scene 21.
+  const showChris = ((scene === 21 && local >= 0.68) || (scene === 22 && local < 0.6)) && !showHuniki && !showBigTech;
+  // No freeze-on-open here any more — this popup now freezes when it reaches screen center
+  // instead (see the _panel47CenterReached check below, on panel47NewGuy).
+
+  // .char-s47-newguy/#panel-47-newguy — hosts Chris Emezue's popup + sound caption.
+  // Mirrors showChris's own window (same two people, same timing), except it hides itself
+  // for good the instant you actually scroll again after its own center-freeze ends — not
+  // on a timer. Stays up through the
+  // freeze and keeps staying up afterward for as long as scrollY doesn't move (e.g. you just
+  // sit there once it releases); the moment scrollY changes at all, it's gone.
+  const _s47FreezeTimerDone = _panel47FreezeEndsAt !== null && Date.now() >= _panel47FreezeEndsAt;
+  if (_s47FreezeTimerDone && _panel47FreezeReleaseScrollY === null) {
+    _panel47FreezeReleaseScrollY = window.scrollY; // where it was pinned, captured once the timer finishes
+  }
+  const _s47HiddenByScroll = _panel47FreezeReleaseScrollY !== null && window.scrollY !== _panel47FreezeReleaseScrollY;
+  const showS47NewGuy = showChris && !_s47HiddenByScroll;
+  // Captured once, the instant the popup actually hides (scene 22 only — if it hid back in
+  // scene 21's tail, local resets on entering scene 22 anyway, so there's nothing meaningful
+  // to capture yet) — the crossing-matatu sequence below starts from here instead of a fixed
+  // local fraction, so it runs right on the popup's own position instead of independently.
+  if (_s47HiddenByScroll && scene === 22 && _s47PopupHiddenLocal === null) {
+    _s47PopupHiddenLocal = local;
+  }
+  if (!showChris) { _panel47FreezeEndsAt = null; _panel47FreezeReleaseScrollY = null; _s47PopupHiddenLocal = null; } // re-arm for next time it opens
+  _panel47NewGuyShown = showS47NewGuy;
+  // Freeze not on open, but the moment the popup itself reaches the exact center of the
+  // viewport — same reference point as the wheelchair man's own hold-at-center. Own longer
+  // hold duration (S47_CENTER_FREEZE_MS, not the shared 700ms POPUP_SCROLL_FREEZE_MS every
+  // other popup uses) — 700ms turned out to be shorter than a real trackpad/mouse's own
+  // scroll-momentum decay, so it was completely imperceptible; this needs to read as a
+  // deliberate lock, like wheelchair's hold does. Measured directly off the popup's own live
+  // on-screen position (getBoundingClientRect, by now reflecting this frame's pan+zoom
+  // transforms, both already applied above) instead of a hardcoded scroll fraction — a fixed
+  // local-fraction threshold went stale within minutes of static-positioning this popup,
+  // since its left/bottom keep getting tuned. Triggers on the sign of
+  // (popup center - viewport center) flipping between frames — i.e. the exact frame it
+  // crosses center — rather than a fixed pixel window, since a single real scroll tick can be
+  // bigger than any fixed window and skip right over it, never firing at all.
+  if (showS47NewGuy && panel47NewGuy) {
+    const _p47Rect = panel47NewGuy.getBoundingClientRect();
+    const _p47Diff = (_p47Rect.left + _p47Rect.right) / 2 - getVw() / 2;
+    if (_panel47PrevDiff !== null && _panel47PrevDiff !== 0 && Math.sign(_panel47PrevDiff) !== Math.sign(_p47Diff)) {
+      _scrollFreezeUntil = Date.now() + S47_CENTER_FREEZE_MS;
+      _panel47FreezeEndsAt = _scrollFreezeUntil; // popup hides itself once this passes — see showS47NewGuy above
+    }
+    _panel47PrevDiff = _p47Diff;
+  } else {
+    _panel47PrevDiff = null; // re-arm for next time it opens
+  }
+  if (char47NewGuy) char47NewGuy.classList.toggle('visible', showS47NewGuy);
+  // Fixed left (see style.css) — now living inside #s45-s48-visual right next to
+  // .char-s47-newguy, same pan+scale treatment as the box, so they move together as one
+  // unit instead of the popup drifting independently on screen.
+  if (panel47NewGuy) {
+    panel47NewGuy.style.opacity = showS47NewGuy ? '1' : '0';
+    panel47NewGuy.classList.toggle('visible', showS47NewGuy);
+  }
+  if (soundCaptionS47NewGuy) soundCaptionS47NewGuy.style.opacity = showS47NewGuy ? '1' : '0';
+
+  // Tail of scene 47: right when Chris's popup actually hides (_s47PopupHiddenLocal, captured
+  // above — runs on the popup's own position instead of a fixed local fraction, since the
+  // popup's hide point now varies with when you scroll after its freeze), another matatu
+  // crosses the screen right-to-left (opposite to the story's own left-to-right travel), seen
+  // through a window frame, as a brief beat before scene 55 begins. Purely scroll-driven
+  // (crossingT below). 0.3 remains only as a fallback for the edge case where the popup never
+  // actually showed/hid (e.g. Huniki/BigTech consumed its whole window).
+  const CROSSING_START = _s47PopupHiddenLocal !== null ? _s47PopupHiddenLocal : 0.3;
+  const CROSSING_END   = CROSSING_START + S47_CROSSING_DURATION;
+  const crossingT = (scene === 22)
+    ? Math.min(1, Math.max(0, (local - CROSSING_START) / (CROSSING_END - CROSSING_START)))
+    : 0;
+  // Once the bus finishes crossing, freeze the scene background for a beat before scene 55
+  // continues — same reference point as the wheelchair/Chris holds. A 2.5s hard block used to
+  // fire right at this exact point, which let trackpad/mouse momentum queue up while blocked
+  // and then burst through all at once the instant it released (the "stuck then jump" bug) —
+  // that's now fixed at the source (frame()'s per-frame scrollY re-pin, not just blocking new
+  // wheel events), so it's safe to bring the freeze back using that same mechanism. Same
+  // "stays up until the next real scroll after release" pattern as Chris's popup, not a timer.
+  // Direction of travel (raw scrollY, not local/effectiveTx — those can be pinned/blended
+  // right now) — used below so entering the dead zone backward skips straight back to the
+  // crossing's own end instead of crawling through the same huge empty budget in reverse.
+  const _scrollingForwardS47 = _s47PrevScrollY === null || window.scrollY >= _s47PrevScrollY;
+  _s47PrevScrollY = window.scrollY;
+  if (scene === 22 && crossingT >= 1) {
+    if (_scrollingForwardS47) {
+      _s47CrossingBackSkipDone = false; // re-arm the backward skip for next time
+      if (!_s47CrossingFreezeTriggered) {
+        _s47CrossingFreezeTriggered = true;
+        _scrollFreezeUntil = Date.now() + S47_CROSSING_FREEZE_MS;
+        _s47CrossingFreezeEndsAt = _scrollFreezeUntil;
+      }
+    } else if (!_s47CrossingBackSkipDone && SCROLL_MAP[22]) {
+      // Scrolling backward through the dead zone (from scene 55, or from within the dead zone
+      // itself) — skip straight back to just before the crossing's own end instead of leaving
+      // the same long unresponsive stretch to crawl through in reverse. Clears the freeze/hide
+      // state too so the crossing sequence is immediately visible and interactive again right
+      // where it's landed, not still marked "dismissed".
+      _s47CrossingBackSkipDone = true;
+      _s47CrossingFreezeTriggered = false;
+      _s47CrossingFreezeEndsAt = null;
+      _s47CrossingFreezeReleaseScrollY = null;
+      const _crossEndLocal = (_s47PopupHiddenLocal !== null ? _s47PopupHiddenLocal : 0.3) + S47_CROSSING_DURATION;
+      const _targetLocal = Math.max(0, _crossEndLocal - 0.02); // just inside the active window, not exactly on the boundary
+      window.scrollTo(0, Math.round(SCROLL_MAP[22].scrollStart + _targetLocal * SCENE_SCROLL[22] * getVw()));
+    }
+  } else if (scene < 22 || (scene === 22 && crossingT < 1)) {
+    // Only resets when genuinely back BEFORE the crossing sequence — NOT simply "scene !== 22",
+    // which also matches scene 23+ (already past it, moving forward) and used to reset this
+    // state on every frame spent there. That meant landing back in scene 22's dead zone via
+    // backward scroll always found everything freshly re-armed: the freeze re-triggered from
+    // scratch and the skip re-fired, yanking scroll straight back forward the instant you tried
+    // to go backward. Now scene 23+ leaves this state untouched (already "done" stays done).
+    _s47CrossingFreezeTriggered = false;
+    _s47CrossingFreezeEndsAt = null;
+    _s47CrossingFreezeReleaseScrollY = null;
+    _s47CrossingSkipDone = false;
+    _s47CrossingBackSkipDone = false;
+  }
+  // Bus/frame opacity fades smoothly as the bus finishes crossing — the last stretch of its
+  // own crossingT progress (CROSSING_FADE_START_T to 1) maps straight to opacity 1 to 0. No
+  // separate wait: it's gone by the time crossingT reaches 1, instead of standing there fully
+  // visible through the whole freeze and only starting to fade once you scroll again after.
+  const crossingOpacity = (scene === 22 && crossingT > 0)
+    ? (crossingT < S47_CROSSING_FADE_START_T ? 1 : Math.max(0, 1 - (crossingT - S47_CROSSING_FADE_START_T) / (1 - S47_CROSSING_FADE_START_T)))
+    : 0;
+  // Freeze release tracking is now purely for the skip-jump below (advancing past the dead
+  // zone once you scroll again after the freeze) — the bus/frame are already invisible by this
+  // point regardless, opacity no longer depends on this.
+  const _s47CrossingTimerDone = _s47CrossingFreezeEndsAt !== null && Date.now() >= _s47CrossingFreezeEndsAt;
+  if (_s47CrossingTimerDone && _s47CrossingFreezeReleaseScrollY === null) {
+    _s47CrossingFreezeReleaseScrollY = window.scrollY;
+  }
+  const _s47CrossingReadyToSkip = _s47CrossingFreezeReleaseScrollY !== null && window.scrollY !== _s47CrossingFreezeReleaseScrollY;
+  // Once the freeze naturally ends and you scroll again, skip straight to scene 55's actual
+  // start instead of leaving a long dead stretch of scene 47's own remaining scroll budget
+  // where nothing visually changes — the reveal blend in frame()'s effectiveTx already parked
+  // the background exactly on scene 55's start position by this point, so jumping scrollY here
+  // is completely invisible.
+  if (scene === 22 && _s47CrossingReadyToSkip && !_s47CrossingSkipDone && SCROLL_MAP[23]) {
+    _s47CrossingSkipDone = true;
+    window.scrollTo(0, SCROLL_MAP[23].scrollStart);
+  }
+  if (s47CrossingMatatu) {
+    const vw = getVw();
+    const startX = vw;          // fully off-screen right
+    const endX   = -vw * 1.5;   // fully off-screen left — matches the bus's own 137.5vw width (2.5x scale)   // fully off-screen left — matches the bus's own 110vw width (2x scale)
+    const x = startX + (endX - startX) * crossingT;
+    s47CrossingMatatu.style.transform = `translateY(-50%) translateX(${x.toFixed(1)}px)`;
+    s47CrossingMatatu.style.opacity = crossingOpacity.toFixed(3);
+  }
+  if (s47CrossingFrame) s47CrossingFrame.style.opacity = crossingOpacity.toFixed(3);
 }
 
 // ---- Layer reveals — all layers static, clear any previously set transforms ----
@@ -3522,12 +3975,20 @@ document.addEventListener('keydown', e => {
 });
 
 function frameLoop(ts) {
-  if (!_paused) {
-    frame(ts);
-    // Re-track the open popup's position every frame so it stays anchored to its
-    // character's marker while scrolling continues (the marker itself keeps moving —
-    // see #city-overlay-7's per-frame scroll sync — so the popup must follow it too).
-    if (activeCrossBtn) positionCharBubble(activeCrossBtn);
+  // Wrapped in try/catch so one bad frame can't permanently kill the whole animation loop —
+  // requestAnimationFrame(frameLoop) below only runs if the whole function returns normally,
+  // so an uncaught error anywhere in frame() would otherwise stop every scene update (scroll
+  // freezes, popups, everything) for good, with no recovery short of a page reload.
+  try {
+    if (!_paused) {
+      frame(ts);
+      // Re-track the open popup's position every frame so it stays anchored to its
+      // character's marker while scrolling continues (the marker itself keeps moving —
+      // see #city-overlay-7's per-frame scroll sync — so the popup must follow it too).
+      if (activeCrossBtn) positionCharBubble(activeCrossBtn);
+    }
+  } catch (err) {
+    console.error('frameLoop error (recovered, loop continues):', err);
   }
   requestAnimationFrame(frameLoop);
 }

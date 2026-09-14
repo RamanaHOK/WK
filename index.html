@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&family=Noto+Sans+Ethiopic:wght@400&display=swap">
 <link rel="stylesheet" href="https://use.typekit.net/diu6bwx.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </head>
 <body>
@@ -280,14 +280,51 @@
         <img class="char-s45-redlady"    src="assets/s45-s52/red%20lady%20with%20bag.svg" alt="">
         <!-- Wheelchair man is next, appearing after toto moto's quote. -->
         <img class="char-s45-wheelchair" src="assets/s45-s52/wheelchair%20man.svg" alt="">
+        <!-- PLACEHOLDER — empty scaffold near scene 47's two people (same seat art Chris
+             Emezue's popup already points at). INSIDE #s45-s48-visual (like every other
+             char-s45-* sprite) so it scales/pans together with the actual seats/characters.
+             Fixed position (see .char-s47-newguy in style.css), visibility wired in scroll.js
+             (showS47NewGuy, currently mirroring showChris's own window). Swap for an
+             <img src="..."> once real artwork/position/content are decided. -->
+        <div class="char-s47-newguy"></div>
+
+        <!-- Chris Emezue's "I think when people understand..." quote + sound caption — also
+             INSIDE #s45-s48-visual now, right next to the box above, both using the same
+             static-left/pan/scale treatment so they move together as one unit instead of the
+             popup drifting independently on screen. -->
+        <div class="text-panel" id="panel-47-newguy" aria-hidden="true">
+          <div data-i18n-panel-text>
+            <p>&ldquo;I think when people understand more about data licensing and sharing, it helps them make better decisions. It&rsquo;s no longer just open source versus non-open source. Because even open source is a very complex thing. It has different aspects of it.&rdquo;</p>
+          </div>
+          <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <polygon points="72,0 48,0 10,90" />
+            <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+            <path d="M72 0 L10 90 L48 0" />
+          </svg>
+        </div>
+        <div class="sound-caption-s32" id="sound-caption-s47newguy">
+          <span class="sound-caption-s32-name" data-i18n="captions.chrisName">CHRIS EMEZUE</span>
+          <span class="sound-caption-s32-role" data-i18n="captions.chrisRole" data-i18n-html>Founder -<br> Lanfrica Labs</span>
+          <button class="sound-icon-s32 sound-icon-chris" aria-label="Play audio" data-sound-state="landing"
+            data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Chris_Emezue.mp3"
+            data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Chris_Emezue.mp3"
+            data-audio-ti="assets/Tigrinya-CLT-Audio/Tigrinya CLT Audio Quotes/[TG]_Chris_Emezue.mp3">
+            <img class="sound-icon-state sound-icon-landing" src="assets/sound-landing.svg" alt="">
+            <img class="sound-icon-state sound-icon-play" src="assets/sound-play.svg" alt="">
+            <img class="sound-icon-state sound-icon-pause" src="assets/sound-pause.svg" alt="">
+          </button>
+        </div>
       </div>
 
       <!-- Kathleen Siminyu's quote — shown once she's been visible a moment, see animateS45S48 -->
       <div class="text-panel" id="panel-45-kathleen" aria-hidden="true">
-        <p>&ldquo;Data set building is very expensive. It would be great to pay people to do it. In some projects we&rsquo;ve had people volunteer to do it, but I wish we had the money to pay people well to do this work because it&rsquo;s actually very valuable work.&rdquo;</p>
-        <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-          <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-          <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
+        <div data-i18n-panel-text>
+          <p>&ldquo;Data set building is very expensive. It would be great to pay people to do it. In some projects we&rsquo;ve had people volunteer to do it, but I wish we had the money to pay people well to do this work because it&rsquo;s actually very valuable work.&rdquo;</p>
+        </div>
+        <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon points="72,0 48,0 10,90" />
+          <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+          <path d="M72 0 L10 90 L48 0" />
         </svg>
       </div>
 
@@ -297,8 +334,8 @@
            the existing sound-icon click handler already fails gracefully (icon just reverts
            to "pause" state) if the file 404s, same as any other sound icon here would. -->
       <div class="sound-caption-s32" id="sound-caption-kathleen">
-        <span class="sound-caption-s32-name">KATHLEEN SIMINYU</span>
-        <span class="sound-caption-s32-role">Researcher -<br> Masakane &amp; DAIR</span>
+        <span class="sound-caption-s32-name" data-i18n="captions.kathleenName">KATHLEEN SIMINYU</span>
+        <span class="sound-caption-s32-role" data-i18n="captions.kathleenRole" data-i18n-html>Researcher -<br> Masakane &amp; DAIR</span>
         <button class="sound-icon-s32 sound-icon-kathleen" aria-label="Play audio" data-sound-state="landing"
           data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Kathleen_Siminyu.mp3"
           data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Kathleen_Siminyu.mp3"
@@ -312,8 +349,8 @@
       <!-- Toto moto's name plate — same style as Kathleen's, no sound icon. Shown/hidden
            alongside him — see animateS45S48 in scroll.js. -->
       <div class="sound-caption-s32 sound-caption-no-icon" id="sound-caption-totomoto">
-        <span class="sound-caption-s32-name">TOTO MOTO</span>
-        <span class="sound-caption-s32-role">Bus<br> Conductor</span>
+        <span class="sound-caption-s32-name" data-i18n="captions.totoName">TOTO MOTO</span>
+        <span class="sound-caption-s32-role" data-i18n="captions.totoRole" data-i18n-html>Bus<br> Conductor</span>
       </div>
 
       <!-- Red lady's quote — shown once she's been visible a moment, see animateS45S48 -->
@@ -328,11 +365,14 @@
 
       <!-- Toto moto's quote — shown after red lady's popup, see animateS45S48 -->
       <div class="text-panel" id="panel-45-totomoto" aria-hidden="true">
-        <p>We use the bus fare not only to make a living, but also to maintain the matatu itself and contribute to the roads we all rely on. This local economy benefits the community as a whole.</p>
-        <p>Matatus are highly organised through a complex network of associations. They are categorised as public services, mostly privately owned, but always collectively managed.</p>
-        <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-          <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-          <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
+        <div data-i18n-panel-text>
+          <p>We use the bus fare not only to make a living, but also to maintain the matatu itself and contribute to the roads we all rely on. This local economy benefits the community as a whole.</p>
+          <p>Matatus are highly organised through a complex network of associations. They are categorised as public services, mostly privately owned, but always collectively managed.</p>
+        </div>
+        <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polygon points="28,0 52,0 90,90" />
+          <line class="bubble__seam" x1="28" y1="0" x2="52" y2="0" />
+          <path d="M28 0 L90 90 L52 0" />
         </svg>
       </div>
 
@@ -358,28 +398,6 @@
         </svg>
       </div>
 
-      <!-- Chris Emezue + the last red-topped woman — not separate sprites, they're baked
-           directly into the seat art (assets/s45-s52/Seats%20extended.svg). Confirmed
-           in-browser: scene 47, local ~17% (see animateS45S48's showChris window). -->
-      <div class="text-panel" id="panel-47-chris" aria-hidden="true">
-        <p>&ldquo;I think when people understand more about data licensing and sharing, it helps them make better decisions. It&rsquo;s no longer just open source versus non-open source. Because even open source is a very complex thing. It has different aspects of it.&rdquo;</p>
-        <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-          <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-          <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
-        </svg>
-      </div>
-      <div class="sound-caption-s32" id="sound-caption-chris">
-        <span class="sound-caption-s32-name">CHRIS EMEZUE</span>
-        <span class="sound-caption-s32-role">Founder -<br> Lanfrica Labs</span>
-        <button class="sound-icon-s32 sound-icon-chris" aria-label="Play audio" data-sound-state="landing"
-          data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Chris_Emezue.mp3"
-          data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Chris_Emezue.mp3"
-          data-audio-ti="assets/Tigrinya-CLT-Audio/Tigrinya CLT Audio Quotes/[TG]_Chris_Emezue.mp3">
-          <img class="sound-icon-state sound-icon-landing" src="assets/sound-landing.svg" alt="">
-          <img class="sound-icon-state sound-icon-play" src="assets/sound-play.svg" alt="">
-          <img class="sound-icon-state sound-icon-pause" src="assets/sound-pause.svg" alt="">
-        </button>
-      </div>
     </div>
 
     <!-- SCENES 45–48: Inside the matatu — ambient passengers continue (scroll indices 20–23) -->
@@ -407,13 +425,6 @@
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
       <img class="s5558-cones"      src="assets/s55-s58/Traffic%20cones.svg"    alt="">
 
-      <!-- Scenes 55-57 popups — content comes from panels.panel-55/56/57 in i18n/<lang>.json
-           (see .text-panel[id] auto-wiring in i18n.js), shown/hidden by PANEL_TIMING in
-           scroll.js. These were missing entirely before — CSS/JS/i18n content all existed
-           but there was no actual element in the DOM for any of it to attach to. -->
-      <div class="text-panel" id="panel-55" aria-hidden="true"></div>
-      <div class="text-panel" id="panel-56" aria-hidden="true"></div>
-      <div class="text-panel" id="panel-57" aria-hidden="true"></div>
     </div>
 
     <!-- SCENES 59–61: Closing chapter — park/lake path (bridge, palm trees, ambient
@@ -423,7 +434,16 @@
          even though scenes 62-73 were cut — only 59-61 remain now). Popup text is real for
          panel-59/60 (from the references); panel-61 pending real closing copy. -->
     <div class="scene city scene-59"></div>
-    <div class="scene city scene-60"></div>
+    <div class="scene city scene-60">
+      <!-- Fade in together with the bus/background zoom-out (s61PostZoomT — see the
+           "s60ZoomExtras" block in scroll.js), not scroll-position-driven. First-guess
+           placement (top-left corner, stacked) — tune left/bottom/width in style.css
+           (.s60-matatu5/.s60-matatu8/.s60-group898). -->
+      <img class="s60-zoom-extra s60-matatu5"  src="assets/s59-s73/Matatu%205.svg" alt="">
+      <img class="s60-zoom-extra s60-matatu8"  src="assets/s59-s73/Matatu%208.svg" alt="">
+      <img class="s60-zoom-extra s60-group898" src="assets/s59-s73/person on bike.svg" alt="">
+      <img class="s60-zoom-extra s60-group89-blue" src="assets/s59-s73/Matatu blue.svg" alt="">
+    </div>
     <div class="scene city scene-61"></div>
     <div class="scene city scene-62"></div>
     <div class="scene city scene-63"></div>
@@ -447,7 +467,14 @@
         <div class="s5973-ground"></div>
         <!-- First-guess placement near the road — tune left/bottom/width in style.css -->
         <img class="s5973-prop905"      src="assets/s59-s73/Group%20905.svg"                     alt="">
-        <img class="s5973-bridge-lake"  src="assets/s59-s73/Bridge%2Blake%2Bbottom%20trees.svg"  alt="">
+        <!-- Was one combined image (bridge+lake+bottom trees) — now split into separate assets.
+             The bridge itself is NOT here anymore — it lives only as the single root-level
+             #s5973-bridge-front element (below, near #s47-crossing-matatu), synced to the same
+             pan every frame. It used to ALSO have an in-strip copy here (.s5973-bridge) plus
+             that root-level one on top of the bus — two <img> elements loading the same file,
+             which could drift a pixel out of sync with each other (ghosting/misalignment).
+             One element now, not two. -->
+        <img class="s5973-lake"         src="assets/s59-s73/Lake.svg"                              alt="">
         <div class="s5973-bridge-trees"></div>
         <div class="s5973-trees-top"></div>
         <!-- Group904/Matatu5/8 removed for now — rendered unclear/broken at this scale (an
@@ -457,6 +484,18 @@
         <img class="s5973-shadow"       src="assets/s59-s73/Group%20904.svg"                     alt="">
         <!-- Ambient standing character — first-guess placement, tune left/bottom/width in style.css -->
         <img class="s5973-purple-man"   src="assets/s59-s73/Purple%20man.png"                     alt="Illustrated figure standing by the roadside as the matatu passes" data-i18n-alt="alt.purpleManFigure">
+        <!-- New tiny ambient kids, added to assets/s59-s73 just now — first-guess placement
+             near purple-man's spot along the path, tune left/bottom/width in style.css. -->
+        <img class="s5973-small-boy"    src="assets/s59-s73/small%20boy.svg"                       alt="">
+        <img class="s5973-small-girl"   src="assets/s59-s73/small%20girl.svg"                      alt="">
+        <!-- New ambient character groups, added to assets/s59-s73 just now — Group 897 is the
+             wheelchair man/elderly woman with cane/pregnant woman trio, Group 898 is the kids
+             playing catch (matches the scene-60 "kids playing catch on the path" description),
+             Group 899 is the fruit-vendor trio. First-guess placement spread along the path
+             past purple-man, tune left/bottom/width in style.css. -->
+        <img class="s5973-group897"     src="assets/s59-s73/Group%20897.svg"                       alt="">
+        <img class="s5973-group898"     src="assets/s59-s73/Group%20898.svg"                       alt="">
+        <img class="s5973-group899"     src="assets/s59-s73/Group%20899.svg"                       alt="">
       </div>
 
       <!-- Popups — content from panels.panel-59..panel-61 in i18n/<lang>.json, dynamically
@@ -465,7 +504,6 @@
            here since this wrapper is much wider than one viewport). -->
       <div class="text-panel" id="panel-59" aria-hidden="true"></div>
       <div class="text-panel" id="panel-60" aria-hidden="true"></div>
-      <div class="text-panel" id="panel-61" aria-hidden="true"></div>
       <!-- Second popup, tied to the purple-man character's on-screen position rather than a
            scene boundary — see the dedicated show/position block in scroll.js. -->
       <div class="text-panel" id="panel-purple-man" aria-hidden="true"></div>
@@ -508,29 +546,22 @@
               <ul>
                 <li data-i18n-html="s6263.resourceItem1">Download our comprehensive report <a href="#" target="_blank" rel="noopener">"African Languages and Digital Justice: A Mapping Study on Community-Centered Language Technologies"</a></li>
                 <li data-i18n-html="s6263.resourceItem2">Download our <a href="#" target="_blank" rel="noopener">"Community-Centered Language Technology: Best Practices Guideline"</a> to explore how this kind of tech work can be adopted and expanded by others</li>
+                <li data-i18n-html="s6263.resourceItem5">We fine-tuned Meta's Massively Multilingual Speech (MMS) on the Mozilla Common Voice Kiswahili dataset to create highly specialized, domain-adapted automatic speech recognition (ASR) models for Swahili. <a href="#" target="_blank" rel="noopener">You can download the model here.</a></li>
+                <li data-i18n-html="s6263.resourceItem6">We fine-tuned OpenAI's Whisper on the Mozilla Common Voice Kiswahili dataset to create highly specialized, domain-adapted automatic speech recognition (ASR) models for Swahili. <a href="#" target="_blank" rel="noopener">You can download the model here.</a></li>
               </ul>
               <ul>
                 <li data-i18n-html="s6263.resourceItem3">Read our past, foundational research-in-action about the internet's languages online: <a href="https://internetslanguages.org" target="_blank" rel="noopener">internetslanguages.org</a></li>
                 <li data-i18n-html="s6263.resourceItem4">Explore the <a href="#" target="_blank" rel="noopener">LesanAI</a> platform, an AI startup dedicated to developing machine translation tools with a focus on Ethiopian and Eritrean languages.</li>
+                <li data-i18n-html="s6263.resourceItem7">Tigrinya content creators were able to create 62 articles on DAIR's Wiki using a combination of machine translation and automatic speech recognition tooling. <a href="#" target="_blank" rel="noopener">The list of articles can be viewed here.</a></li>
+                <li data-i18n-html="s6263.resourceItem8">Kiswahili content creators were able to create 46 articles on DAIR's Wiki using a combination of machine translation and automatic speech recognition tooling. <a href="#" target="_blank" rel="noopener">The list of articles can be viewed here.</a></li>
               </ul>
-            </div>
-          </section>
-
-          <section class="s6263-contact">
-            <h2 class="s6263-heading" data-i18n="s6263.contactHeading">CONTACT US</h2>
-            <div class="s6263-contact-columns">
-              <p data-i18n="s6263.contactIntro">Reach out to give us feedback and share your thoughts, let us know of African/Global Majority initiatives working on these issues, or recommend someone we should be in conversation with!</p>
-              <div class="s6263-contact-links">
-                <a href="mailto:languages@whoseknowledge.org" data-i18n="s6263.contactEmail">languages@whoseknowledge.org</a>
-                <a href="https://whoseknowledge.org" target="_blank" rel="noopener" data-i18n="s6263.contactSite">whoseknowledge.org</a>
-              </div>
             </div>
           </section>
         </div>
       </div>
     </div>
 
-    <!-- SCENE 63 — Credits, the story's true final screen. -->
+    <!-- SCENE 63 — Credits. -->
     <div class="s6263-slide s6263-slide-1">
       <div class="s6263-clouds"></div>
       <img class="s6263-bird2" src="assets/s62-s63/Group%20813.svg" alt="">
@@ -538,42 +569,73 @@
         <div class="s6263-wrap">
           <section class="s6263-credits">
             <h2 class="s6263-heading" data-i18n="s6263.creditsHeading">CREDITS</h2>
+            <!-- Single left column combines both the sponsor/written-by credits AND the
+                 website/dev/translation credits (previously two separate side-by-side
+                 sub-columns) — matches the reference design, which stacks all of it in one
+                 column with the org marks directly beneath, next to the interviewee
+                 acknowledgment + name list in the right column. -->
             <div class="s6263-credits-columns">
               <div>
                 <p data-i18n-html="s6263.creditsCol1Item1">This work was made possible through the generous support of The Internet Society Foundation (<a href="#" target="_blank" rel="noopener">ISOC</a>).</p>
                 <p data-i18n-html="s6263.creditsCol1Item2">Research-in-action process conducted by <a href="#" target="_blank" rel="noopener">Whose Knowledge?</a> and the Distributed AI Research Institute (<a href="#" target="_blank" rel="noopener">DAIR</a>).</p>
                 <p data-i18n="s6263.creditsCol1Item3">Written by Claudia Pozo and Maari Zwick-Maitreyi with edits from Grusha Dhawan</p>
-              </div>
-              <div>
                 <p data-i18n-html="s6263.creditsCol2Item1">Website by <a href="#" target="_blank" rel="noopener">Studio Ping Pong</a></p>
                 <p data-i18n-html="s6263.creditsCol2Item2">Development by <a href="#" target="_blank" rel="noopener">House of Katha</a></p>
                 <p data-i18n="s6263.creditsCol2Item3">Creative representation advisory by Anisa Ali</p>
                 <p data-i18n="s6263.creditsCol2Item4">Tigrinya translation and proofreading by Berhane Achame and Fekadu Gebregziabher.</p>
                 <p data-i18n="s6263.creditsCol2Item5">Kishwahili translation and proofreading by Melchior Shukuru and Exuper Njau</p>
+
+                <!-- Real org logos (added under assets/s62-s63/) instead of guessed placeholder
+                     marks — sit under the left column only, not spanning the full width. -->
+                <div class="s6263-org-marks">
+                  <img src="assets/s62-s63/InternetSociety_Foundation_Logo_Primary_GroundNavy_RGB%201.png" alt="Internet Society Foundation logo" data-i18n-alt="alt.logoIsoc">
+                  <img src="assets/s62-s63/Whose_Knowledge__secondary_logo_-_coffee%201.png" alt="Whose Knowledge? logo" data-i18n-alt="alt.logoWk">
+                  <img src="assets/s62-s63/dair-institute-logo%201.png" alt="DAIR — Distributed AI Research Institute — logo" data-i18n-alt="alt.logoDair">
+                </div>
+              </div>
+              <div>
+                <p data-i18n="s6263.creditsInterviewsIntro">This report is profoundly indebted to the many interviewees who generously shared their time, expertise, and lived experiences. Their insights are the heart of these findings. We feature some of them below:</p>
+                <p data-i18n-html="s6263.creditsInterviewees">Alexander Andrason, University of Cape Town<br>Amrit Sufi, Wikimedian<br>Anushah Hossain, Script Encoding Initiative (SEI)<br>Asmelash Teka Hadgu, LesanAI<br>Awa Ly, GalsenAI<br>Digital Umuganda<br>E.M Lewis-Jong, Mozilla Data Collective<br>Eddie Avila, Rising Voices<br>EthioNLP<br>Kalika Bali, Microsoft Research India<br>Kathleen Siminyu, Distributed AI Research (DAIR)<br>Lanfrica Labs<br>Mariana Fossatti, Whose Knowledge?<br>Meseret Alemayehu, RDLS Ethiopia<br>Pau Giner, Wikimedia Foundation<br>Paul Azunre, GhanaNLP<br>Sadik Shahadu, Dagbani Wikimedians User Group<br>Seid Muhie Yimam, EthioNLP<br>Shamsuddeen Hassan Muhammad, HausaNLP<br>Subhashish Panigrahi, Openspeaks</p>
               </div>
             </div>
 
-            <!-- Real org logos (added under assets/s62-s63/) instead of guessed placeholder marks -->
-            <div class="s6263-org-marks">
-              <img src="assets/s62-s63/InternetSociety_Foundation_Logo_Primary_GroundNavy_RGB%201.png" alt="Internet Society Foundation logo" data-i18n-alt="alt.logoIsoc">
-              <img src="assets/s62-s63/Whose_Knowledge__secondary_logo_-_coffee%201.png" alt="Whose Knowledge? logo" data-i18n-alt="alt.logoWk">
-              <img src="assets/s62-s63/dair-institute-logo%201.png" alt="DAIR — Distributed AI Research Institute — logo" data-i18n-alt="alt.logoDair">
-            </div>
+          </section>
+        </div>
+      </div>
+    </div>
 
-            <div class="s6263-credits-footer">
-              <p class="s6263-license" data-i18n-html="s6263.licenseText"><a href="#" target="_blank" rel="noopener">Unless otherwise stated</a>, this work is licensed under a <a href="#" target="_blank" rel="noopener">Creative Commons Attribution-ShareAlike 4.0 International License.</a> 2026</p>
-              <!-- Real social icons (assets/s62-s63/) — already colored to match the site's
-                   #9F2222 accent, so no button/background wrapper needed like the guessed
-                   placeholders had. -->
-              <div class="s6263-social-row">
-                <a href="#" aria-label="YouTube"><img src="assets/s62-s63/Vector%20(2).svg" alt=""></a>
-                <a href="#" aria-label="Instagram"><img src="assets/s62-s63/Group%20(1).svg" alt=""></a>
-                <a href="#" aria-label="Mastodon"><img src="assets/s62-s63/Logo-Mastodon--Streamline-Ionic-Filled.svg" alt=""></a>
-                <a href="#" aria-label="X"><img src="assets/s62-s63/Group%20(2).svg" alt=""></a>
-                <a href="#" aria-label="LinkedIn"><img src="assets/s62-s63/Linkedin-Logo--Streamline-Logos-Block.svg" alt=""></a>
-              </div>
+    <!-- SCENE 64 — Contact, the story's true final screen. Split out from slide-0's old
+         combined Resources+Contact layout into its own standalone screen (3rd slide of the
+         wheel-locked carousel — see S6263_SLIDE_COUNT/s6263Slides/s6263Panels in scroll.js).
+         The license/social-row footer moved here too from Credits' old .s6263-credits-footer. -->
+    <div class="s6263-slide s6263-slide-2">
+      <div class="s6263-clouds"></div>
+      <img class="s6263-bird1" src="assets/s62-s63/Group%20812.svg" alt="">
+      <img class="s6263-bird2" src="assets/s62-s63/Group%20813.svg" alt="">
+      <div class="s6263-content-panel" id="panel-64" aria-hidden="true">
+        <div class="s6263-wrap s6263-contact-standalone-wrap">
+          <section class="s6263-contact-standalone">
+            <h2 class="s6263-heading" data-i18n="s6263.contactHeading">CONTACT US</h2>
+            <p data-i18n="s6263.contactIntro">Reach out to give us feedback and share your thoughts, let us know of African/Global Majority initiatives working on these issues, or recommend someone we should be in conversation with!</p>
+            <div class="s6263-contact-links s6263-contact-links-centered">
+              <a href="mailto:languages@whoseknowledge.org" data-i18n="s6263.contactEmail">languages@whoseknowledge.org</a>
+              <a href="https://whoseknowledge.org" target="_blank" rel="noopener" data-i18n="s6263.contactSite">whoseknowledge.org</a>
             </div>
           </section>
+
+          <div class="s6263-credits-footer">
+            <p class="s6263-license" data-i18n-html="s6263.licenseText"><a href="#" target="_blank" rel="noopener">Unless otherwise stated</a>, this work is licensed under a <a href="#" target="_blank" rel="noopener">Creative Commons Attribution-ShareAlike 4.0 International License.</a> 2026</p>
+            <!-- Real social icons (assets/s62-s63/) — already colored to match the site's
+                 #9F2222 accent, so no button/background wrapper needed like the guessed
+                 placeholders had. -->
+            <div class="s6263-social-row">
+              <a href="#" aria-label="YouTube"><img src="assets/s62-s63/Vector%20(2).svg" alt=""></a>
+              <a href="#" aria-label="Instagram"><img src="assets/s62-s63/Group%20(1).svg" alt=""></a>
+              <a href="#" aria-label="Mastodon"><img src="assets/s62-s63/Logo-Mastodon--Streamline-Ionic-Filled.svg" alt=""></a>
+              <a href="#" aria-label="X"><img src="assets/s62-s63/Group%20(2).svg" alt=""></a>
+              <a href="#" aria-label="LinkedIn"><img src="assets/s62-s63/Linkedin-Logo--Streamline-Logos-Block.svg" alt=""></a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -610,6 +672,36 @@
        but its z-index now genuinely sits above the bus/car/seller — full viewport width,
        so there's a point in its transit where it fully covers/hides them. -->
   <img id="s5558-transition-frame-front" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
+
+  <!-- Scenes 55-57 popups + building sign — moved to root level with true CSS position:fixed
+       (see style.css), same technique as #s47-crossing-matatu/#s47-crossing-frame above and
+       #debug-scale — a position:fixed descendant of a transformed ancestor (#scroll-x's pan)
+       stops being relative to the true viewport and becomes relative to that ancestor instead,
+       so these have to live OUTSIDE #scroll-x entirely to genuinely never move, no per-frame
+       position math required at all (just left:50%/transform:translateX(-50%) in CSS, static,
+       forever). Content still comes from panels.panel-55/55b/56/57 in i18n/<lang>.json via the
+       .text-panel[id] auto-wiring in i18n.js, which matches by id regardless of DOM location. -->
+  <div class="text-panel" id="panel-55" aria-hidden="true"></div>
+  <div class="text-panel" id="panel-55b" aria-hidden="true"></div>
+  <div class="text-panel" id="panel-56" aria-hidden="true"></div>
+  <div class="text-panel" id="panel-57" aria-hidden="true"></div>
+  <div id="s55-huniki-sign" data-i18n="ui.s55HunikiSign" aria-hidden="true">THE HUNIKI FEDERATION</div>
+
+  <!-- Scene-47 (wheelchair man) tail: another matatu crosses by in the opposite direction
+       (right-to-left, against the story's own left-to-right travel), seen through a window
+       frame — a brief beat once Chris's popup has closed, before scene 55 begins. Must be
+       root-level (a sibling of #pinned-wrap, not inside #scroll-x) — #scroll-x's own
+       transform turns "position:fixed" descendants into "position:absolute"-relative-to-it,
+       same gotcha #s5558-transition-frame-front above escapes. Synced in animateS45S48. -->
+  <img id="s47-crossing-matatu" src="assets/s45-s52/Matatu-color.svg" alt="" aria-hidden="true">
+  <img id="s47-crossing-frame"  src="assets/s45-s52/frame.svg" alt="" aria-hidden="true">
+
+  <!-- Scene 59-60 bridge — root-level (not inside #scroll-x) so it can render in front of
+       #city-bus, which is also root-level (a plain z-index on an in-strip element can't beat
+       #city-bus — see the S5973_BG_LEFT_VW/viewportCenterVw2 sync in frame(), scroll.js).
+       This is now the ONLY bridge element (used to be a second, clipped-to-just-the-railing
+       copy layered on top of an in-strip original — one <img> now instead of two). -->
+  <img id="s5973-bridge-front" src="assets/s59-s73/Bridge%20extended.svg" alt="" aria-hidden="true">
 
   <!-- Scene 59->61 clouds cover transition — COMMENTED OUT (disabled on request). Was:
        root-level fixed cloud cover for scene 61, driven by scroll.js (see the puff-driving
@@ -678,6 +770,24 @@
     <line class="bubble__seam" x1="88.2" y1="0" x2="70.2" y2="0" />
     <path d="M88.2 0 L151.9 107.8 L70.2 0" />
   </svg>
+</div>
+
+<!-- Scene-61 "would you like to learn more" popup — same root-level/position:fixed/live-
+     tracking technique as #panel-5 above (long diagonal bubble__tail instead of the small
+     triangle .popup-tail, tail pointing down at #city-bus's live position, tracked every
+     frame in frame() — see the "#panel-61: track bus position" block in scroll.js). Moved
+     here from inside #s5973-bg-art for the same reason #panel-5 has to live root-level: a
+     transformed ancestor (#scroll-x) breaks position:fixed's viewport-relative math. -->
+<div class="text-panel" id="panel-61" aria-hidden="true"></div>
+
+<!-- Scenes 60-61 cloud cover — same lottie-scrub technique as #s21-clouds/#s21c-lottie
+     (scrubbed frame-by-frame from scroll position, not autoplayed — see the
+     "s5973CloudsLottie" block in scroll.js), reusing the same cloud lottie asset. Fades/
+     scrubs in once the second bus/background pull-back (S61_POSTZOOM_TRIGGER_LOCAL) has
+     finished, covering the rest of the closing chapter. Root-level/position:fixed, same
+     reasoning as #panel-5/#panel-61 above. -->
+<div id="s5973-clouds" aria-hidden="true">
+  <lottie-player id="s5973-clouds-lottie" src="assets/lottie/Brown_cloud_lottie.json" background="transparent"></lottie-player>
 </div>
 
 <!-- Fixed overlays for scenes 7 & 8: characters only (trees moved into scene layers) -->
@@ -888,8 +998,8 @@
        directly under the quote bubble. Shown/hidden alongside panel-32-samuel — see
        animateS32S43 in scroll.js. -->
   <div class="sound-caption-s32" id="sound-caption-s32">
-    <span class="sound-caption-s32-name">SAMUEL RUTUNDA</span>
-    <span class="sound-caption-s32-role">CTO - Digital<br> Umuganda</span>
+    <span class="sound-caption-s32-name" data-i18n="captions.samuelName">SAMUEL RUTUNDA</span>
+    <span class="sound-caption-s32-role" data-i18n="captions.samuelRole" data-i18n-html>CTO - Digital<br> Umuganda</span>
     <button class="sound-icon-s32 sound-icon-samuel" aria-label="Play audio" data-sound-state="landing"
       data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Samuel_Rutunda.mp3"
       data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Samuel_Rutunda.mp3"
@@ -921,8 +1031,8 @@
   <!-- Name plate for Asmelash — same style as Samuel's, positioned near panel-32-asmelash.
        Shown/hidden alongside it — see animateS32S43 in scroll.js. -->
   <div class="sound-caption-s32" id="sound-caption-asmelash">
-    <span class="sound-caption-s32-name">ASMELASH TEKA HADGU</span>
-    <span class="sound-caption-s32-role">Co-founder &amp;<br> CTO - Lesan AI</span>
+    <span class="sound-caption-s32-name" data-i18n="captions.asmelashName">ASMELASH TEKA HADGU</span>
+    <span class="sound-caption-s32-role" data-i18n="captions.asmelashRole" data-i18n-html>Co-founder &amp;<br> CTO - Lesan AI</span>
     <button class="sound-icon-s32 sound-icon-asmelash" aria-label="Play audio" data-sound-state="landing"
       data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Asmelash_Teka_Hagdu.mp3"
       data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Asmelash_Teka_Hadgu.mp3"
@@ -974,8 +1084,8 @@
   <!-- Name plate for Sadik — same style as Samuel's/Asmelash's, positioned near panel-32-sadik.
        Shown/hidden alongside it — see animateS32S43 in scroll.js. -->
   <div class="sound-caption-s32" id="sound-caption-sadik">
-    <span class="sound-caption-s32-name">SADIK SHAHADU</span>
-    <span class="sound-caption-s32-role">Wikimedian</span>
+    <span class="sound-caption-s32-name" data-i18n="captions.sadikName">SADIK SHAHADU</span>
+    <span class="sound-caption-s32-role" data-i18n="captions.sadikRole">Wikimedian</span>
     <button class="sound-icon-s32 sound-icon-sadik" aria-label="Play audio" data-sound-state="landing"
       data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Sadik_Shahadu.mp3"
       data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Sadik_Shahadu.mp3"
@@ -995,7 +1105,14 @@
   <img class="s44-toto-moto" src="assets/s44/toto%20moto.svg" alt="">
   <img class="s44-handles" src="assets/s44/handle%20bus.svg" alt="">
   <div class="text-panel" id="panel-44-1" aria-hidden="true">
-    <p>But, despite their innovation, African initiatives face a staggering funding trap. Huge resource gaps often force local teams to prioritise the goals of Global North donors over community needs, ideal methods, and the urgent needs of their own people.</p>
+    <div data-i18n-panel-text>
+      <p>But, despite their innovation, African initiatives face a staggering funding trap. Huge resource gaps often force local teams to prioritise the goals of Global North donors over community needs, ideal methods, and the urgent needs of their own people.</p>
+    </div>
+    <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="0,56 0,80 90,28" />
+      <line class="bubble__seam" x1="0" y1="56" x2="0" y2="80" />
+      <path d="M0 56 L90 28 L0 80" />
+    </svg>
   </div>
 </div>
 
@@ -1099,8 +1216,8 @@
      sound-icon click handler already fails gracefully (icon just reverts to "pause" state)
      if the file 404s. -->
 <div class="sound-caption-s32 sound-caption-awayly" id="sound-caption-awayly" aria-hidden="true">
-  <span class="sound-caption-s32-name">AWA LY</span>
-  <span class="sound-caption-s32-role">Galsen AI</span>
+  <span class="sound-caption-s32-name" data-i18n="captions.awalyName">AWA LY</span>
+  <span class="sound-caption-s32-role" data-i18n="captions.awalyRole">Galsen AI</span>
   <button class="sound-icon-s32 sound-icon-awayly" aria-label="Play audio" data-sound-state="landing"
     data-audio-en="assets/English-CLT-Audio/English CLT Audio Quotes/[EN]_Awa_Ly.mp3"
     data-audio-sw="assets/Kiswahili-CLT-Audio/Kiswahili CLT Audio Quotes/[KS]_Awa_Ly.mp3"
