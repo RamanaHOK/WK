@@ -35,13 +35,13 @@ const SCENE_SCROLL = [
   16.0,  // 17 → scene-33 (extra scroll runway — 5 popups + 4 characters (Asmelash x2,
         // pregnant woman x2, Sadik) packed into a small scene, was 1.5)
   1.5,  // 18 → scene-34
-  1.5,  // 19 → scene-44 (slides down from the top over scene-34 — see #s44-overlay/animateS44 in scroll.js)
-  4.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
-  2.0,  // 21 → scene-46 (wheelchair man: approach pan -> zoom-in -> hold with the Huniki/Big
+  6,  // 19 → scene-44 (slides down from the top over scene-34 — see #s44-overlay/animateS44 in scroll.js)
+  6.0,  // 20 → scene-45 (inside the matatu, continued — Kathleen/toto moto/red lady/wheelchair man sequence — extra scroll runway so each one gets real time on screen, especially wheelchair man at the end)
+  5.0,  // 21 → scene-46 (wheelchair man: approach pan -> zoom-in -> hold with the Huniki/Big
         // Tech popups -> release; extra scroll runway so each beat plays out gradually
         // instead of racing past, same reasoning as scene-45 above. Was 1.5.)
   20.5,  // 22 → scene-47 (wheelchair man ambient)
-  10.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
+  5.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
   0.4,  // 24 → scene-56 (second popup)
   0.4,  // 25 → scene-57 (third, bigger popup)
   0.3,  // 26 → scene-58 (pans past the street into clear sky)
@@ -248,6 +248,7 @@ const s5558Car        = document.getElementById('s5558-car');
 const s5558Car2       = document.getElementById('s5558-car2');
 const s5558Car3       = document.getElementById('s5558-car3');
 const s5558TransitionFrameFront = document.getElementById('s5558-transition-frame-front');
+const s5558TransitionFrameLottie = document.getElementById('s5558-transition-frame-lottie');
 const s4548Bg = document.getElementById('s45-s48-bg');
 // Scenes 59-61 popups — closing chapter, shares #s59-s73-bg with the park/lake art
 const s5973Panels = [59,60,61].map(n => document.getElementById(`panel-${n}`));
@@ -333,6 +334,7 @@ const s5s8FenceFront = document.getElementById('s5s8-fence-front');
 // (see the HTML/CSS comments on #s5558-seller-front for why this can't just be a z-index
 // bump on the in-background .s5558-* version)
 const s5558SellerFront = document.getElementById('s5558-seller-front');
+const s5558ConesFront  = document.getElementById('s5558-cones-front');
 // Fixed character + tree overlays for scenes 7, 8 & 9
 const cityOverlay7  = document.getElementById('city-overlay-7');
 const cityOverlay8  = document.getElementById('city-overlay-8');
@@ -551,8 +553,10 @@ let _s6263Ticks      = 0;     // distinct scroll gestures counted so far in _s62
 let _s6263TickDir    = 0;     // direction (+1/-1) the current tick count applies to
 let _s6263BurstActive = false;
 let _s6263BurstTimer  = null;
-const S6263_TICKS_REQUIRED = 2; // gestures needed before a step actually triggers — the first
-  // is a "dummy" scroll that's absorbed, only the second (same direction) advances the slide.
+const S6263_TICKS_REQUIRED = 2; // gestures needed before a step actually triggers — was 2
+  // (the first scroll was a "dummy" absorbed with nothing happening, only the second advanced
+  // the slide, which read as needing several scrolls to do anything) — now advances right away
+  // on the very next scroll once the panel's own content is at the bottom/top.
 const S6263_TRANS_MS = 500;       // crossfade duration
 let _panel32IntroShown     = false;
 let _panel32UmugandaShown  = false;
@@ -790,10 +794,9 @@ window.addEventListener('wheel', e => {
   if (Date.now() < _scrollFreezeUntil) { e.preventDefault(); return; }
 
   // Scenes 62-63 — discrete slide lock (see _s6263Active in frame()). While active, wheel
-  // input drives _s6263Index directly instead of native scroll. Requires S6263_TICKS_REQUIRED
-  // distinct scroll gestures (not just a big enough single scroll) before it actually steps —
-  // the first gesture in a new direction is absorbed as a "dummy", only a second matching one
-  // advances/retreats the slide.
+  // input drives _s6263Index directly instead of native scroll. Steps on the very next scroll
+  // gesture (S6263_TICKS_REQUIRED=1) once the active slide's own content is at the bottom/top
+  // — no extra "dummy" scrolls needed first.
   if (_s6263Active) {
     if (_s6263TransT0 !== null) { e.preventDefault(); return; } // mid-crossfade — ignore input
     const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
@@ -1364,6 +1367,15 @@ function frame(ts) {
     s5558SellerFront.style.transform = `translateX(${sellerVx.toFixed(1)}px)`;
   }
 
+  // -- Scenes 55-58 traffic cones: same root-level stacking-context-escape technique as the
+  // seller above — synced to their original 104vw position inside #s55-s58-bg so they track
+  // the pan exactly, but rendered outside it so their z-index can actually beat #s5558-car's. --
+  if (s5558ConesFront && SCROLL_MAP[23]) {
+    const conesVx = SCROLL_MAP[23].stripX + 1.04 * _vw + effectiveTx;
+    s5558ConesFront.style.opacity   = (currentScene >= 23 && currentScene <= 26 && conesVx < _vw && conesVx > -0.1 * _vw) ? '1' : '0';
+    s5558ConesFront.style.transform = `translateX(${conesVx.toFixed(1)}px)`;
+  }
+
   // -- Scenes 55-58 clouds+birds transition frame: synced to its 122vw slot inside
   // #s55-s58-bg, same reasoning as the seller above — rendered root-level so its z-index
   // (12) genuinely beats #city-bus/#s5558-car/#s5558-seller-front instead of being trapped
@@ -1375,13 +1387,21 @@ function frame(ts) {
   // naturally un-freezes it (frameVx goes positive again) and it slides back out. --
   if (s5558TransitionFrameFront && SCROLL_MAP[23]) {
     const frameVx = SCROLL_MAP[23].stripX + 1.22 * _vw + effectiveTx;
-    if (currentScene >= 23 && currentScene <= 26) {
+    const frameVisible = currentScene >= 23 && currentScene <= 26;
+    if (frameVisible) {
       // Hard on/off now, no gradual cross-fade — opacity is 1 by default whenever the frame
       // is in reach, snapping straight to 0 only once it's slid a full viewport past center.
       s5558TransitionFrameFront.style.opacity   = (frameVx <= _vw) ? '1' : '0';
       s5558TransitionFrameFront.style.transform = `translateX(${Math.max(0, frameVx).toFixed(1)}px)`;
     } else {
       s5558TransitionFrameFront.style.opacity = '0';
+    }
+    // Lottie plays as a function of scroll (not autoplay/loop) — scrubbed across scenes
+    // 23-26 overall progress, same technique as #s5973-clouds-lottie below.
+    if (s5558TransitionFrameLottie && typeof s5558TransitionFrameLottie.getLottie === 'function') {
+      const frameProgress = Math.max(0, Math.min(1, ((currentScene - 23) + sceneLocal) / 3));
+      const lottie = s5558TransitionFrameLottie.getLottie();
+      if (lottie && lottie.totalFrames) lottie.goToAndStop(frameProgress * (lottie.totalFrames - 1), true);
     }
   }
 
@@ -2372,7 +2392,7 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
       const FAR_ENTRY = -0.36 * vw;
       const t = easeInOutCubic(Math.min(1, local / 1.0));
       busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
-      eff  = opacity * Math.min(1, local / 0.4);
+      eff  = opacity; // fully visible from the start of the drive-in, no fade-up ramp
     } else if (scene <= 25) {
       // Scenes 56-57: stays parked
       busX = CENTER;
@@ -2466,8 +2486,12 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
   // Apply cursor parallax across all city scenes (5–19, 55–58, 59–73); frozen only during bus close-up
   const inCityBus  = (scene >= 4 && scene <= 16) || (scene >= 23 && scene <= 26) || (scene >= 27 && scene <= 29);
   const inBusClose = scene === 7 && local >= S8_EXIT;
-  const bpx = (inCityBus && !inBusClose) ? prlxX2 * 12 : 0;
-  const bpy = (inCityBus && !inBusClose) ? prlxY2 * 6  : 0;
+  // Also frozen during the scene-30 zoom-in/hold (scene===15, local>=0.34) — at PEAK_SCALE
+  // (4.5x) the bus's own transform amplifies this same small mouse-parallax drift into a much
+  // more visible shake, since the translate happens in the same transform that then scales it.
+  const inS30Zoom = scene === 15 && local >= 0.34;
+  const bpx = (inCityBus && !inBusClose && !inS30Zoom) ? prlxX2 * 12 : 0;
+  const bpy = (inCityBus && !inBusClose && !inS30Zoom) ? prlxY2 * 6  : 0;
 
   if (eff > 0.001) {
     cityBus.style.opacity   = eff.toFixed(3);
@@ -2479,13 +2503,11 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     cityBus.style.clipPath  = 'none';
   }
 
-  // Stick Awa Ly (#s30-zoom-people, a separate root-level fixed overlay — see the scene-30
-  // zoom block) to the bus's own parallax drift (bpx/bpy above) during scene 30, so she
-  // rides along with it instead of staying put while the bus shifts under mouse parallax.
+  // #s30-zoom-people (Awa Ly, a separate root-level fixed overlay — see the scene-30 zoom
+  // block) no longer follows the bus's mouse-parallax drift (bpx/bpy above) — that read as a
+  // small shake on mouse move, so this now stays put instead of riding along with it.
   if (s30ZoomPeople) {
-    s30ZoomPeople.style.transform = (scene === 15 && local >= 0.34)
-      ? `translateX(${bpx.toFixed(1)}px) translateY(${bpy.toFixed(1)}px)`
-      : 'none';
+    s30ZoomPeople.style.transform = 'none';
   }
 }
 
@@ -2865,7 +2887,11 @@ function animateS32S43(scene, local, etx, ts) {
       // scene slides down over it — stays flat at 1x per request.
       s32Scale = 1;
     } else if (scene > 17 || (scene === 17 && local >= S33_ZOOM_HOLD)) {
-      s32Scale = 1.5 - 0.5 * pregnantZoomT; // zoom-out after both pregnant-woman popups
+      // Was 1.5 - 0.5*pregnantZoomT (eased all the way down to 1.0) — at scale 1.0 the
+      // interior artwork's own edges (normally hidden by the zoom) showed as visible top/
+      // bottom gaps once scene-34 held there. Eases down to 1.2 instead and stays there
+      // (scene-34 forces pregnantZoomT=1, so this is a flat 1.2 for the whole scene).
+      s32Scale = 1.5 - 0.3 * pregnantZoomT; // zoom-out after both pregnant-woman popups
     } else {
       s32Scale = 1 + 0.2 * asmelashZoomInT; // zoomed-in phase: Lesan-dismiss through Asmelash + pregnant popups
     }
@@ -2984,10 +3010,14 @@ function animateS32S43(scene, local, etx, ts) {
   const showSadik = scene > 17 || (scene === 17 && local >= 0.97);
   if (char32Sadik) char32Sadik.style.opacity = showSadik ? '1' : '0';
 
-  // 7th popup — above the pregnant woman, appears once she's fully zoomed-in-revealed
-  // (pregnantZoomT reaches 1), hides again once Sadik (the last man) shows up.
+  // 7th popup — above the pregnant woman, opens first once she's fully zoomed-in-revealed
+  // (pregnantT reaches 1). 8th popup — below her, opens a bit later (staggered, one by one).
+  // Both close together once Sadik (the last man) shows up (local>=0.97, same threshold
+  // showSadik itself uses).
+  const PREGNANT_DOWN_OPEN = 0.57; // local — 8th popup's own (later) open point
+  const PREGNANT_PAIR_END  = 0.7; // local — shared close point for both, same as showSadik
   if (panel32PregnantUp) {
-    const showPregnantUp = !showSadik && scene === 17 && pregnantT >= 1;
+    const showPregnantUp = scene === 17 && pregnantT >= 1 && local < PREGNANT_PAIR_END;
     if (showPregnantUp && panel32PregnantUp.style.opacity !== '1') {
       _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     }
@@ -2995,10 +3025,8 @@ function animateS32S43(scene, local, etx, ts) {
     panel32PregnantUp.classList.toggle('visible', showPregnantUp);
   }
 
-  // 8th popup — below the pregnant woman, shown after scrolling past the 7th, hides
-  // again once Sadik shows up.
   if (panel32PregnantDown) {
-    const showPregnantDown = !showSadik && scene === 17 && local >= 0.57;
+    const showPregnantDown = scene === 17 && local >= PREGNANT_DOWN_OPEN && local < PREGNANT_PAIR_END;
     if (showPregnantDown && panel32PregnantDown.style.opacity !== '1') {
       _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     }

@@ -698,7 +698,7 @@ body {
 #s5558-seller-front {
   position: fixed;
   bottom: -10vh;
-  left: -40%;
+  left: -44%;
   width: 7vw;
   height: auto;
   z-index: 7; /* above #s5558-car (z:6) so he stays visible when the car passes/parks over him */
@@ -718,12 +718,23 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
-  background-color: #EFB99B; /* fills the SVG's transparent areas instead of whatever's
-    rendered behind it (was showing through as dark green before this was added) */
+  overflow: hidden;
+ 
   z-index: 12;
   pointer-events: none;
   opacity: 0;
+}
+/* Lottie's own aspect-fit is contain, not cover — left a visible strip of the background
+   color showing at the edge. 160% + centered guarantees it always exceeds this box
+   regardless of window aspect ratio, same technique as #s5973-clouds. */
+#s5558-transition-frame-front lottie-player {
+  position: absolute;
+  display: block;
+  width: 160%;
+  height: 160%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* Scene 59->61 clouds cover transition — same root-level-fixed reasoning as the frame above
@@ -2282,7 +2293,7 @@ body {
      from the center of the viewport instead of drifting as the strip pans. */
 }
 #s32-s43-bg img { position: absolute; left: 0px; }
-.s3243-interior { top: 0;    height: 100vh; width: 328vw; z-index: 1; }
+.s3243-interior { top: 0;    height: 100vh; width: 430vw; z-index: 1; }
 /* Tiled, not stretched: repeats the handle graphic across the full 1300vw interior
    instead of one image stretched the whole way (which would distort it). */
 .s3243-handles {
@@ -2677,7 +2688,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
   position: absolute;
   bottom: 60vh;
       bottom: 60vh;
-    left: 386vh !important;
+    left: 420vh !important;
     min-width: 650px !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -2753,9 +2764,10 @@ div#sound-caption-kathleen .sound-icon-s32 {
   position: absolute;
   left: 2665vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
   top: 0;
-  width: 122vw; /* only the street content (buildings/road/pedestrians/seller/cones) needs
-    real width — everything past it is picked up by #s5558-transition-frame-front (root-level,
-    unaffected by this wrapper's width) and whatever set comes next after the fade */
+  width: 300vw; /* was 122vw (just enough for the street content alone) — widened so
+    buildings/road/pedestrians/etc. have real room to extend, reading as one continuous
+    street scene instead of a narrow strip. #s5558-transition-frame-front (root-level,
+    unaffected by this wrapper's width) still covers whatever comes after. */
   height: 100vh;
   background-color: #EFB99B;
   overflow: hidden;
@@ -2802,15 +2814,19 @@ div#sound-caption-kathleen .sound-icon-s32 {
 }
 
 .s5558-road {
+  /* Was a single <img>, stretched via width — that just stretches ONE copy of the road art
+     thin across the box instead of covering it, so most of the ground showed the wrapper's
+     plain background-color instead of pavement. Tiled as a repeating background instead
+     (same technique .s5558-railing/.s5558-sky already use), so it actually covers edge to
+     edge regardless of how wide #s55-s58-bg is. */
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 300vw !important; /* #s55-s58-bg img sets width:100%/height:auto with higher
-    specificity (ID+type beats a plain class) and was winning here, sizing the road to its
-    122vw parent's width with height auto-derived from the SVG's own aspect ratio instead of
-    the intended 300vw/16vh — same fix .s5558-buildings already uses for the same reason. */
-  height: 16vh !important;
-  object-fit: cover;
+  width: 300vw;
+  height: 39vh;
+  background-image: url('assets/s55-s58/road%20extended%20%284%29.svg');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
   z-index: 1;
 }
 .s5558-railing {
@@ -2832,14 +2848,18 @@ div#sound-caption-kathleen .sound-icon-s32 {
   height: auto;
   z-index: 1;
 }
-.s5558-cones {
-  position: absolute;
-  left: 104vw !important;
+/* Cones — root-level fixed element synced to the pan via JS (see frame() in scroll.js),
+   NOT a child of #s55-s58-bg any more — see the HTML comment for why that's required.
+   Same bottom/width as the original in-background .s5558-cones so it lines up identically. */
+#s5558-cones-front {
+  position: fixed;
   bottom: 2vh;
-  top: auto !important;
-  width: 9vw !important;
+  left: 2%;
+  width: 9vw;
   height: auto;
-  z-index: 3;
+  z-index: 7; /* above #s5558-car (z:6, the lottie toyota probox) so cones stay visible in front of it */
+  pointer-events: none;
+  opacity: 0;
 }
 .s5558-toyota {
   position: absolute;
@@ -3021,15 +3041,17 @@ div#sound-caption-kathleen .sound-icon-s32 {
     bottom: -3vh;
   z-index: 2;
     width: 18vw; }
-.s60-matatu8  {    left: 82vw;
-    bottom: 89vh;
+.s60-matatu8  {       left: 97vw;
+    bottom: 87vh;
     width: 18vw;
-    z-index: 2; }
+    z-index: 14; }
 .s60-group898 { left: 90vw;
     bottom: 17vh;
-    width: 4vw;
+    width: 5vw;
   z-index: 2;}
-
+.scene.city.scene-60{
+  overflow: visible;
+}
 .s60-group89-blue{
 left: 18vw;
     bottom: 39vh;
@@ -3122,9 +3144,9 @@ left: 18vw;
    left/bottom/width. left needs !important — see .s5973-prop905's comment above for why. */
 .s5973-purple-man {
 left: 114vw !important;
-    bottom: 73vh;
+    bottom: 59vh;
     top: auto;
-    width: 2vw !important;
+    width: 3vw !important;
     height: auto;
     z-index: 3;
 }
@@ -3132,17 +3154,17 @@ left: 114vw !important;
    retune left/bottom/width. left needs !important, same reasoning as .s5973-prop905 above. */
 .s5973-small-boy {
     left: 118vw !important;
-    bottom: 74vh;
+    bottom: 63vh;
     top: auto;
-    width: 2vw !important;
+    width: 3vw !important;
     height: auto;
     z-index: 3;
 }
 .s5973-small-girl {
     left: 120vw !important;
-    bottom: 74vh;
+    bottom: 63vh;
     top: auto;
-    width: 3.2vw !important;
+    width: 4.2vw !important;
     height: auto;
     z-index: 3;
 }
@@ -3152,7 +3174,7 @@ left: 114vw !important;
     left: 189vw !important;
     bottom: -22vh;
     top: auto;
-    width: 10vw !important;
+    width: 15vw !important;
     height: auto;
     z-index: 3;
 }
@@ -3160,7 +3182,7 @@ left: 114vw !important;
     left: 213vw !important;
     bottom: 24vh;
     top: auto;
-    width: 6vw !important;
+    width: 11vw !important;
     height: auto;
     z-index: 3;
 }
@@ -3168,7 +3190,7 @@ left: 114vw !important;
     left: 188vw !important;
     bottom: 86vh;
     top: auto;
-    width: 7.5vw !important;
+    width: 12.5vw !important;
     height: auto;
     z-index: 3;
 }
@@ -3347,15 +3369,14 @@ position: absolute;
   pointer-events: none; /* toggled to auto in scroll.js for the active slide only */
   font-family: 'Noto Sans', sans-serif;
   font-weight: 400;
-  font-size: 1.2vmax !important; /* 40px equivalent at a 1920x1080 reference viewport
-    (40/1920*100), converted from the flat px spec so it scales with viewport size like the
-    rest of the site's typography (which uses vmin/vmax above the 1024px breakpoint) */
+  font-size: 1vmax !important; /* was 1.2vmax — reduced along with the margins below so the
+    whole panel fits inside shorter windows without needing its own internal scroll */
   line-height: 1.1;
   letter-spacing: 0;
   color: var(--s6263-text);
-  padding: 130px 144px 40px; /* top clears #navbar-wrap (top:56px + 44px height + margin) —
-    otherwise the heading sat right underneath the fixed nav bar. left/right (44px) matches
-    #navbar-wrap's own left/right:44px so the content's edges line up with the nav bar's. */
+  padding: 9vh 144px 3vh; /* top/bottom now vh-based (was a flat 130px/40px) so they scale
+    with the actual window height instead of eating a fixed chunk of it regardless of size —
+    top still clears #navbar-wrap. left/right (144px) unchanged, matches #navbar-wrap. */
   box-sizing: border-box;
 }
 .s6263-wrap {
@@ -3371,14 +3392,14 @@ position: absolute;
 .s6263-heading {
   font-family: 'thunderhouse-pro', 'Anton', sans-serif;
   font-weight: 400;
-  font-size: 4.25vmax !important; /* 120px equivalent at a 1920x1080 reference viewport
-    (120/1920*100), same conversion as .s6263-content-panel's body size above */
+  font-size: 3vmax !important; /* was 4.25vmax — reduced so the heading takes up noticeably
+    less of the viewport's height */
   line-height: 0.8;
   letter-spacing: 0;
   color: #9F2222;
   text-align: center;
-  margin-bottom: 20px;
-  margin-bottom: 100px;
+  margin-bottom: 4vh; /* was a flat 100px (with a dead 20px declaration above it that never
+    applied) — vh-based so it scales with window height instead of a fixed chunk of it */
 }
 .s6263-resources {
   position: relative;
@@ -3404,7 +3425,8 @@ position: absolute;
 .s6263-resource-columns li {
   position: relative;
   padding-left: 18px;
-  margin-bottom: 50px;
+  margin-bottom: 2vh; /* was a flat 50px — scales with window height instead of a fixed
+    chunk of it, was the biggest single contributor to the Resources list overflowing */
 }
 .s6263-resource-columns li::before {
   content: '•';
@@ -3415,11 +3437,12 @@ position: absolute;
 .s6263-content-panel a { color: var(--s6263-text); text-decoration: underline; }
 
 .s6263-contact {
-  margin-top: 40px; /* now sits directly under .s6263-resources on the same slide, needs its
-    own spacing (previously relied on .s6263-credits' margin-top when it followed contact) */
+  margin-top: 3vh; /* was a flat 40px — now sits directly under .s6263-resources on the same
+    slide, needs its own spacing (previously relied on .s6263-credits' margin-top when it
+    followed contact); vh-based so it scales with window height */
   border: 1.5px solid var(--s6263-line);
   border-radius: 6px;
-  padding: 28px 32px;
+  padding: 2vh 32px;
 }
 .s6263-contact-columns {
   display: flex;
@@ -3462,15 +3485,17 @@ position: absolute;
 .s6263-contact-standalone p { max-width: 720px; margin: 0; }
 .s6263-contact-links-centered { align-items: center; text-align: center; }
 
-.s6263-credits { margin-top: 32px; padding: 20px 12px 4px; margin-bottom: 100px; }
+.s6263-credits { margin-top: 2vh; padding: 1.5vh 12px 4px; margin-bottom: 4vh; } /* was
+  32px/20px.../100px flat — vh-based so it scales with window height instead of a fixed
+  chunk of it (the 100px bottom margin in particular was a big contributor to overflow) */
 .s6263-credits-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
-  margin-bottom: 28px;
+  margin-bottom: 2vh;
 }
 .s6263-credits-columns > div { display: flex; flex-direction: column; gap: 14px; }
-.s6263-credits-columns p { margin-bottom: 20px; }
+.s6263-credits-columns p { margin-bottom: 1.5vh; }
 /* Interviewee name list — much denser than the credits text above (20 names), so its own
    tighter line-height reads better as a scannable list. */
 .s6263-credits-columns p[data-i18n-html="s6263.creditsInterviewees"] { line-height: 1.6; }
@@ -3549,9 +3574,9 @@ position: absolute;
     left: 261vw; }
 /* Repositioned near the 7th/8th popups (was left:340vw, scene-35's slot) — appears here,
    fading in after the flipped Asmelash sequence, timed in animateS32S43. */
-.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 185vw; }
+.char-s35-pregnant   { width: 6.5vw;   bottom: 0vh; top: auto; left: 185vw; }
 /* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. */
-.char-s32-sadik      { width: 13vw;  bottom: 0vh; top: auto; left: 236vw; }
+.char-s32-sadik      {opacity: 1; transform-origin: 54.91% 75%; transform: scale(1);}
 .char-s36-kid2       { width: 4vw;   bottom: 8vh;  top: auto; left: 440vw; }
 /* Repositioned near panel-32-lesan (was left:540vw, scene-37's slot) — appears here,
    fading in alongside the 4th popup (Lesan AI), timed in animateS32S43. */
@@ -4015,7 +4040,7 @@ bottom: 63%;
   color: var(--maroon);
   border: none;
   border-radius: 24px;
-  padding: 12px 10px;
+  padding: 9px 10px;
   font-family: 'Noto Sans', sans-serif;
   font-weight: 700;
   font-size: 1.25rem; /* above 1024px: overridden with vmin/vmax, see the min-width:1025px block */

@@ -27,7 +27,7 @@
     </div>
   </nav>
   <div class="nav-actions">
-    <button class="nav-btn" data-i18n="ui.resources">RESOURCES</button>
+    <button class="nav-btn" data-i18n="ui.restart">RESTART</button>
     <div class="lang-wrapper" id="langWrapper">
       <button class="nav-btn lang-btn" id="langToggle">
         <span id="langLabel">ENGLISH</span>
@@ -421,9 +421,8 @@
     <div id="s55-s58-bg">
       <img class="s5558-clouds"    src="assets/s55-s58/Clouds%20Sailing.svg"         alt="">
       <img class="s5558-buildings" src="assets/s55-s58/Group%20887.svg"              alt="">
-      <img class="s5558-road"      src="assets/s55-s58/road%20extended%20%284%29.svg" alt="">
+      <div class="s5558-road"></div>
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
-      <img class="s5558-cones"      src="assets/s55-s58/Traffic%20cones.svg"    alt="">
 
     </div>
 
@@ -460,10 +459,10 @@
            the scene-59 zoom-out (see #s5973-bg-art in scroll.js/style.css). Kept separate so
            the popup text never gets scaled/distorted by it. -->
       <div id="s5973-bg-art">
-        <div class="s5973-clouds-tile"></div>
-        <img class="s5973-clouds1" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
+        <!-- <div class="s5973-clouds-tile"></div> -->
+        <!-- <img class="s5973-clouds1" src="assets/s59-s73/Clouds%20%281%29.svg" alt="">
         <img class="s5973-clouds2" src="assets/s59-s73/Clouds%20%282%29.svg" alt="">
-        <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt="">
+        <img class="s5973-clouds3" src="assets/s59-s73/clouds%20%283%29.svg" alt=""> -->
         <div class="s5973-ground"></div>
         <!-- First-guess placement near the road — tune left/bottom/width in style.css -->
         <img class="s5973-prop905"      src="assets/s59-s73/Group%20905.svg"                     alt="">
@@ -520,6 +519,12 @@
        fixed element, position synced to the pan via JS (see frame()'s effectiveTx block),
        so its z-index actually competes with the car/bus. -->
   <img id="s5558-seller-front" src="assets/s55-s58/blue%20man%20seller.svg" alt="" aria-hidden="true">
+
+  <!-- Traffic cones — same stacking-context-escape reasoning as #s5558-seller-front above:
+       trapped inside #s55-s58-bg's own stacking context, a z-index set there could never
+       beat #s5558-car (the lottie toyota probox) no matter how high. Root-level fixed,
+       position synced to the pan via JS (see frame() in scroll.js). -->
+  <img id="s5558-cones-front" src="assets/s55-s58/Traffic%20cones.svg" alt="" aria-hidden="true">
 
   <!-- SCENES 62-63: "content" screens — a root-level position:fixed, full-viewport overlay
        (same stacking-context-escape pattern as #s5558-seller-front above), NOT part of
@@ -671,7 +676,9 @@
        so it still slides across with the pan exactly like an in-background element would,
        but its z-index now genuinely sits above the bus/car/seller — full viewport width,
        so there's a point in its transit where it fully covers/hides them. -->
-  <img id="s5558-transition-frame-front" src="assets/s55-s58/clouds%20and%20birds%20transition%20frame.svg" alt="" aria-hidden="true">
+  <div id="s5558-transition-frame-front" aria-hidden="true">
+    <lottie-player id="s5558-transition-frame-lottie" src="assets/lottie/Brown_cloud_lottie.json" background="transparent"></lottie-player>
+  </div>
 
   <!-- Scenes 55-57 popups + building sign — moved to root level with true CSS position:fixed
        (see style.css), same technique as #s47-crossing-matatu/#s47-crossing-frame above and
@@ -719,8 +726,8 @@
      more than one passenger later, not just Awa Ly. Root-level fixed (not scaled by
      pinnedWrap), shown/hidden directly in animateCityBus alongside panel-30-awayly. -->
 <div id="s30-zoom-people" aria-hidden="true">
-  <img id="city-bus-handle-prop" src="assets/s32-s43/Bus%20handle.svg"                     alt="">
-  <img id="city-awayly-stand"  src="assets/s32-s43/Away%20Ly-handle-hold.svg"              alt="Awa Ly standing inside the matatu" data-i18n-alt="alt.awaLyStanding">
+  <!-- <img id="city-bus-handle-prop" src="assets/s32-s43/Bus%20handle.svg"                     alt=""> -->
+  <!-- <img id="city-awayly-stand"  src="assets/s32-s43/Away%20Ly-handle-hold.svg"              alt="Awa Ly standing inside the matatu" data-i18n-alt="alt.awaLyStanding"> -->
   <img id="city-awayly-handle" src="assets/s32-s43/Away%20Ly-stand.svg"                    alt="Awa Ly holding onto the matatu's handle strap" data-i18n-alt="alt.awaLyHandle">
 </div>
 

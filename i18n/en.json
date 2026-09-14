@@ -1,6 +1,6 @@
 {
   "ui": {
-    "resources": "RESOURCES",
+    "restart": "RESTART",
     "scrollHint": "Scroll",
     "sceneIntroDesc": "The Prevailer matatu bus drives along a jungle road throughout this introduction, taking a scenic detour as the story begins.",
     "s8PlazaSign": "PROBLEM PLAZA",
