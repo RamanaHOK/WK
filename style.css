@@ -698,7 +698,7 @@ body {
 #s5558-seller-front {
   position: fixed;
   bottom: -10vh;
-  left: -20%;
+  left: -40%;
   width: 7vw;
   height: auto;
   z-index: 7; /* above #s5558-car (z:6) so he stays visible when the car passes/parks over him */
@@ -1732,6 +1732,20 @@ body {
 #s21-clouds lottie-player { position: absolute; display: block; width: 160%; height: 160%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #s21c-lottie { opacity: 0; }
 
+/* Scenes 60-61 cloud cover — same oversized/centered lottie-fit reasoning as #s21-clouds
+   above (a lottie's own aspect-fit is contain, not cover — 160% + centered guarantees it
+   always exceeds the viewport regardless of window aspect ratio). z:15 clears #city-bus (5)
+   and #pinned-wrap's whole content so it genuinely covers the scene once it fades in. */
+#s5973-clouds {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 15;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+#s5973-clouds lottie-player { position: absolute; display: block; width: 160%; height: 160%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+#s5973-clouds-lottie { opacity: 0; }
+
 /* Scene-21 vehicle overlay — fixed z:3 (above pinned-wrap z:1); opacity driven by JS */
 #s21-vehicles {
   position: fixed;
@@ -1943,6 +1957,7 @@ body {
 .scene.city.scene-28,
 .scene.city.scene-29,
 .scene.city.scene-30 { background: transparent; }
+
 
 /* Scene-26 overlay — 500vw wide (5 scenes × 100vw), fixed, translates with strip */
 /* Same size/pan-sync as #city-overlay-26 (see animateS26S30), but z-index 4 — below
@@ -2254,7 +2269,10 @@ body {
   top: 0;
   width: 450vw; /* must reach at least 2365vw (1965 + this) to cover scene-44's frozen viewport
     (stripX(19)=2265vw to +100vw=2365vw) with real margin — 380 was cut too close and gapped
-    on the right during scene 44. Must match S3243_BG_WIDTH_VW in scroll.js. */
+    on the right during scene 44. Was drifted to 400 (zero margin, and mismatched the zoom's
+    own origin math in scroll.js, which divides by S3243_BG_WIDTH_VW=450) — restored to match.
+    Also lets more of .s3243-interior's 480vw artwork show instead of being clipped by this
+    box's own overflow:hidden boundary. Must match S3243_BG_WIDTH_VW in scroll.js. */
   height: 100vh;
   overflow: hidden;
   pointer-events: none;
@@ -2263,8 +2281,8 @@ body {
      to track the currently-visible slice of this 1300vw div so the zoom always scales
      from the center of the viewport instead of drifting as the strip pans. */
 }
-#s32-s43-bg img { position: absolute; left: 0; }
-.s3243-interior { top: 0;    height: 100vh; width: auto; z-index: 1; }
+#s32-s43-bg img { position: absolute; left: 0px; }
+.s3243-interior { top: 0;    height: 100vh; width: 328vw; z-index: 1; }
 /* Tiled, not stretched: repeats the handle graphic across the full 1300vw interior
    instead of one image stretched the whole way (which would distort it). */
 .s3243-handles {
@@ -2290,6 +2308,17 @@ body {
 .scene.city.scene-32,
 .scene.city.scene-33,
 .scene.city.scene-34 { background: transparent; }
+
+/* Scene 44's own placeholder div (not #s44-overlay, its fixed slide-down reveal) — isn't
+   covered by any of the transparent-scene groups above/below, so it was falling through to
+   .scene.city's default sky-blue gradient, mismatched with the bus-interior look for the
+   moment before/while #s44-overlay finishes covering it. Same interior wall/window art family
+   as .s3243-interior (scenes 32-43), sized for this single 100vw slot instead of the wide pan
+   strip. #1C2A15 (matches #s44-overlay's own fallback) stays as the color behind it in case
+   the image doesn't load. */
+.scene.city.scene-44 {
+  background: #1C2A15 url('assets/s44/Interior%20bg.svg') center / cover no-repeat;
+}
 
 /* Scene-32–34 overlay — 322vw wide, fixed, translates with strip */
 #city-overlay-32 {
@@ -2340,11 +2369,11 @@ body {
    is the last part to arrive, which made it appear to lag behind the popup below it. */
 .s44-toto-moto {
   position: absolute;
-  top: 30vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20vw;
-  max-height: 40vh;
+    bottom: -73vh;
+    left: 50%;
+    transform: translateX(-44%);
+    width: 38vw;
+    max-height: 138vh;
   height: auto;
   z-index: 2;
   opacity: 0;
@@ -2355,22 +2384,45 @@ body {
 }
 /* Ceiling handles, tiled across the top like the earlier bus-interior scenes */
 .s44-handles {
-  position: absolute;
-  top: 4vh;
-  left: 0;
-  width: 100%;
-  height: 14vh;
-  object-fit: cover;
-  z-index: 3;
+position: absolute;
+    top: -21vh;
+    left: 0;
+    width: 101%;
+    height: 65vh;
+    z-index: 3;
 }
 #panel-44-1 {
   position: absolute;
   top: 60%;
-  left: 50%;
+  left: 31%;
   transform: translateX(-50%);
   z-index: 4;
+  overflow: visible;
 }
 #panel-44-1 p { color: #9F2222; }
+/* Right-pointing tail — connects the panel to Toto Moto, who stands to its right. Same
+   SVG technique (fill + stroked outline + seam) as panel-8a/8b/12/s13-1/s13-2. */
+#panel-44-1 .bubble__tail {
+  position: absolute;
+  left: 100%;
+  top: 28%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-44-1 .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-44-1 .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-44-1 .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 
 /* ================================================================
    SCENES 45–48: Inside the matatu, continued — same ambient-interior pattern as 32–43,
@@ -2390,28 +2442,13 @@ body {
 
 #s45-s48-bg {
   position: absolute;
-  left: 2298vw;
+  left: 2250vw;
   top: 0;
   width: 520vw;
   height: 100vh;
   overflow: hidden;
   pointer-events: none;
-  z-index: 2; /* explicitly above #s32-s43-bg (z-index:1) — their territories overlap
-    (#s32-s43-bg now reaches 2415vw, #s45-s48-bg starts at 2298vw), so this must win the
-    overlap outright instead of relying on DOM order with an equal z-index. */
-  /* Spatial fade, not a scroll-timed one: #s55-s58-bg starts at 2665vw, which is 70.6% across
-     this element's own 520vw width (2298vw-2818vw) — a fixed point in strip-space, regardless
-     of scroll speed/direction. A JS opacity fade timed to sceneLocal can't get this right: the
-     viewport's LEFT edge only reaches 2665vw at the very end of scene 47, while its RIGHT edge
-     starts overlapping #s55-s58-bg's territory from scene 47's very start — so a flat opacity
-     value is always wrong on one side or the other (patchwork overlap if it fades too late,
-     a premature empty gap if it fades too early — see scroll.js's s4548Opacity comment for
-     both symptoms hit during tuning). Masking out this element's own right portion instead
-     means it's always fully opaque where it should be and fully gone exactly where
-     #s55-s58-bg's real content begins, independent of scroll position entirely.
-  */
-  -webkit-mask-image: linear-gradient(to right, black 0%, black 62%, transparent 88%);
-          mask-image: linear-gradient(to right, black 0%, black 62%, transparent 88%);
+  z-index: 2;
 }
 /* Background art + character sprites — the scene-46 pin-zoom (animateS45S48) scales this
    wrapper alone, not #s45-s48-bg itself, so the popups/nameplates (siblings, outside this
@@ -2445,7 +2482,7 @@ body {
   width: 100%;
   height: 40vh;
   z-index: 2;
-  background-image: url('assets/s45-s52/Seats%20extended.svg');
+  background-image: url('assets/s45-s52/Seats.svg?v=1');
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
@@ -2453,10 +2490,10 @@ body {
    across the full strip instead of stretching one image. */
 .s4548-handles {
   position: absolute;
-  left: 0;
+  left: 110vw;
   top: 14vh;
   height: 28vh;
-  width: 100%;
+  width: 58%;
   z-index: 3;
   background-image: url('assets/s32-s43/Bus%20handle.svg');
   background-repeat: repeat-x;
@@ -2468,7 +2505,8 @@ body {
 .char-s45-kathleen,
 .char-s45-totomoto,
 .char-s45-redlady,
-.char-s45-wheelchair {
+.char-s45-wheelchair,
+.char-s47-newguy {
   position: absolute;
   bottom: 0;
   top: auto;
@@ -2477,16 +2515,25 @@ body {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
+/* PLACEHOLDER — no artwork yet, so it has an explicit height/width (an <img> would get its
+   own from the source file instead). */
+.char-s47-newguy {
+  width: 12vw;
+  height: 45vh;
+  box-sizing: border-box;
+}
 .char-s45-kathleen.visible,
 .char-s45-totomoto.visible,
 .char-s45-redlady.visible,
-.char-s45-wheelchair.visible {
+.char-s45-wheelchair.visible,
+.char-s47-newguy.visible {
   opacity: 1;
 }
 .char-s45-kathleen   { left: 153vw;  width: 10vw; }
 .char-s45-totomoto  { left: 168vw; width: 8vw; }
 .char-s45-redlady    { left: 189vw; width: 9.3vw; }
 .char-s45-wheelchair { left: 240vw; width: 21vw; }
+.char-s47-newguy     { left: 330vw; } /* PLACEHOLDER position — near scene 47's two people (same seat art panel-47-newguy's popup at left:348vw already points at); move wherever the real spot should be */
 
 /* Kathleen Siminyu's quote popup + name plate. The popup's `left`/`transform` are set by JS
    every frame (see positionCenteredPopup() in scroll.js) so it always stays centered on the
@@ -2497,15 +2544,45 @@ body {
 #panel-45-kathleen {
   position: absolute;
   bottom: 60vh;
+      left: 158vw;
+    min-width: 650px;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 30;
+  overflow: visible;
 }
 #panel-45-kathleen p { color: #9F2222; }
+/* Down-pointing tail — same SVG technique (fill + stroked outline + seam) as
+   panel-8a/8b/12/s13-1/s13-2/29-welcome/32-samuel. */
+#panel-45-kathleen .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 20%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-45-kathleen .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-45-kathleen .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-45-kathleen .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 #sound-caption-kathleen {
-  bottom: 54vh;
-  left: 133vw;
+bottom: 53vh;
+    left: 178vw;
+}
+div#sound-caption-kathleen .sound-icon-s32 {
+    width: 60px;
+    height: 60px;
 }
 
 /* Toto moto's name plate — same pill, no sound icon, so no need for the button's overlap
@@ -2514,21 +2591,94 @@ body {
   padding-right: 18px;
 }
 #sound-caption-totomoto {
-  bottom: 62vh;
-  left: 168vw;
+    bottom: 58vh;
+    left: 176vw;
+    z-index: 999;
+
 }
 #panel-45-totomoto {
   position: absolute;
-  bottom: 60vh;
+      bottom: 65vh;
+    left: 180vw !important;
+    min-width: 650px !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 30;
+  overflow: visible;
+}
+/* Tail at the bottom-left, pointing down-right — same SVG technique as the other bubbles. */
+#panel-45-totomoto .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 15%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-45-totomoto .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-45-totomoto .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-45-totomoto .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
 }
 #panel-45-totomoto p { color: #9F2222; }
+/* PLACEHOLDER popup for .char-s47-newguy, near scene 47's two people — same recipe as
+   #panel-45-totomoto above (fixed left + !important, same bubble-tail technique), and now
+   also living inside #s45-s48-visual (same as .char-s47-newguy) so it pans/scales together
+   with the box instead of drifting relative to it. 348vw sits right next to the same two
+   people in the seat art. */
+#panel-47-newguy {
+  position: absolute;
+    bottom: 48vh;
+    left: 346vw;
+  /* scale(1/1.5) cancels out #s45-s48-visual's permanent 1.5x wheelchair-zoom scale (see
+     wheelchairZoomT in scroll.js — it's constant through this popup's whole display window,
+     so a fixed counter-scale is enough, no per-frame JS needed) so the popup itself renders
+     at normal size while still panning/positioning together with the box. */
+  transform: translateX(-50%) scale(0.6667);
+  min-width: 650px !important;
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+  overflow: visible;
+}
+#panel-47-newguy .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 20%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-47-newguy .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-47-newguy .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-47-newguy .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
+#panel-47-newguy p { color: #9F2222; }
 #panel-45-redlady {
   position: absolute;
   bottom: 60vh;
+      bottom: 60vh;
+    left: 386vh !important;
+    min-width: 650px !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
@@ -2552,22 +2702,39 @@ body {
 #panel-46-huniki p,
 #panel-46-bigtech p { color: #9F2222; }
 
-/* Chris Emezue + the last red-topped woman — baked into the seat art itself (not a movable
-   sprite). `left`/`transform` are JS-driven (see positionCenteredPopup() in scroll.js) so
-   the popup stays centered on screen through its whole scene-47 display window instead of
-   drifting off-center as the strip keeps panning underneath it. */
-#panel-47-chris {
-  position: absolute;
-  bottom: 60vh;
-  background: #FFFFFFF2;
-  border-color: #9F2222;
-  box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 30;
+#sound-caption-s47newguy {
+  bottom: 44vh;
+  left: 346vw; /* matches panel-47-newguy's own left (348vw), -2vw offset */
+  /* Same counter-scale as panel-47-newguy above, same reason. */
+  transform: scale(0.6667);
+  transform-origin: left center;
 }
-#panel-47-chris p { color: #9F2222; }
-#sound-caption-chris {
-  bottom: 54vh;
-  left: 253vw;
+
+/* Scene-47 tail: another matatu crosses by in the opposite direction, seen through a
+   window frame — both root-level fixed (not part of the panning strip), position/opacity
+   synced every frame in animateS45S48 (scroll.js). */
+#s47-crossing-matatu {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  width: 197.5vw; /* 2.5x scale (was 55vw) — endX in scroll.js's crossing animation updated to match */
+  transform: translateY(-50%);
+  z-index: 152; /* above #s47-crossing-frame (151) so the bus shows through/in front of the frame */
+  opacity: 0; /* opacity is set every frame by scroll.js — no CSS transition, that would fight/lag behind those continuous scroll-driven updates (same reasoning as transform below) */
+  pointer-events: none;
+}
+#s47-crossing-frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: fill; /* stretches to exactly fill the window at any resolution, ignoring the SVG's own aspect ratio (was "cover", which crops to preserve it instead) */
+  transform: scale(1.08); /* frame.svg's own artwork has transparent padding baked in that object-fit alone can't crop away — this zooms in to push that padding off-screen so the visible frame reaches the true edges */
+  transform-origin: center;
+  z-index: 151;
+  opacity: 0; /* opacity is set every frame by scroll.js — no CSS transition, see #s47-crossing-matatu above */
+  pointer-events: none;
 }
 
 /* ================================================================
@@ -2586,7 +2753,7 @@ body {
   position: absolute;
   left: 2665vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
   top: 0;
-  width: 150vw; /* only the street content (buildings/road/pedestrians/seller/cones) needs
+  width: 122vw; /* only the street content (buildings/road/pedestrians/seller/cones) needs
     real width — everything past it is picked up by #s5558-transition-frame-front (root-level,
     unaffected by this wrapper's width) and whatever set comes next after the fade */
   height: 100vh;
@@ -2604,12 +2771,15 @@ body {
 }
 
 /* Match scenes 5-8 layout exactly (values copied verbatim from #s5-s8-bg's
-   .s5s8-clouds/.s5s8-buildings/.s5s8-road — same 400vw wide-strip pattern as this
-   wrapper, NOT .layer-city-road/.layer-city-buildings which are scene-8's single-viewport
-   zoom layer and use a different width — see style.css:747-749). */
+   .s5s8-clouds/.s5s8-buildings — same 400vw wide-strip pattern as this wrapper, NOT
+   .layer-city-road/.layer-city-buildings which are scene-8's single-viewport zoom layer and
+   use a different width — see style.css:747-749). .s5558-road used to be copied in here too
+   (auto width/height !important) — that fought the real .s5558-road rule further down (explicit
+   300vw/16vh/object-fit:cover), forcing the road to render at its raw SVG intrinsic size
+   (6809x933px) instead, which is what made it look blurry/mis-scaled. Removed; the road isn't
+   actually laid out like the buildings anyway (bottom strip vs full-height side art). */
 .s5558-clouds    { top: 2%;   }
 .s5558-buildings { bottom: 37%; top: auto; width: auto !important; height: 100% !important; }
-.s5558-road      { top: 60%; width: auto !important; height: auto !important; }
 
 /* .s5558-transition-frame moved out to root-level #s5558-transition-frame-front — see the
    comment there for why (needed to render above #city-bus/#s5558-car, which this in-background
@@ -2635,8 +2805,11 @@ body {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 300vw;
-  height: 16vh;
+  width: 300vw !important; /* #s55-s58-bg img sets width:100%/height:auto with higher
+    specificity (ID+type beats a plain class) and was winning here, sizing the road to its
+    122vw parent's width with height auto-derived from the SVG's own aspect ratio instead of
+    the intended 300vw/16vh — same fix .s5558-buildings already uses for the same reason. */
+  height: 16vh !important;
   object-fit: cover;
   z-index: 1;
 }
@@ -2703,39 +2876,129 @@ body {
   z-index: 4;
 }
 
-/* Popups — same style/tail convention as #panel-45-kathleen/#panel-47-chris. `left` values
+/* Popups — same style/tail convention as #panel-45-kathleen/#panel-47-newguy. `left` values
    are LOCAL to #s55-s58-bg (they're nested inside it, not siblings of it) — see index.html. */
+/* Scenes 55-57 popups + sign — true CSS position:fixed, relative to the real viewport, NOT
+   #scroll-x's own panning transform (they moved to root level in index.html specifically for
+   this — a position:fixed descendant of ANY transformed ancestor stops being relative to the
+   true viewport). left:50%/translateX(-50%) is now a plain static rule, computed once by the
+   browser, not recomputed every frame in JS — this is the same technique #s47-crossing-matatu/
+   #s47-crossing-frame and #debug-scale already use, and it cannot drift with the pan by
+   construction, since it has no relationship to the pan at all. Only opacity/.visible are
+   still toggled per frame (see scroll.js) — no position math left to get wrong. */
 #panel-55 {
-  position: absolute;
-  left: 35vw;
+  position: fixed;
+  left: 35%;
   bottom: 60vh;
+  transform: translateX(-50%);
+  background: #FFFFFFF2;
+  border-color: #9F2222;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  z-index: 30;
+}
+#panel-55b {
+  position: fixed;
+  left: 35%;
+  bottom: 60vh;
+  transform: translateX(-50%);
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 30;
 }
 #panel-56 {
-  position: absolute;
-  left: 60vw;
-  bottom: 58vh;
+  position: fixed;
+  left: 35%;
+  min-width: 600px !important;
+  bottom: 8vh;
+  transform: translateX(-50%);
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 30;
+  z-index: 4; /* below #s5558-car (z:6, the lottie toyota probox) so it opens behind the car, per request */
 }
 #panel-57 {
-  position: absolute;
-  left: 50vw;
-  bottom: 55vh;
+  position: fixed;
+  left: 35%;
+  min-width: 600px !important;
+  bottom: 8vh;
+  transform: translateX(-50%);
   max-width: 32rem; /* the "bigger" third popup, per the reference */
   min-width: 0; /* base .text-panel's min-width:37.5rem (600px) beats a smaller max-width —
     same bug as the scene-7 popup earlier in this file — this makes 32rem actually apply. */
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 30;
+  z-index: 4; /* below #s5558-car (z:6), same reasoning as panel-56 above */
 }
 #panel-55 p, #panel-56 p, #panel-57 p { color: #9F2222; }
+/* Speech-bubble tail hidden on all 4 of these popups per request. */
+#panel-55 .popup-tail, #panel-55b .popup-tail, #panel-56 .popup-tail, #panel-57 .popup-tail { display: none; }
+#panel-59 .popup-tail, #panel-purple-man .popup-tail, #panel-language-justice .popup-tail { display: none; }
+
+/* panel-61 "would you like to learn more" — position:fixed + live bus-tracking (see the
+   "#panel-61: track bus position" block in frame(), scroll.js), same technique as #panel-5's
+   long diagonal bubble__tail rather than the small standard .popup-tail triangle. */
+#panel-61 {
+  position: fixed;
+  width: auto;
+  min-width: 0;
+  max-width: 26rem;
+  overflow: visible;
+  left: 38vw !important;
+}
+#panel-61 .bubble__tail {
+  position: absolute;
+  left: 66%;
+  top: 100%;
+  width: 67% !important;
+  height: 48% !important;
+  bottom: -1px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-61 .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-61 .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-61 .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
+
+/* Building sign, same fixed technique as the popups above — left/transform static,
+   opacity toggled per frame in scroll.js (same show55||show55b boolean as the panel-55/55b
+   handoff), so it opens/hides together with them. Positioned off to the right of center
+   (left:68%, not 50%) specifically so it doesn't sit on top of the "HUNIKI FEDERATION" text
+   already baked into the building artwork behind it — see the panel-55 block in scroll.js. */
+#s55-huniki-sign {
+  position: fixed;
+  left: 36%;
+  transform: translateX(-50%);
+  bottom: 76vh;
+  color: #9F2222;
+  font-family: 'thunderhouse-pro', 'Anton', sans-serif;
+  font-size: 2.5vmax;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  line-height: 0.9;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 30;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0px 4px 6px 0px #0000004D;
+  opacity: 0; /* default hidden — unlike .text-panel popups this isn't that class, so without
+    this it's fully visible (CSS default opacity 1) during the brief window between initial
+    paint and scroll.js's first frame() tick, which set it to 0/1 via inline style. Showed up
+    as a flash of "THE HUNIKI FEDERATION" at the top of the page on reload. */
+}
 
 /* ================================================================
    SCENES 59–61 — closing chapter: park/lake path with the matatu
@@ -2749,9 +3012,33 @@ body {
 .scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61,
 .scene.city.scene-62, .scene.city.scene-63 { background: transparent; }
 
+/* Fade-in-with-bus-zoom-out extras (.scene-60 is its own 100vw slot, position:relative — left/
+   bottom below are relative to just this one scene, not the wider #s59-s73-bg strip). Opacity
+   driven by s61PostZoomT every frame (see "s60ZoomExtras" in scroll.js), not scroll position —
+   first-guess placement, retune left/bottom/width freely. */
+.s60-zoom-extra { position: absolute; opacity: 0; pointer-events: none; }
+.s60-matatu5  { left: 81vw;
+    bottom: -3vh;
+  z-index: 2;
+    width: 18vw; }
+.s60-matatu8  {    left: 82vw;
+    bottom: 89vh;
+    width: 18vw;
+    z-index: 2; }
+.s60-group898 { left: 90vw;
+    bottom: 17vh;
+    width: 4vw;
+  z-index: 2;}
+
+.s60-group89-blue{
+left: 18vw;
+    bottom: 39vh;
+  z-index: 2;
+    width: 16vw;
+}
 #s59-s73-bg {
   position: absolute;
-  left: 3089vw; /* user-tuned (was 3065vw, the math-derived 27*100vw+365vw) — must stay in
+  left: 3065vw; /* user-tuned (was 3065vw, the math-derived 27*100vw+365vw) — must stay in
     sync with S5973_BG_LEFT_VW in scroll.js (popup centering + zoom-out transform-origin) */
   top: 0;
   width: 400vw; /* 3 scene-slots × 100vw (scenes 59-61) PLUS a full extra 100vw buffer. Scenes
@@ -2829,7 +3116,7 @@ body {
     top: auto;
     width: 25vw !important;
     height: auto;
-    z-index: 3;
+    z-index: 6;
 }
 /* Ambient standing character — first-guess placement near the ground/road, retune
    left/bottom/width. left needs !important — see .s5973-prop905's comment above for why. */
@@ -2841,40 +3128,112 @@ left: 114vw !important;
     height: auto;
     z-index: 3;
 }
+/* Tiny ambient kids near purple-man's spot along the path — first-guess placement,
+   retune left/bottom/width. left needs !important, same reasoning as .s5973-prop905 above. */
+.s5973-small-boy {
+    left: 118vw !important;
+    bottom: 74vh;
+    top: auto;
+    width: 2vw !important;
+    height: auto;
+    z-index: 3;
+}
+.s5973-small-girl {
+    left: 120vw !important;
+    bottom: 74vh;
+    top: auto;
+    width: 3.2vw !important;
+    height: auto;
+    z-index: 3;
+}
+/* Ambient character-group vignettes spread further along the path — first-guess placement,
+   retune left/bottom/width. left needs !important, same reasoning as .s5973-prop905 above. */
+.s5973-group897 {
+    left: 189vw !important;
+    bottom: -22vh;
+    top: auto;
+    width: 10vw !important;
+    height: auto;
+    z-index: 3;
+}
+.s5973-group898 {
+    left: 213vw !important;
+    bottom: 24vh;
+    top: auto;
+    width: 6vw !important;
+    height: auto;
+    z-index: 3;
+}
+.s5973-group899 {
+    left: 188vw !important;
+    bottom: 86vh;
+    top: auto;
+    width: 7.5vw !important;
+    height: auto;
+    z-index: 3;
+}
 div#panel-59 {
-    bottom: 65%;
+        bottom: 68%;
+    left: 17% !important;
+
 }
 div#panel-purple-man {
-    bottom: 72vh;
-    left: 99vw !important;
+    bottom: 74vh;
+    left: 89vw !important;
 }
 div#panel-language-justice {
     bottom: 65vh;
     left: 147vw !important;
 }
 
-/* Bridge + lake, near the start of the strip — the one single "feature" image, not tiled */
-.s5973-bridge-lake {
-  left: 0vw !important; /* was 15vw — left a gap of bare sky at the left edge of the screen */
-  bottom: -45vh;
-  top: auto;
-  width: auto !important;
-  height: 100% !important;
-  z-index: 2;
+/* The bridge — root-level (not inside #scroll-x) so it can render in front of #city-bus, which
+   is also root-level; a plain z-index on an in-strip element can never beat it (different
+   stacking contexts). Horizontal position is synced live in frame() (scroll.js), since being
+   root-level it no longer inherits #scroll-x's pan automatically. Used to be a SECOND element
+   (a duplicate of an in-strip .s5973-bridge, clipped to just the railing band) — that's gone
+   now, this is the only bridge <img> in the page. */
+#s5973-bridge-front {
+    position: fixed;
+    left: -24vw !important;
+    bottom: -40vh;
+    top: auto;
+    width: auto !important;
+    height: 100% !important;
+    z-index: 6;
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: 50vw 50%; /* the true viewport center — same conceptual anchor
+      #s5973BgArt uses (its own popupCenterVw2, "whatever's currently centered on screen"),
+      just expressed in viewport terms since this is root-level/position:fixed, not nested in
+      that element's own coordinate space. Without this matching, the bridge scaled toward a
+      DIFFERENT point than the rest of the background and visibly drifted out of alignment
+      with it as both shrank during the zoom-out. */
+}
+
+/* Bridge, lake, bottom-trees — was one combined image, now 3 separate assets (see the HTML
+   comment near #s5973-bridge-front). .s5973-bridge itself is gone — the bridge is now only
+   the root-level #s5973-bridge-front element (see near #s47-crossing-matatu in index.html),
+   not an in-strip element at all, so it doesn't need its own class/position here anymore. */
+.s5973-lake {
+ left: -11vw !important;
+    bottom: -34vh;
+    top: auto;
+    width: 26% ! IMPORTANT;
+    height: 95vh !important;
+    z-index: 1;
 }
 /* Wider bridge+trees stretch, tiled across the rest of the strip past the lake view */
 .s5973-bridge-trees {
 position: absolute;
-    left: 39vw;
-    bottom: -72vh;
-    width: 300vw; /* was 1330vw (sized for 15 scenes) — harmless either way since the image
-      itself is no-repeat/bottom-left (doesn't scale with this box), just trimmed to match */
+    left: 65vw;
+    bottom: -50vh;
+    width: 300vw;
     height: 103vh;
-    background-image: url(assets/s59-s73/Bridge%20%2B%20bottom%20trees.svg);
+    background-image: url(assets/s59-s73/Group_940.svg);
     background-repeat: no-repeat;
     background-position: bottom left;
     background-size: auto 100%;
-    z-index: 2;
+    z-index: 10;
 }
 /* Tree canopy overlay — foreground layer the bus drives under */
 .s5973-trees-top {
@@ -2988,7 +3347,7 @@ position: absolute;
   pointer-events: none; /* toggled to auto in scroll.js for the active slide only */
   font-family: 'Noto Sans', sans-serif;
   font-weight: 400;
-  font-size: 1.5vmax !important; /* 40px equivalent at a 1920x1080 reference viewport
+  font-size: 1.2vmax !important; /* 40px equivalent at a 1920x1080 reference viewport
     (40/1920*100), converted from the flat px spec so it scales with viewport size like the
     rest of the site's typography (which uses vmin/vmax above the 1024px breakpoint) */
   line-height: 1.1;
@@ -3078,6 +3437,31 @@ position: absolute;
 .s6263-contact-links a { color: var(--s6263-text); text-decoration: none; }
 .s6263-contact-links a:hover { text-decoration: underline; }
 
+/* Standalone Contact Us screen (3rd slide) — vertically centered content with the license/
+   social footer pinned to the bottom, instead of the old bordered two-column box that used
+   to sit under Resources on the same slide. */
+.s6263-slide-2 .s6263-content-panel {
+  display: flex;
+  flex-direction: column;
+}
+.s6263-contact-standalone-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.s6263-contact-standalone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+}
+.s6263-contact-standalone .s6263-heading { margin-bottom: 0; }
+.s6263-contact-standalone p { max-width: 720px; margin: 0; }
+.s6263-contact-links-centered { align-items: center; text-align: center; }
+
 .s6263-credits { margin-top: 32px; padding: 20px 12px 4px; margin-bottom: 100px; }
 .s6263-credits-columns {
   display: grid;
@@ -3086,20 +3470,25 @@ position: absolute;
   margin-bottom: 28px;
 }
 .s6263-credits-columns > div { display: flex; flex-direction: column; gap: 14px; }
-.s6263-credits-columns p { margin: 0; }
+.s6263-credits-columns p { margin-bottom: 20px; }
+/* Interviewee name list — much denser than the credits text above (20 names), so its own
+   tighter line-height reads better as a scannable list. */
+.s6263-credits-columns p[data-i18n-html="s6263.creditsInterviewees"] { line-height: 1.6; }
 
-/* Real org logos (assets/s62-s63/*.png) — each image's own natural aspect ratio is kept,
-   just capped to a shared height so the three sit level with each other. */
+/* Real org logos (assets/s62-s63/*.png) — sit under the left column only now (nested inside
+   its own <div>, not a full-width block below the grid), so smaller/left-aligned to fit that
+   half-width instead of spread across the whole panel. */
 .s6263-org-marks {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-start;
   align-items: center;
-  gap: 60px;
+  gap: 30px;
   flex-wrap: wrap;
-  margin-top: 100px;
-  margin-bottom: 200px;
+  margin-top: auto; /* pushes the logos to the bottom of the left column (a flex column,
+    stretched to the grid row's full height by the right column's taller interviewee list),
+    instead of sitting right after the last paragraph regardless of how tall that column is. */
 }
-.s6263-org-marks img { height: 100px; width: auto; }
+.s6263-org-marks img { height: 50px; width: auto; }
 
 .s6263-credits-footer {
   display: flex;
@@ -3154,12 +3543,15 @@ position: absolute;
     left: 74vw;
     transform: scaleX(-1);
 }
-.char-s34-kid1       { width: 7vw;   bottom: 8vh;  top: auto; left: 280vw; }
+.char-s34-kid1       { width: 6vw;
+    bottom: 0vh;
+    top: auto;
+    left: 261vw; }
 /* Repositioned near the 7th/8th popups (was left:340vw, scene-35's slot) — appears here,
    fading in after the flipped Asmelash sequence, timed in animateS32S43. */
-.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 167vw; }
+.char-s35-pregnant   { width: 6vw;   bottom: 0vh; top: auto; left: 185vw; }
 /* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. */
-.char-s32-sadik      { width: 13vw;  bottom: 0vh; top: auto; left: 253vw; }
+.char-s32-sadik      { width: 13vw;  bottom: 0vh; top: auto; left: 236vw; }
 .char-s36-kid2       { width: 4vw;   bottom: 8vh;  top: auto; left: 440vw; }
 /* Repositioned near panel-32-lesan (was left:540vw, scene-37's slot) — appears here,
    fading in alongside the 4th popup (Lesan AI), timed in animateS32S43. */
@@ -3269,7 +3661,8 @@ position: absolute;
   position: absolute;
   top: auto;
   bottom: 60vh;
-  left: 235vw;
+  left: 198vw;
+  min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3282,8 +3675,9 @@ position: absolute;
 #panel-32-pregnant-down {
   position: absolute;
   top: auto;
-  bottom: 10vh;
-  left: 235vw;
+  bottom: 30vh;
+  left: 198vw;
+  min-width: 650px !important;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3298,7 +3692,8 @@ position: absolute;
   position: absolute;
   top: auto;
   bottom: 55vh;
-  left: 272vw;
+  min-width: 650px !important;
+  left: 253vw;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3491,8 +3886,8 @@ position: absolute;
 
 /* Sadik's name plate — same style as Samuel's/Asmelash's, positioned near panel-32-sadik. */
 #sound-caption-sadik {
-  bottom: 43vh;
-  left: 272vw;
+      bottom: 48vh;
+    left: 275vw;
 }
 .sound-icon-sadik {
   width: 60px;
@@ -3544,7 +3939,7 @@ bottom: 63%;
   position: relative;
   overflow: hidden;
   width: 100%;
-  height: 44px;
+  height: 30px;
   box-sizing: border-box;
   background: var(--pill-bg);
   border-radius: 40px;
@@ -3588,7 +3983,7 @@ bottom: 63%;
   position: relative;
   z-index: 2;
 }
-.brand-icon { width: 36px; height: 36px; display: block; }
+.brand-icon { width: 28px; height: 28px; display: block; }
 .brand-name {
   font-family: 'Noto Sans', sans-serif;
   font-weight: 700;
@@ -3641,8 +4036,8 @@ bottom: 63%;
 }
 .lang-btn .caret {
   display: inline-block;
-  width: 2vmin;
-  height: 2vmin;
+  width: 12px;
+  height: 12px;
   background-color: var(--maroon);
   -webkit-mask: url('assets/drop-arrow.svg') center / contain no-repeat;
   mask: url('assets/drop-arrow.svg') center / contain no-repeat;
@@ -3692,9 +4087,9 @@ bottom: 63%;
   #char-bubble.dialogue .char-bubble-lang { font-size: 2vmin; }
   .sound-caption-s32-name                 { font-size: 3.7vmin; }
   .sound-caption-s32-role                 { font-size: 1.85vmin; }
-  .brand-name                             { font-size: 2.96vmin; }
-  .nav-btn                                { font-size: 1.9vmin; }
-  .lang-option                            { font-size: 1.9vmin; }
+  .brand-name                             { font-size: 2vmin; }
+  .nav-btn                                { font-size: 1.5vmin; }
+  .lang-option                            { font-size: 1.5vmin; }
   .sr-only-focusable button,
   .sr-only-focusable-link                 { font-size: 1.3vmin; }
   #debug-scale                            { font-size: 1.02vmin; }

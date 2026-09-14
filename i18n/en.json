@@ -5,7 +5,8 @@
     "sceneIntroDesc": "The Prevailer matatu bus drives along a jungle road throughout this introduction, taking a scenic detour as the story begins.",
     "s8PlazaSign": "PROBLEM PLAZA",
     "s12AvenueSign": "ALGORITHM AVENUE",
-    "s26RevolutionSign": "REVOLUTION ROAD"
+    "s26RevolutionSign": "REVOLUTION ROAD",
+    "s55HunikiSign": "THE HUNIKI FEDERATION"
   },
   "alt": {
     "truckMeta": "Meta truck billowing smoke, overtaking on Algorithm Avenue",
@@ -79,14 +80,15 @@
     
     "panel-12": "<p>With 85% of the internet dominated by just ten languages, about 9 out of 10 African internet users are forced to switch to a colonial language simply to engage online.</p>\n<p>As this pattern repeats globally, billions of people face a digital world where their local languages are functionally invisible.</p>",
     "panel-12b": "<p>When local languages are not digitised, they do not just fade from the internet—they risk total extinction. Some scholars call this process 'epistemicide' or digital language death.</p>",
-    "panel-55": "<h3>THE MUNICIPAL FEDERATION</h3><p>We need to think of data sovereignty—the fundamental right of a community to govern its own knowledge—as a non-negotiable requirement in order to break free from the funding trap.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-55": "<p>We need to think of data sovereignty—the fundamental right of a community to govern its own knowledge—as a non-negotiable requirement in order to break free from the funding trap.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
+    "panel-55b": "<p>Data sovereignty has been defined by indigenous communities as inherent rights of Indigenous Nations to govern, control, access, and benefit from data derived from their peoples, lands, and knowledge systems.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     "panel-56": "<p>In Africa, the discussion around sovereignty is active and has been enshrined in the Africa Declaration on Artificial Intelligence. Here, sovereignty is understood from a Pan-Africanist perspective.</p><p>Countries and peoples are working together to collectively build what is needed for digital sovereignty—linguistic research and content creation, policy frameworks, and secure, legally-protected infrastructure.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     "panel-57": "<p>The destiny of language tech is being written on the ground through a practice of care and self-determination, a movement led by African technologists. Through new imaginations, they are taking a fundamental leap past the binary of Big Tech's systemic exclusion or forced assimilation.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     
     
     "panel-59": "<p>The future of language on the internet is not one of scarcity, but of abundance, rooted in the thousands of distinct voices that define our collective human history.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     "panel-60": "<p>Would you like to learn more? Our full report, featuring the complete learnings from our research-in-action process, and other resources are available for download below.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
-    "panel-61": "<p>Would you like to learn more? Our full report, featuring the complete learnings from our research-in-action process, and other resources are available for download below.</p>",
+    "panel-61": "<p>Would you like to learn more? Our full report, featuring the complete learnings from our research-in-action process, and other resources are available for download below.</p><svg class=\"bubble__tail\" viewBox=\"0 0 330 108\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polygon points=\"88.2,0 70.2,0 151.9,107.8\" /><line class=\"bubble__seam\" x1=\"88.2\" y1=\"0\" x2=\"70.2\" y2=\"0\" /><path d=\"M88.2 0 L151.9 107.8 L70.2 0\" /></svg>",
     "panel-purple-man": "<p>Together we can build a world where every language finds its rightful, vibrant home online.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     "panel-language-justice": "<p>Language justice is the very essence of this future.</p><svg class=\"popup-tail\" width=\"40\" height=\"36\" aria-hidden=\"true\"><polygon fill=\"#FFFFFFF2\" points=\"8,0 32,0 20,32\" /><path fill=\"none\" stroke=\"#9F2222\" stroke-width=\"2.5\" stroke-linejoin=\"round\" d=\"M8 0 L20 32 L32 0\" /></svg>",
     "panel-s13-1": "<p>These languages are invisible online for multiple reasons. The problem isn't just a lack of sufficient corpora; look around this matatu, the speakers are there in abundance. The deeper problem is that the internet was built for written text, effectively marginalising the rich oral, signed and multivariate language traditions of the Global Majority.</p>\n<p>This isn't a technical failure—it's a historical one.</p>\n<p>For oral languages, insufficient written and textual corpora have meant that their languages do not have easy access to digitisable and machine-readable data. As a result, they have come to be termed \"low-resource languages\" by scholars of the Global North.</p>",
@@ -104,7 +106,7 @@
     "panel-29-welcome": "<p>Mambo! Make room, make room!</p>\n<p>Welcome, welcome, my brothers and sisters, to The Prevailer&mdash;a vessel for reclaiming African languages on the internet. And this matatu is fuelled by you; your expertise, your care. We are grateful for your company on this journey.</p><svg class=\"bubble__tail\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polygon points=\"28,0 52,0 90,90\" /><line class=\"bubble__seam\" x1=\"28\" y1=\"0\" x2=\"52\" y2=\"0\" /><path d=\"M28 0 L90 90 L52 0\" /></svg>",
     "panel-30-popup1": "<p>Motivated by a digital landscape where they cannot see themselves, these researchers don't just build tools; they build kinship.</p>\n<p>When community members design the technology, the developer/user divide dissolves. The speaker is no longer a consumer to be studied, but a co-creator whose lived experience shapes the machine's framework.</p>",
     "panel-30-popup2": "<p>This shift transforms AI from a tool of dispossession into a practice of care and self-determination.</p>",
-    "panel-30-awayly": "<h3>Awa Ly — Galsen AI</h3>\n<p>&ldquo;This is why GalsenAI is trying to work on our languages by trying to build machine translations or speech to text technologies for our communities&mdash;because we are the ones who know how our language is spoken, we are the ones who know what the language needs. We don&rsquo;t want to be here waiting for some Americans or any others to come and do this for us.&rdquo;</p>",
+    "panel-30-awayly": "<p>&ldquo;This is why GalsenAI is trying to work on our languages by trying to build machine translations or speech to text technologies for our communities&mdash;because we are the ones who know how our language is spoken, we are the ones who know what the language needs. We don&rsquo;t want to be here waiting for some Americans or any others to come and do this for us.&rdquo;</p>",
     "panel-32-intro": "<p>African technologists are themselves members of the communities they serve. They build their organisations, methods and models from a place of indigenous relationality and local social history.</p>\n<p>In working out solutions to not just technical problems but complex social dynamics, these technologists are moving beyond mere representation to build the right to think, theorise, and interpret the world from an African perspective.</p>",
     "panel-32-umuganda": "<p>The Digital Umuganda initiative perfectly exemplifies a community-centred approach. It draws directly on the Rwandan philosophy of Umuganda&mdash;meaning &lsquo;coming together with purpose&rsquo; in Kinyarwanda&mdash;a practice in which communities gather for collective public work followed by open discussion.</p>",
     "panel-32-lesan": "<p>Instead of staying behind a screen, community-centred technologists prioritise on-the-ground practices&mdash;physically meeting and spending time with community members to navigate power dynamics, collect on-ground data, and foster mutual trust. In fact, Lesan AI has built some of the best machine translation models for Tigrinya through these methods.</p>",
@@ -120,7 +122,7 @@
     "panel-45-redlady": "<p>There is a critical need to shift the funding paradigm for language technology development towards sustainable, equitable, community-led and locally-driven models that directly benefit the community by creating jobs, boosting local economies, and stimulating continuous tech development.</p>\n<p>Much like the matatu system, numerous new initiatives are emerging to address the problem of inequitable and unsustainable funding structures. For example, one collective effort is to unify community-centred language technology groups across Africa under an umbrella organisation, such as the Huniki Federation.</p>",
     "panel-46-huniki": "<p>The Huniki Federation aims to create a robust private sector while operating under a social-mission model, reducing dependency on funding from non-profit organisations and Big Tech, and instead investing directly in local communities. This represents a novel, Pan-Africanist approach to achieving digital self-determination.</p>",
     "panel-46-bigtech": "<p>The lack of economic resources is compounded by Big Tech appropriation: corporations often use open-source datasets to train their models without ever giving back to the communities that curated them.</p>",
-    "panel-47-chris": "<p>&ldquo;I think when people understand more about data licensing and sharing, it helps them make better decisions. It&rsquo;s no longer just open source versus non-open source. Because even open source is a very complex thing. It has different aspects of it.&rdquo;</p>"
+    "panel-47-newguy": "<p>&ldquo;I think when people understand more about data licensing and sharing, it helps them make better decisions. It&rsquo;s no longer just open source versus non-open source. Because even open source is a very complex thing. It has different aspects of it.&rdquo;</p>"
   },
   "s6263": {
     "resourcesHeading": "RESOURCES",
@@ -128,6 +130,10 @@
     "resourceItem2": "Download our <a href=\"#\" target=\"_blank\" rel=\"noopener\">\"Community-Centered Language Technology: Best Practices Guideline\"</a> to explore how this kind of tech work can be adopted and expanded by others",
     "resourceItem3": "Read our past, foundational research-in-action about the internet's languages online: <a href=\"https://internetslanguages.org\" target=\"_blank\" rel=\"noopener\">internetslanguages.org</a>",
     "resourceItem4": "Explore the <a href=\"#\" target=\"_blank\" rel=\"noopener\">LesanAI</a> platform, an AI startup dedicated to developing machine translation tools with a focus on Ethiopian and Eritrean languages.",
+    "resourceItem5": "We fine-tuned Meta's Massively Multilingual Speech (MMS) on the Mozilla Common Voice Kiswahili dataset to create highly specialized, domain-adapted automatic speech recognition (ASR) models for Swahili. <a href=\"#\" target=\"_blank\" rel=\"noopener\">You can download the model here.</a>",
+    "resourceItem6": "We fine-tuned OpenAI's Whisper on the Mozilla Common Voice Kiswahili dataset to create highly specialized, domain-adapted automatic speech recognition (ASR) models for Swahili. <a href=\"#\" target=\"_blank\" rel=\"noopener\">You can download the model here.</a>",
+    "resourceItem7": "Tigrinya content creators were able to create 62 articles on DAIR's Wiki using a combination of machine translation and automatic speech recognition tooling. <a href=\"#\" target=\"_blank\" rel=\"noopener\">The list of articles can be viewed here.</a>",
+    "resourceItem8": "Kiswahili content creators were able to create 46 articles on DAIR's Wiki using a combination of machine translation and automatic speech recognition tooling. <a href=\"#\" target=\"_blank\" rel=\"noopener\">The list of articles can be viewed here.</a>",
     "contactHeading": "CONTACT US",
     "contactIntro": "Reach out to give us feedback and share your thoughts, let us know of African/Global Majority initiatives working on these issues, or recommend someone we should be in conversation with!",
     "contactEmail": "languages@whoseknowledge.org",
@@ -141,6 +147,8 @@
     "creditsCol2Item3": "Creative representation advisory by Anisa Ali",
     "creditsCol2Item4": "Tigrinya translation and proofreading by Berhane Achame and Fekadu Gebregziabher.",
     "creditsCol2Item5": "Kishwahili translation and proofreading by Melchior Shukuru and Exuper Njau",
+    "creditsInterviewsIntro": "This report is profoundly indebted to the many interviewees who generously shared their time, expertise, and lived experiences. Their insights are the heart of these findings. We feature some of them below:",
+    "creditsInterviewees": "Alexander Andrason, University of Cape Town<br>Amrit Sufi, Wikimedian<br>Anushah Hossain, Script Encoding Initiative (SEI)<br>Asmelash Teka Hadgu, LesanAI<br>Awa Ly, GalsenAI<br>Digital Umuganda<br>E.M Lewis-Jong, Mozilla Data Collective<br>Eddie Avila, Rising Voices<br>EthioNLP<br>Kalika Bali, Microsoft Research India<br>Kathleen Siminyu, Distributed AI Research (DAIR)<br>Lanfrica Labs<br>Mariana Fossatti, Whose Knowledge?<br>Meseret Alemayehu, RDLS Ethiopia<br>Pau Giner, Wikimedia Foundation<br>Paul Azunre, GhanaNLP<br>Sadik Shahadu, Dagbani Wikimedians User Group<br>Seid Muhie Yimam, EthioNLP<br>Shamsuddeen Hassan Muhammad, HausaNLP<br>Subhashish Panigrahi, Openspeaks",
     "licenseText": "<a href=\"#\" target=\"_blank\" rel=\"noopener\">Unless otherwise stated</a>, this work is licensed under a <a href=\"#\" target=\"_blank\" rel=\"noopener\">Creative Commons Attribution-ShareAlike 4.0 International License.</a> 2026"
   },
   "chars": {
@@ -163,5 +171,21 @@
     "s28-kathleen":   { "stat": "Kathleen Siminyu",    "lang": "Masakane and DAIR" },
     "s29-sadik":      { "stat": "Sadik Shahadu",        "lang": "Dagbani Wikimedians User Group" },
     "s29-samuel":     { "stat": "Samuel Rutunda",       "lang": "Digital Umuganda" }
+  },
+  "captions": {
+    "chrisName": "CHRIS EMEZUE",
+    "chrisRole": "Founder -<br> Lanfrica Labs",
+    "kathleenName": "KATHLEEN SIMINYU",
+    "kathleenRole": "Researcher -<br> Masakane &amp; DAIR",
+    "totoName": "TOTO MOTO",
+    "totoRole": "Bus<br> Conductor",
+    "samuelName": "SAMUEL RUTUNDA",
+    "samuelRole": "CTO - Digital<br> Umuganda",
+    "asmelashName": "ASMELASH TEKA HADGU",
+    "asmelashRole": "Co-founder &amp;<br> CTO - Lesan AI",
+    "sadikName": "SADIK SHAHADU",
+    "sadikRole": "Wikimedian",
+    "awalyName": "AWA LY",
+    "awalyRole": "Galsen AI"
   }
 }
