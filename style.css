@@ -854,12 +854,35 @@ body {
 .scene-1 .text-panel,
 .scene-2 .text-panel,
 .scene-3 .text-panel { left: 5%; top: auto; bottom: 65%; }
-.scene-1 .text-panel { left: 40% !important; }
+.scene-1 .text-panel { left: 55% !important; }
+div#panel-1-start {
+    bottom: 48%;
+    left: 46% !important;
+    width: 200px !important;
+    text-wrap: balance;
+    font-weight: 400 !important;
+    font-family: Noto Sans;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+}
 /* Scene 1 panel: mixed-case, no uppercase transform. No font-size override needed here —
    all popup text (.text-panel h3 and p alike) is a uniform 16px now. */
 #panel-1 h3, #panel-1-start h3 { text-transform: none; }
-#panel-1-start { min-width: auto; max-width: none; width: auto; white-space: nowrap; }
-#panel-1-start h3 { font-size: 18px; }
+/* Plain text now, not a popup — was the same white boxed/bordered bubble every other
+   .text-panel uses; per request this is now just colored text directly over the scene, same
+   "no box, white glow for legibility" technique as #s8-plaza-sign/#s12-avenue-sign. */
+#panel-1-start {
+  min-width: auto; max-width: none; width: auto; white-space: nowrap;
+  background: none; border: none; box-shadow: none; padding: 0;
+}
+#panel-1-start h3 {
+  font-size: 18px;
+  color: #fff; /* was inheriting .text-panel h3's dark red — reference design is plain white text */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45), 0 0 8px rgba(0, 0, 0, 0.25);
+}
 #panel-1 strong { color: #910202; }
 #panel-1 {
   min-width: auto;
@@ -2289,12 +2312,13 @@ body {
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
+  transform: scale(1.25);
   /* transform-origin is set from JS every frame (animateS32S43), not fixed here — it has
      to track the currently-visible slice of this 1300vw div so the zoom always scales
      from the center of the viewport instead of drifting as the strip pans. */
 }
 #s32-s43-bg img { position: absolute; left: 0px; }
-.s3243-interior { top: 0;    height: 100vh; width: 430vw; z-index: 1; }
+.s3243-interior { top: 0;    height: 100vh; width: 430vw; z-index: 1; object-fit: cover; }
 /* Tiled, not stretched: repeats the handle graphic across the full 1300vw interior
    instead of one image stretched the whole way (which would distort it). */
 .s3243-handles {
@@ -2729,7 +2753,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
   position: fixed;
   top: 50%;
   left: 0;
-  width: 197.5vw; /* 2.5x scale (was 55vw) — endX in scroll.js's crossing animation updated to match */
+  width: 225.5vw; /* 2.5x scale (was 55vw) — endX in scroll.js's crossing animation updated to match */
   transform: translateY(-50%);
   z-index: 152; /* above #s47-crossing-frame (151) so the bus shows through/in front of the frame */
   opacity: 0; /* opacity is set every frame by scroll.js — no CSS transition, that would fight/lag behind those continuous scroll-driven updates (same reasoning as transform below) */
@@ -3246,18 +3270,25 @@ div#panel-language-justice {
     height: 95vh !important;
     z-index: 1;
 }
-/* Wider bridge+trees stretch, tiled across the rest of the strip past the lake view */
-.s5973-bridge-trees {
-position: absolute;
-    left: 65vw;
-    bottom: -50vh;
-    width: 300vw;
+/* Trees — root-level fixed, position/scale synced to the bridge's own pan via JS (see
+   frame() in scroll.js) instead of a static in-strip left, so it tracks the bridge exactly.
+   z-index above #s5973-bridge-front (6) so the trees actually cover it, per request. Moved
+   from left:65vw (its old in-strip position) to sit right at the bridge instead. */
+#s5973-trees-front {
+  position: fixed;
+    left: 41vw;
+    bottom: -34vh;
+    top: auto;
+    width: 288vw;
     height: 103vh;
     background-image: url(assets/s59-s73/Group_940.svg);
     background-repeat: no-repeat;
     background-position: bottom left;
-    background-size: auto 100%;
-    z-index: 10;
+    background-size: auto 80%;
+    z-index: 8;
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: 50vw 50%;
 }
 /* Tree canopy overlay — foreground layer the bus drives under */
 .s5973-trees-top {

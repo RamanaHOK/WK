@@ -27,7 +27,7 @@
     </div>
   </nav>
   <div class="nav-actions">
-    <button class="nav-btn" id="restartBtn" data-i18n="ui.restart">RESTART</button>
+    <button class="nav-btn" id="restartBtn">RESOURCES</button>
     <div class="lang-wrapper" id="langWrapper">
       <button class="nav-btn lang-btn" id="langToggle">
         <span id="langLabel">ENGLISH</span>
@@ -474,7 +474,6 @@
              which could drift a pixel out of sync with each other (ghosting/misalignment).
              One element now, not two. -->
         <img class="s5973-lake"         src="assets/s59-s73/Lake.svg"                              alt="">
-        <div class="s5973-bridge-trees"></div>
         <div class="s5973-trees-top"></div>
         <!-- Group904/Matatu5/8 removed for now — rendered unclear/broken at this scale (an
              oddly-skinned ambient bus) and weren't in the clean scene-59 reference (just
@@ -709,6 +708,13 @@
        This is now the ONLY bridge element (used to be a second, clipped-to-just-the-railing
        copy layered on top of an in-strip original — one <img> now instead of two). -->
   <img id="s5973-bridge-front" src="assets/s59-s73/Bridge%20extended.svg" alt="" aria-hidden="true">
+
+  <!-- Trees — same stacking-context-escape reasoning as #s5973-bridge-front above: trapped
+       inside #s5973-bg-art's own stacking context, no z-index there could ever beat a
+       root-level sibling like the bridge, no matter how high. Root-level fixed, positioned
+       near the bridge and synced to the same pan/scale via JS (see frame() in scroll.js),
+       with a higher z-index so the trees actually cover it. -->
+  <div id="s5973-trees-front" aria-hidden="true"></div>
 
   <!-- Scene 59->61 clouds cover transition — COMMENTED OUT (disabled on request). Was:
        root-level fixed cloud cover for scene 61, driven by scroll.js (see the puff-driving

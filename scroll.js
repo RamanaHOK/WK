@@ -42,7 +42,7 @@ const SCENE_SCROLL = [
         // instead of racing past, same reasoning as scene-45 above. Was 1.5.)
   20.5,  // 22 → scene-47 (wheelchair man ambient)
   5.4,  // 23 → scene-55 (street scene — matatu parked outside Municipal Federation building)
-  0.4,  // 24 → scene-56 (second popup)
+  0.01,  // 24 → scene-56 (second popup)
   0.4,  // 25 → scene-57 (third, bigger popup)
   0.3,  // 26 → scene-58 (pans past the street into clear sky)
   // Total 1.5 viewport-widths, matching #s55-s58-bg's new 150vw width (was 5.7/400vw) — no
@@ -305,6 +305,7 @@ const soundCaptionTotoMoto = document.getElementById('sound-caption-totomoto');
 const s47CrossingMatatu = document.getElementById('s47-crossing-matatu');
 const s47CrossingFrame  = document.getElementById('s47-crossing-frame');
 const s5973BridgeFront = document.getElementById('s5973-bridge-front');
+const s5973TreesFront  = document.getElementById('s5973-trees-front');
 const panel45TotoMoto = document.getElementById('panel-45-totomoto');
 const panel47NewGuy = document.getElementById('panel-47-newguy'); // PLACEHOLDER — see index.html
 const soundCaptionS47NewGuy = document.getElementById('sound-caption-s47newguy');
@@ -885,20 +886,30 @@ window.addEventListener('wheel', e => {
 // The pan is already frozen for all of scene 61 (see the effectiveTx branch in frame()), so
 // nothing visibly moves even with a little residual native scroll room left — that's enough.)
 
-// ---- Restart button (nav bar) — jumps straight back to the very start of the story ----
+// ---- Nav bar button — dual purpose (see the label-update block in frame(), right after the
+// _s6263Active engage/release logic): "RESOURCES" everywhere jumps forward to the Resources
+// slide; "RESET" (shown only once you're on the last slide, Contact) jumps back to the very
+// start instead. Either way this must clear any active popup scroll-freeze, not just jump
+// scrollY — frame()'s own "hard-pin scrollY while frozen" guard (see _scrollFreezeUntil there)
+// would otherwise snap the page straight back to wherever it was within a frame or two, the
+// same way it defeats trackpad momentum. ----
 const restartBtn = document.getElementById('restartBtn');
 if (restartBtn) {
   restartBtn.addEventListener('click', () => {
-    // Must clear any active popup scroll-freeze here too, not just jump scrollY — frame()'s
-    // own "hard-pin scrollY while frozen" guard (see _scrollFreezeUntil there) would otherwise
-    // snap the page straight back to wherever it was within a frame or two, fighting this jump
-    // the same way it defeats trackpad momentum. Also release the Resources/Credits wheel-lock
-    // (_s6263Active) directly instead of waiting for frame() to notice scrollY moved elsewhere.
     _scrollFreezeUntil = 0;
     _frozenScrollY = null;
-    _s6263Active = false;
-    _s6263TransT0 = null;
-    window.scrollTo(0, 0);
+    const onLastSlide = _s6263Active && _s6263Index === S6263_SLIDE_COUNT - 1;
+    if (onLastSlide) {
+      // "RESET" — release the wheel-lock directly instead of waiting for frame() to notice
+      // scrollY moved elsewhere, then jump to the very start.
+      _s6263Active = false;
+      _s6263TransT0 = null;
+      window.scrollTo(0, 0);
+    } else if (SCROLL_MAP[30]) {
+      // "RESOURCES" — jump straight to the Resources slide; frame()'s own engage logic (see
+      // above) picks this up next frame and turns the wheel-lock on at index 0 automatically.
+      window.scrollTo(0, SCROLL_MAP[30].scrollStart + 10);
+    }
   });
 }
 
@@ -972,6 +983,18 @@ function frame(ts) {
     // unrelated scene.
     _s6263Active = false;
     _s6263TransT0 = null;
+  }
+
+  // Nav bar button: "RESOURCES" everywhere else, jumps forward to the Resources slide when
+  // clicked; "RESET" once you've reached the last slide (Contact), where jumping further
+  // forward makes less sense than restarting — see restartBtn's click handler below.
+  if (restartBtn) {
+    const onLastSlide = _s6263Active && _s6263Index === S6263_SLIDE_COUNT - 1;
+    // t() can return undefined for a frame or two before i18n.js's async JSON fetch resolves
+    // — leave the HTML's own fallback text ("RESOURCES") alone until there's a real value,
+    // rather than briefly showing the literal string "undefined".
+    const label = t(onLastSlide ? 'ui.restart' : 'ui.resources');
+    if (label != null) restartBtn.textContent = label;
   }
 
   // Scenes 62-64 — continuous "position" across all slides (0 = fully Resources, 1 = fully
@@ -1407,8 +1430,11 @@ function frame(ts) {
     const frameVisible = currentScene >= 23 && currentScene <= 26;
     if (frameVisible) {
       // Hard on/off now, no gradual cross-fade — opacity is 1 by default whenever the frame
-      // is in reach, snapping straight to 0 only once it's slid a full viewport past center.
-      s5558TransitionFrameFront.style.opacity   = (frameVx <= _vw) ? '1' : '0';
+      // is in reach, snapping straight to 0 once it's slid back out past this same threshold.
+      // Threshold was a full viewport-width (frameVx <= _vw), which started covering the
+      // scene quite early — reduced to half a viewport-width so it starts later, per request.
+      const FRAME_REVEAL_VW = 5.5 * _vw;
+      s5558TransitionFrameFront.style.opacity   = (frameVx <= FRAME_REVEAL_VW) ? '1' : '0';
       s5558TransitionFrameFront.style.transform = `translateX(${Math.max(0, frameVx).toFixed(1)}px)`;
     } else {
       s5558TransitionFrameFront.style.opacity = '0';
@@ -1783,6 +1809,16 @@ function frame(ts) {
       const bridgeScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT;
       s5973BridgeFront.style.transform = `translateX(${(bridgeOnScreenVw * vwPx2).toFixed(1)}px) scale(${bridgeScale.toFixed(3)})`;
       s5973BridgeFront.style.opacity = (currentScene === 27 || currentScene === 28) ? '1' : '0';
+    }
+
+    // Trees — same on-screen-position formula as the bridge above (moved from its old
+    // in-strip left:65vw to the bridge's own local origin, 0vw, per request — "near bridge
+    // place"), same zoom-out scale so it shrinks together with everything else.
+    if (s5973TreesFront) {
+      const treesOnScreenVw = S5973_BG_LEFT_VW - viewportCenterVw2 + 50;
+      const treesScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT;
+      s5973TreesFront.style.transform = `translateX(${(treesOnScreenVw * vwPx2).toFixed(1)}px) scale(${treesScale.toFixed(3)})`;
+      s5973TreesFront.style.opacity = (currentScene === 27 || currentScene === 28) ? '1' : '0';
     }
 
     // 4 popups here, same combinedLocal technique as scenes 55-57's inHoldRange/combinedLocal
