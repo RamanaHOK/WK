@@ -789,20 +789,25 @@ window.addEventListener('scroll', () => {
 // scene-32 popup opens (see _scrollFreezeUntil, set in animateS32S43) so it doesn't get
 // scrolled past before there's been any time to read it. Native wheel scroll only —
 // programmatic scrollTo (dot nav) and touch-drag are untouched. ----
-window.addEventListener('wheel', e => {
+// Shared by both the 'wheel' listener and the touch-swipe listener below (mobile has no
+// 'wheel' events at all — a touchmove's Y delta between consecutive touch points stands in
+// for a wheel's deltaY here) — every popup/lock interaction in this function then works
+// identically regardless of input device. Takes a plain deltaY number and a preventDefault
+// callback instead of a raw native event, so it isn't tied to either event type.
+function handleScrollGesture(deltaY, preventDefault) {
   pauseAutoAdvance(); // manual scroll input — user is taking control themselves
-  if (Date.now() < _scrollFreezeUntil) { e.preventDefault(); return; }
+  if (Date.now() < _scrollFreezeUntil) { preventDefault(); return; }
 
-  // Scenes 62-63 — discrete slide lock (see _s6263Active in frame()). While active, wheel
-  // input drives _s6263Index directly instead of native scroll. Steps on the very next scroll
+  // Scenes 62-63 — discrete slide lock (see _s6263Active in frame()). While active, this
+  // gesture drives _s6263Index directly instead of native scroll. Steps on the very next
   // gesture (S6263_TICKS_REQUIRED=1) once the active slide's own content is at the bottom/top
   // — no extra "dummy" scrolls needed first.
   if (_s6263Active) {
-    if (_s6263TransT0 !== null) { e.preventDefault(); return; } // mid-crossfade — ignore input
-    const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+    if (_s6263TransT0 !== null) { preventDefault(); return; } // mid-crossfade — ignore input
+    const dir = deltaY > 0 ? 1 : (deltaY < 0 ? -1 : 0);
     // If the active slide's content is taller than the viewport (.s6263-content-panel is
-    // overflow-y:auto), let the wheel scroll IT first instead of immediately counting toward a
-    // slide switch — otherwise there'd be no way to read content past the fold. Only once
+    // overflow-y:auto), let the gesture scroll IT first instead of immediately counting toward
+    // a slide switch — otherwise there'd be no way to read content past the fold. Only once
     // it's already at the scroll edge in the gesture's direction does this fall through to the
     // normal tick-counting/switch logic below.
     const activePanel = s6263Panels[_s6263Index];
@@ -811,7 +816,7 @@ window.addEventListener('wheel', e => {
       const atBottom = activePanel.scrollTop + activePanel.clientHeight >= activePanel.scrollHeight - 1;
       if ((dir > 0 && !atBottom) || (dir < 0 && !atTop)) return; // let native scroll happen inside the panel
     }
-    e.preventDefault();
+    preventDefault();
     if (dir !== 0 && !_s6263BurstActive) {
       _s6263BurstActive = true;
       if (dir !== _s6263TickDir) { _s6263TickDir = dir; _s6263Ticks = 0; } // direction changed — restart the count
@@ -851,10 +856,10 @@ window.addEventListener('wheel', e => {
   // 4th popup (Lesan AI): freezes the scene entirely while it's up — no background
   // panning behind it — and dismisses on the very next scroll input instead of counting
   // several scroll bursts while the scene kept moving underneath. That one scroll is
-  // swallowed (e.preventDefault) so the scene doesn't jump the instant it dismisses;
+  // swallowed (preventDefault) so the scene doesn't jump the instant it dismisses;
   // normal scrolling (toward Asmelash's popup next) resumes from the following input.
   if (_panel32LesanShown && !_s32LesanDismissed) {
-    e.preventDefault();
+    preventDefault();
     _s32LesanDismissed = true;
     return;
   }
@@ -863,11 +868,11 @@ window.addEventListener('wheel', e => {
   // frame()'s currentScene===21 branch. No gesture-count/wheel-listener wiring needed here
   // any more.
 
-  // 5th popup (Asmelash — "Many people may not know...") dismisses itself after 3 wheel
-  // *scrolls* once it's open, same burst-debounce technique as the old Lesan counter: one
-  // physical scroll fires many rapid 'wheel' events, not one, so only the START of each
-  // burst (150ms of inactivity apart) counts as a single "scroll". Doesn't freeze/preventDefault
-  // — the scene keeps panning normally underneath while these 3 scrolls happen.
+  // 5th popup (Asmelash — "Many people may not know...") dismisses itself after 3 scroll
+  // *gestures* once it's open, same burst-debounce technique as the old Lesan counter: one
+  // physical scroll fires many rapid 'wheel'/'touchmove' events, not one, so only the START of
+  // each burst (150ms of inactivity apart) counts as a single "scroll". Doesn't freeze/
+  // preventDefault — the scene keeps panning normally underneath while these 3 scrolls happen.
   if (_s33AsmelashShown && !_s33AsmelashDismissed) {
     if (!_s33AsmelashBurstActive) {
       _s33AsmelashBurstActive = true;
@@ -877,7 +882,38 @@ window.addEventListener('wheel', e => {
     clearTimeout(_s33AsmelashBurstTimer);
     _s33AsmelashBurstTimer = setTimeout(() => { _s33AsmelashBurstActive = false; }, 150);
   }
+}
+
+window.addEventListener('wheel', e => {
+  handleScrollGesture(e.deltaY, () => e.preventDefault());
 }, { passive: false });
+
+// ---- Touch equivalent — mobile has no 'wheel' events at all, so every popup/lock
+// interaction above would otherwise be completely inert on a touchscreen (the Resources/
+// Credits/Contact lock especially — there'd be no way to ever reach Contact). Tracks the
+// touch's Y position frame-to-frame and feeds the delta into the exact same
+// handleScrollGesture() the wheel listener uses. For plain continuous scrolling (no special
+// state active), that function never calls preventDefault, so ordinary native touch-scrolling
+// — momentum/inertia included — is left completely alone; this only intervenes during the
+// same specific states it already intervenes on for wheel input. --
+let _touchLastY = null;
+const TOUCH_DELTA_SCALE = 3; // a single touchmove's raw pixel delta reads much smaller than a
+  // typical wheel "notch" — scaled up so one normal swipe step registers as a comparably
+  // sized gesture for tick-counting logic (S6263_TICKS_REQUIRED, Asmelash's 3-scroll counter).
+window.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) _touchLastY = e.touches[0].clientY;
+}, { passive: true });
+window.addEventListener('touchmove', e => {
+  if (_touchLastY === null || e.touches.length !== 1) return;
+  const currentY = e.touches[0].clientY;
+  // Finger moves up the screen -> content advances forward, same sign convention as a
+  // wheel's deltaY (scrolling down/forward is positive).
+  const deltaY = (_touchLastY - currentY) * TOUCH_DELTA_SCALE;
+  _touchLastY = currentY;
+  handleScrollGesture(deltaY, () => e.preventDefault());
+}, { passive: false });
+window.addEventListener('touchend',    () => { _touchLastY = null; }, { passive: true });
+window.addEventListener('touchcancel', () => { _touchLastY = null; }, { passive: true });
 
 // (A 'scroll'-listener hard-clamp for "no forward scroll past scene 61" lived here briefly —
 // removed: calling window.scrollTo() from inside a 'scroll' handler re-fires that same
