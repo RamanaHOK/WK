@@ -27,7 +27,7 @@
     </div>
   </nav>
   <div class="nav-actions">
-    <button class="nav-btn" data-i18n="ui.restart">RESTART</button>
+    <button class="nav-btn" id="restartBtn" data-i18n="ui.restart">RESTART</button>
     <div class="lang-wrapper" id="langWrapper">
       <button class="nav-btn lang-btn" id="langToggle">
         <span id="langLabel">ENGLISH</span>
@@ -441,7 +441,7 @@
       <img class="s60-zoom-extra s60-matatu5"  src="assets/s59-s73/Matatu%205.svg" alt="">
       <img class="s60-zoom-extra s60-matatu8"  src="assets/s59-s73/Matatu%208.svg" alt="">
       <img class="s60-zoom-extra s60-group898" src="assets/s59-s73/person on bike.svg" alt="">
-      <img class="s60-zoom-extra s60-group89-blue" src="assets/s59-s73/Matatu blue.svg" alt="">
+      <img class="s60-zoom-extra s60-group89-blue" src="assets/s59-s73/Matatu-12.svg" alt="">
     </div>
     <div class="scene city scene-61"></div>
     <div class="scene city scene-62"></div>
@@ -700,7 +700,7 @@
        root-level (a sibling of #pinned-wrap, not inside #scroll-x) — #scroll-x's own
        transform turns "position:fixed" descendants into "position:absolute"-relative-to-it,
        same gotcha #s5558-transition-frame-front above escapes. Synced in animateS45S48. -->
-  <img id="s47-crossing-matatu" src="assets/s45-s52/Matatu-color.svg" alt="" aria-hidden="true">
+  <img id="s47-crossing-matatu" src="assets/s45-s52/Matatu-12.svg" alt="" aria-hidden="true">
   <img id="s47-crossing-frame"  src="assets/s45-s52/frame.svg" alt="" aria-hidden="true">
 
   <!-- Scene 59-60 bridge — root-level (not inside #scroll-x) so it can render in front of
@@ -1291,6 +1291,7 @@
     document.addEventListener('click', function () {
       wrapper.classList.remove('open');
     });
+
   })();
 </script>
 </body>

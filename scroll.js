@@ -885,6 +885,23 @@ window.addEventListener('wheel', e => {
 // The pan is already frozen for all of scene 61 (see the effectiveTx branch in frame()), so
 // nothing visibly moves even with a little residual native scroll room left — that's enough.)
 
+// ---- Restart button (nav bar) — jumps straight back to the very start of the story ----
+const restartBtn = document.getElementById('restartBtn');
+if (restartBtn) {
+  restartBtn.addEventListener('click', () => {
+    // Must clear any active popup scroll-freeze here too, not just jump scrollY — frame()'s
+    // own "hard-pin scrollY while frozen" guard (see _scrollFreezeUntil there) would otherwise
+    // snap the page straight back to wherever it was within a frame or two, fighting this jump
+    // the same way it defeats trackpad momentum. Also release the Resources/Credits wheel-lock
+    // (_s6263Active) directly instead of waiting for frame() to notice scrollY moved elsewhere.
+    _scrollFreezeUntil = 0;
+    _frozenScrollY = null;
+    _s6263Active = false;
+    _s6263TransT0 = null;
+    window.scrollTo(0, 0);
+  });
+}
+
 // ---- Bus opacity: hidden until first scroll, then fades in ----
 let busOpacity  = 1;    // bus visible from scroll position 0
 let hasScrolled = true;
@@ -2454,9 +2471,10 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
     // a locally-redeclared scroll-driven copy here, which is exactly how it drifted out of
     // sync with the background's own copy before.
-    // dramatic pull-back: 1.0 -> 0.5 (s5960ZoomT), then a further 0.5 -> 0.3 once panel-61
-    // has closed (s61PostZoomT) — combined multiplier goes 0.5 -> 0.7 total.
-    zoom = 1 - 0.5 * s5960ZoomT - 0.2 * s61PostZoomT;
+    // Pull-back: 1.0 -> 0.7 (s5960ZoomT), then a further 0.7 -> 0.6 once panel-61 has closed
+    // (s61PostZoomT) — was 0.5/0.2 (ending at 0.3), increased per request so the bus stays
+    // noticeably bigger through the zoom-out instead of shrinking so dramatically.
+    zoom = 1 - 0.3 * s5960ZoomT - 0.18 * s61PostZoomT;
     if (scene === 27 && s5960ZoomT === 0) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
       // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
@@ -2887,11 +2905,13 @@ function animateS32S43(scene, local, etx, ts) {
       // scene slides down over it — stays flat at 1x per request.
       s32Scale = 1;
     } else if (scene > 17 || (scene === 17 && local >= S33_ZOOM_HOLD)) {
-      // Was 1.5 - 0.5*pregnantZoomT (eased all the way down to 1.0) — at scale 1.0 the
-      // interior artwork's own edges (normally hidden by the zoom) showed as visible top/
-      // bottom gaps once scene-34 held there. Eases down to 1.2 instead and stays there
-      // (scene-34 forces pregnantZoomT=1, so this is a flat 1.2 for the whole scene).
-      s32Scale = 1.5 - 0.3 * pregnantZoomT; // zoom-out after both pregnant-woman popups
+      // Flat now, no zoom at all here — was 1.5 - 0.3*pregnantZoomT (eased down from 1.5 to
+      // 1.2), but pregnantZoomT itself starts at 0 the instant this branch takes over from
+      // the zoomed-in phase below (which ends at scale 1.2), so it jumped 1.2 -> 1.5 in one
+      // frame and then eased back down to 1.2 — read as an unwanted zoom in+out right after
+      // the pregnant-woman popups close. Removed per request; stays at the same 1.2 the
+      // zoomed-in phase already ends at, so there's no jump either.
+      s32Scale = 1.2;
     } else {
       s32Scale = 1 + 0.2 * asmelashZoomInT; // zoomed-in phase: Lesan-dismiss through Asmelash + pregnant popups
     }

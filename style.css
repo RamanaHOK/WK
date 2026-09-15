@@ -467,11 +467,11 @@ body {
    GLOBAL — UI chrome (debug scale, scroll hint, progress bar, dots)
    ================================================================ */
 #debug-scale {
+  display: none; /* dev-only HUD (scene/local%/bus transform), hidden per request */
   position: fixed;
   bottom: 56px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
   align-items: center;
   gap: 12px;
   background: rgba(0, 0, 0, 0.75);
@@ -542,6 +542,7 @@ body {
 }
 
 #progress-bar {
+  display: none; /* hidden per request — the navbar's own progress pill stays visible */
   position: fixed;
   top: 0; left: 0;
   height: 4px;
@@ -2074,7 +2075,7 @@ body {
 #s26-revolution-sign {
   position: absolute;
   top: 16%;
-  left: 89vw;
+  left: 113vw;
   transition: opacity 0.4s ease;
   color: #9F2222;
   font-family: 'thunderhouse-pro', 'Anton', sans-serif;
@@ -2540,7 +2541,7 @@ position: absolute;
 .char-s47-newguy.visible {
   opacity: 1;
 }
-.char-s45-kathleen   { left: 153vw;  width: 10vw; }
+.char-s45-kathleen   { left: 153vw;  width: 10.8vw; }
 .char-s45-totomoto  { left: 168vw; width: 8vw; }
 .char-s45-redlady    { left: 189vw; width: 9.3vw; }
 .char-s45-wheelchair { left: 240vw; width: 21vw; }
@@ -3057,6 +3058,7 @@ left: 18vw;
     bottom: 39vh;
   z-index: 2;
     width: 16vw;
+    transform: scaleX(-1); /* flipped to face the other direction, per request */
 }
 #s59-s73-bg {
   position: absolute;
@@ -3179,8 +3181,8 @@ left: 114vw !important;
     z-index: 3;
 }
 .s5973-group898 {
-    left: 213vw !important;
-    bottom: 24vh;
+ left: 221vw !important;
+    bottom: 10vh;
     top: auto;
     width: 11vw !important;
     height: auto;
@@ -3575,8 +3577,19 @@ position: absolute;
 /* Repositioned near the 7th/8th popups (was left:340vw, scene-35's slot) — appears here,
    fading in after the flipped Asmelash sequence, timed in animateS32S43. */
 .char-s35-pregnant   { width: 6.5vw;   bottom: 0vh; top: auto; left: 185vw; }
-/* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. */
-.char-s32-sadik      {opacity: 1; transform-origin: 54.91% 75%; transform: scale(1);}
+/* Last man in this sequence — appears once the zoom-out finishes, see animateS32S43. Was
+   missing position/width/left/bottom entirely (only opacity/transform were set), so it fell
+   back to static in-flow layout instead of the intended absolute placement near its own
+   popup (#panel-32-sadik, left:253vw) — that's why he never visibly showed up. */
+.char-s32-sadik {
+  position: absolute;
+    width: 12.5vw;
+    bottom: 0vh;
+    top: auto;
+    left: 230vw;
+  transform-origin: 54.91% 75%;
+  transform: scale(1);
+}
 .char-s36-kid2       { width: 4vw;   bottom: 8vh;  top: auto; left: 440vw; }
 /* Repositioned near panel-32-lesan (was left:540vw, scene-37's slot) — appears here,
    fading in alongside the 4th popup (Lesan AI), timed in animateS32S43. */
