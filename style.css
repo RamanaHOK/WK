@@ -2173,7 +2173,7 @@ div#panel-1-start {
 }
 #city-awayly-handle {
   position: absolute;
-  width: 17vw !important;
+  width: 14vw !important;
   bottom: -12vh;
   top: auto;
   left: 28vw;
@@ -2567,7 +2567,7 @@ position: absolute;
 }
 .char-s45-kathleen   { left: 153vw;  width: 10.8vw; }
 .char-s45-totomoto  { left: 168vw; width: 8vw; }
-.char-s45-redlady    { left: 189vw; width: 9.3vw; }
+.char-s45-redlady    { left: 189vw; width: 8.3vw; }
 .char-s45-wheelchair { left: 240vw; width: 21vw; }
 .char-s47-newguy     { left: 330vw; } /* PLACEHOLDER position — near scene 47's two people (same seat art panel-47-newguy's popup at left:348vw already points at); move wherever the real spot should be */
 
@@ -3614,7 +3614,7 @@ position: absolute;
    popup (#panel-32-sadik, left:253vw) — that's why he never visibly showed up. */
 .char-s32-sadik {
   position: absolute;
-    width: 12.5vw;
+    width: 9vw;
     bottom: 0vh;
     top: auto;
     left: 230vw;
@@ -3640,7 +3640,7 @@ position: absolute;
 .char-s38-awayly     { width: 7vw;   bottom: 10vh; top: auto; left: 640vw; }
 /* Repositioned near the zoom-out point (was left:740vw, scene-39's slot) — appears here
    with the same fade-in as old lady/girl-with-phone, timed after the zoom-out finishes. */
-.char-s39-samuel     { width: 12vw;   bottom: 0vh; top: auto; left: 89vw; }
+.char-s39-samuel     { width: 7vw;   bottom: 0vh; top: auto; left: 89vw; }
 
 /* Scene-32 intro popup — lives inside #city-overlay-32 now (not standalone/fixed), so it
    pans with the scene instead of staying pinned on screen as you keep scrolling.
