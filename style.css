@@ -660,10 +660,10 @@ body {
    vehicle. Transform/opacity driven from JS in sync with the bus (see animateCityBus). */
 #s5558-car {
   position: fixed;
-  bottom: 9%;
+  bottom: 3%;
   left: 0;
-  width: 36vw;
-  height: 20vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
+  width: 45vw;
+  height: 30vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
   z-index: 6; /* above #city-bus (z:5) — car leads in front, not tucked behind */
   pointer-events: none;
   opacity: 0;
@@ -677,7 +677,7 @@ body {
   position: fixed;
   bottom: 3%;
   left: 0;
-  width: 30vw;
+  width: 27vw;
   height: auto;
   z-index: 4;
   pointer-events: none;
@@ -2982,7 +2982,7 @@ left: 55%;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 4; /* below #s5558-car (z:6, the lottie toyota probox) so it opens behind the car, per request */
+  z-index: 9; /* below #s5558-car (z:6, the lottie toyota probox) so it opens behind the car, per request */
 }
 #panel-57 {
   position: fixed;
