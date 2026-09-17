@@ -67,12 +67,11 @@
     "47-54": "Abiria anayetumia kiti cha magurudumu anabaki karibu huku abiria wengine wakija na kwenda, huku Chris Emezue akizungumza karibu naye."
   },
   "panels": {
-     "panel-1-start": "<h3>Buruta basi ili kuanza",
+    "panel-1-start": "<h3>Buruta basi ili kuanza",
     "panel-1": "<h3>Panda matatu ya ‘Shujaa’! <strong>Twende!</strong></h3>",
     "panel-2": "<p>Twendeni tusafiri kuona mandhari ya lugha za Afrika, tukichunguza na kubainisha udhalimu wa kidijiti unaowakumba watu wa Afrika kila siku.</p>",
     "panel-3": "<p>Na katika safari hii, matatu yetu pia itachepukia kwenye njia ya mandhari yenye matumaini zaidi, ikifuatilia hadithi za jinsi akili unde inavyobadilishwa kutoka kuwa chombo cha unyonyaji wa kikoloni hadi kuwa njia ya kujitawala ambapo jamii za Afrika zinarejesha na kudai tena lugha zao mtandaoni.</p>",
     "panel-5": "<h3>Wote panda<strong> Shujaa!</strong></h3><svg class=\"bubble__tail\" viewBox=\"0 0 330 108\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><polygon points=\"88.2,0 70.2,0 151.9,107.8\" /><line class=\"bubble__seam\" x1=\"88.2\" y1=\"0\" x2=\"70.2\" y2=\"0\" /><path d=\"M88.2 0 L151.9 107.8 L70.2 0\" /></svg>",
-    
     "panel-6": "<h3></h3><p></p>",
     "panel-8": "<p>Lugha ni urithi wa msingi tuliorithi kutoka kwa mababu zetu, ni uhusiano hai tunaoshirikishana kati yetu na wale wanaotufuata. Ni kiini chenyewe cha namna tunavyofikiri, kuzungumza, kuwaza, na kuufahamu ulimwengu.</p>",
     "panel-8a": "<p>Sawa, watu wangu! Kabla hatujaendelea, hebu turudi nyuma kidogo!</p><p>Kwa vizazi vingi, Afrika imekuwa sehemu zinapopatikana zaidi ya lugha 2,000 tofauti katika nchi 54— ni wingi mkubwa wa lugha unaoonyesha utofauti wa kina ambao ni tofauti sana na historia ya Ulaya ya kupendelea matumizi ya lugha moja. Mamlaka za kikoloni hazikupuuza tu utofauti huu; zilijaribu kuufuta kabisa, mara nyingi kwa ajili ya urahisi wa kiutawala, zikilazimisha sauti nyingi kuingizwa katika lugha moja \"iliyojumuishwa\".</p>",
@@ -203,5 +202,8 @@
     "sadikRole": "Mtumiaji wa Wikimedia",
     "awalyName": "",
     "awalyRole": ""
+  },
+  "images": {
+    "billboard5558": "assets/s55-s58/billaboard-kisw.svg"
   }
 }

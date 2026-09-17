@@ -423,6 +423,11 @@
       <img class="s5558-buildings" src="assets/s55-s58/Group%20887.svg"              alt="">
       <div class="s5558-road"></div>
       <img class="s5558-pedestrians" src="assets/s55-s58/Group%20885.svg"        alt="">
+      <!-- Billboard swaps per language — see images.billboard5558 in i18n/*.json
+           (billaboard-eng.svg / billaboard-kisw.svg / billaboard-tigri.svg). Starting
+           position guess, same as everything else in this scene — tune left/bottom/width
+           once on screen. -->
+      <img class="s5558-billboard" data-i18n-src="images.billboard5558" src="assets/s55-s58/billaboard-eng.svg" alt="">
 
     </div>
 
@@ -1034,10 +1039,13 @@
 
   <!-- 5th popup — near Asmelash's head, shown one scroll after he becomes visible — see animateS32S43 -->
   <div class="text-panel" id="panel-32-asmelash" aria-hidden="true">
-    <p>&ldquo;Many people may not know how to use the Internet or they may not have easy access to it. But we don&rsquo;t want to limit contributions to just people who have easy access to the Internet. So we also put people on the ground and then distribute these tasks to contributors who don&rsquo;t necessarily use the Internet. We would go to remote areas and villages with our recording devices to collect audio data and then compensate them and return. This makes our data representative and diverse.&rdquo;</p>
-    <svg class="popup-tail-angled" width="105" height="130" viewBox="-30 0 105 130" aria-hidden="true">
-      <polygon fill="#FFFFFFF2" points="30,0 75,0 -30,130" />
-      <path fill="none" stroke="#9F2222" stroke-width="4" stroke-linejoin="round" d="M30 0 L-30 130 L75 0" />
+    <div data-i18n-panel-text>
+      <p>&ldquo;Many people may not know how to use the Internet or they may not have easy access to it. But we don&rsquo;t want to limit contributions to just people who have easy access to the Internet. So we also put people on the ground and then distribute these tasks to contributors who don&rsquo;t necessarily use the Internet. We would go to remote areas and villages with our recording devices to collect audio data and then compensate them and return. This makes our data representative and diverse.&rdquo;</p>
+    </div>
+    <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="72,0 48,0 10,90" />
+      <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+      <path d="M72 0 L10 90 L48 0" />
     </svg>
   </div>
 
@@ -1059,12 +1067,15 @@
   <!-- 6th popup — near the flipped Asmelash (char-s37-asmelash2), shown after the 5th
        popup hides, local 0.55+ — see animateS32S43 -->
   <div class="text-panel" id="panel-32-asmelash2" aria-hidden="true">
-    <p>Here, data collection is an act of shared reflection.</p>
-    <p>Every data point is an outcome of the community&rsquo;s historical experience, captured in a way that empowers the collective rather than exploiting the individual. Because this data comes from real conversations rather than internet scraping, the resulting tools are inherently more nuanced.</p>
-    <p>This relational approach can even filter out the racial, gendered, and systemic biases that often plague mainstream language tech applications.</p>
-    <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-      <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-      <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
+    <div data-i18n-panel-text>
+      <p>Here, data collection is an act of shared reflection.</p>
+      <p>Every data point is an outcome of the community&rsquo;s historical experience, captured in a way that empowers the collective rather than exploiting the individual. Because this data comes from real conversations rather than internet scraping, the resulting tools are inherently more nuanced.</p>
+      <p>This relational approach can even filter out the racial, gendered, and systemic biases that often plague mainstream language tech applications.</p>
+    </div>
+    <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="72,0 48,0 10,90" />
+      <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+      <path d="M72 0 L10 90 L48 0" />
     </svg>
   </div>
 
@@ -1087,10 +1098,13 @@
   <!-- 9th popup — near Sadik, the last man in this sequence, shown after the zoom-out
        finishes — see animateS32S43 -->
   <div class="text-panel" id="panel-32-sadik" aria-hidden="true">
-    <p>&ldquo;We realised that Wikidata lexicographical data would make a very good use of the data by adding audio pronunciation to lexemes. When NLP Ghana reached out to us, we realised there was a good opportunity to collaborate. We were able to use our Wikimedia data to train their AI model to create the first layer for Dagbani automatic speech recognition in the Khaya application. Seeing it needed more data, Dagbani Wikimedia User Group then began creating sentences and short phrases using solely Wikipedia articles. And this second stage was used to improve the quality of translation on the Khaya application. And that&rsquo;s how we found ourselves from Wikimedia to NLP. Now the Khaya application fully supports Dagbani text translation and automatic speech recognition. We are now replicating this process for other Mabia languages.&rdquo;</p>
-    <svg class="popup-tail" width="40" height="36" aria-hidden="true">
-      <polygon fill="#FFFFFFF2" points="8,0 32,0 20,32" />
-      <path fill="none" stroke="#9F2222" stroke-width="2.5" stroke-linejoin="round" d="M8 0 L20 32 L32 0" />
+    <div data-i18n-panel-text>
+      <p>&ldquo;We realised that Wikidata lexicographical data would make a very good use of the data by adding audio pronunciation to lexemes. When NLP Ghana reached out to us, we realised there was a good opportunity to collaborate. We were able to use our Wikimedia data to train their AI model to create the first layer for Dagbani automatic speech recognition in the Khaya application. Seeing it needed more data, Dagbani Wikimedia User Group then began creating sentences and short phrases using solely Wikipedia articles. And this second stage was used to improve the quality of translation on the Khaya application. And that&rsquo;s how we found ourselves from Wikimedia to NLP. Now the Khaya application fully supports Dagbani text translation and automatic speech recognition. We are now replicating this process for other Mabia languages.&rdquo;</p>
+    </div>
+    <svg class="bubble__tail" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="72,0 48,0 10,90" />
+      <line class="bubble__seam" x1="72" y1="0" x2="48" y2="0" />
+      <path d="M72 0 L10 90 L48 0" />
     </svg>
   </div>
 

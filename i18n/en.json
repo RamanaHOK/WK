@@ -188,5 +188,8 @@
     "sadikRole": "Wikimedian",
     "awalyName": "AWA LY",
     "awalyRole": "Galsen AI"
+  },
+  "images": {
+    "billboard5558": "assets/s55-s58/billaboard-eng.svg"
   }
 }

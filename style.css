@@ -181,7 +181,8 @@ body {
    ================================================================ */
 .text-panel {
   position: absolute;
-  background: #FFFFFFF2;
+  background: #FFFFFF;
+  background-color: #FFFFFF;
   border: 1px solid #9F2222;
   border-radius: 10px;
   padding: 25px 35px;
@@ -1470,7 +1471,10 @@ div#panel-1-start {
 .char-s12-pink-lady  {     height: 44vh;
     bottom: -10%; }
 .char-s12-pink-lady button{
-  right: 160px;
+  right: 170px;
+}
+.char-s28-chris .plus-btn{
+  right: 80px;
 }
 .char-s12-blue-man button{
   left: 100px;
@@ -2174,7 +2178,7 @@ div#panel-1-start {
 #city-awayly-handle {
   position: absolute;
   width: 14vw !important;
-  bottom: -12vh;
+  bottom: -8vh;
   top: auto;
   left: 28vw;
   opacity: 0;
@@ -2354,6 +2358,7 @@ div#panel-1-start {
    the image doesn't load. */
 .scene.city.scene-44 {
   background: #1C2A15 url('assets/s44/Interior%20bg.svg') center / cover no-repeat;
+/* z-index: 999; */
 }
 
 /* Scene-32–34 overlay — 322vw wide, fixed, translates with strip */
@@ -2478,13 +2483,16 @@ position: absolute;
 
 #s45-s48-bg {
   position: absolute;
-  left: 2250vw;
+  left: 2254vw;
   top: 0;
   width: 520vw;
   height: 100vh;
   overflow: hidden;
   pointer-events: none;
   z-index: 2;
+  opacity: 0; /* stays hidden until scene 44's slide-down overlay actually starts revealing
+    it (see exitT in animateS44) — this default avoids a flash of it before JS's first
+    frame runs, same reasoning as #s55-huniki-sign's own default. */
 }
 /* Background art + character sprites — the scene-46 pin-zoom (animateS45S48) scales this
    wrapper alone, not #s45-s48-bg itself, so the popups/nameplates (siblings, outside this
@@ -2518,7 +2526,7 @@ position: absolute;
   width: 100%;
   height: 40vh;
   z-index: 2;
-  background-image: url('assets/s45-s52/Seats.svg?v=1');
+  background-image: url('assets/s45-s52/Seats%20extended.svg?v=1');
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
@@ -2908,6 +2916,18 @@ div#sound-caption-kathleen .sound-icon-s32 {
   bottom: 37vh;
   top: auto !important;
   width: 8vw !important;
+  height: auto;
+  z-index: 3;
+}
+/* Billboard — swaps image per language, see data-i18n-src in index.html. Starting position
+   guess, same as everything else in this first-draft scene — tune left/bottom/width once
+   on screen. */
+.s5558-billboard {
+  position: absolute;
+left: 33vw !important;
+    bottom: 39vh;
+  top: auto !important;
+  width: 14vw !important;
   height: auto;
   z-index: 3;
 }
@@ -3583,7 +3603,8 @@ position: absolute;
 .char-s37-asmelash,
 .char-s37-asmelash2,
 .char-s35-pregnant,
-.char-s32-sadik {
+.char-s32-sadik,
+.char-s34-kid1 {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -3640,7 +3661,7 @@ position: absolute;
 .char-s38-awayly     { width: 7vw;   bottom: 10vh; top: auto; left: 640vw; }
 /* Repositioned near the zoom-out point (was left:740vw, scene-39's slot) — appears here
    with the same fade-in as old lady/girl-with-phone, timed after the zoom-out finishes. */
-.char-s39-samuel     { width: 7vw;   bottom: 0vh; top: auto; left: 89vw; }
+.char-s39-samuel     { width: 7vw;   bottom: 0vh; top: auto; left: 95vw; }
 
 /* Scene-32 intro popup — lives inside #city-overlay-32 now (not standalone/fixed), so it
    pans with the scene instead of staying pinned on screen as you keep scrolling.
@@ -3653,10 +3674,19 @@ position: absolute;
   left: 35vw;
   min-width: 650px !important;
   right: auto;
-  background: #FFFFFFF2;
+  background: rgba(255, 255, 255); /* was #FFFFFFF2 (95% opacity — the shared popup color everywhere
+    else), letting a faint ghost of the scene show through the box's edges. Fully solid now,
+    per request. */
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
   z-index: 30;
+  transition: none; /* was inheriting .text-panel's 0.4s opacity/transform fade — snaps
+    straight to opacity 1 when it opens instead of fading in. */
+  background-clip: padding-box; /* known Chromium quirk: border-radius + box-shadow can let
+    the scene behind bleed through at the rounded corners at some zoom/DPI levels, even
+    though the background itself is fully solid (confirmed via computed style) — this and
+    the transform below force it onto its own compositing layer, which fixes it. */
+  transform: translateZ(0);
 }
 #panel-32-intro p { color: #9F2222; }
 
@@ -3708,14 +3738,38 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-asmelash p { color: #9F2222; }
+/* bubble__tail — same technique/style as #panel-32-samuel's tail (fill + stroked outline +
+   seam), replacing the smaller .popup-tail-angled triangle this used before. */
+#panel-32-asmelash .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 5%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-32-asmelash .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-32-asmelash .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-32-asmelash .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 
 /* 6th popup — near the flipped Asmelash (char-s37-asmelash2), shown after the 5th
    popup hides, see animateS32S43. */
 #panel-32-asmelash2 {
   position: absolute;
   top: auto;
-  bottom: 55vh;
-      left: calc(164vw);
+     bottom: 64vh;
+    left: calc(161vw);
+
     right: auto;
     min-width: 650px;
   background: #FFFFFFF2;
@@ -3724,6 +3778,29 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-asmelash2 p { color: #9F2222; }
+/* bubble__tail — same technique/style as #panel-32-samuel's tail, replacing the smaller
+   .popup-tail triangle this used before. */
+#panel-32-asmelash2 .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 5%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-32-asmelash2 .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-32-asmelash2 .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-32-asmelash2 .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 
 /* 7th popup — above the pregnant woman (bg stays put, no zoom this time), shown first. */
 #panel-32-pregnant-up {
@@ -3760,9 +3837,9 @@ position: absolute;
 #panel-32-sadik {
   position: absolute;
   top: auto;
-  bottom: 55vh;
-  min-width: 650px !important;
-  left: 253vw;
+      bottom: 66vh;
+    min-width: 750px !important;
+    left: 241vw;
   right: auto;
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -3770,6 +3847,54 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-sadik p { color: #9F2222; }
+/* Scrolls INSIDE the text wrapper only, not the whole panel — putting max-height/overflow
+   on #panel-32-sadik itself (as it was) clips the bubble__tail too, since the tail sits
+   outside the box (top:100%) as a sibling of this wrapper; a parent's overflow clips all
+   descendants regardless of the tail's own overflow:visible. */
+#panel-32-sadik [data-i18n-panel-text] {
+  max-height: 140px;
+  overflow-y: auto;
+  pointer-events: auto; /* .text-panel itself is pointer-events:none, so without this the
+    mouse wheel can't "hit" this element at all — it just falls through to the page's own
+    scroll instead of scrolling this box's content. A child can restore its own
+    pointer-events independently of an ancestor's none. */
+}
+#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar {
+  width: 8px;
+}
+#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-track {
+  background: #fff;
+}
+#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-thumb {
+  background: #D9D9D9;
+  border-radius: 4px;
+}
+#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-button {
+  display: none; /* hides the up/down arrow buttons at the top/bottom of the track */
+}
+/* bubble__tail — same technique/style as #panel-32-samuel's tail, replacing the smaller
+   .popup-tail triangle this used before. */
+#panel-32-sadik .bubble__tail {
+  position: absolute;
+  top: 100%;
+  left: 5%;
+  width: 90px;
+  height: 90px;
+  overflow: visible;
+  pointer-events: none;
+}
+#panel-32-sadik .bubble__tail polygon { fill: #FFFFFFF2; }
+#panel-32-sadik .bubble__tail path {
+  fill: none;
+  stroke: #9F2222;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+#panel-32-sadik .bubble__seam {
+  stroke: #FFFFFFF2;
+  stroke-width: 1.6px;
+  stroke-linecap: butt;
+}
 
 /* Speech-bubble tails — SVG polygons (see the <svg class="popup-tail..."> markup inside
    each popup in index.html), not CSS border-triangles. A polygon can have a proper
@@ -3836,8 +3961,8 @@ position: absolute;
    white "role" segment + circular sound-icon button, all one continuous pill. */
 .sound-caption-s32 {
   position: absolute;
-  bottom: 57vh;
-  left: 124vw;
+    bottom: 58vh;
+    left: 121vw;
   display: flex;
   align-items: stretch;
   border-radius: 10px;
@@ -3878,7 +4003,7 @@ position: absolute;
 }
 .sound-icon-s32 {
   position: absolute;
-  bottom: -20px;
+  bottom: 20px;
   right: -20px;
   width: 80px;
   height: 80px;
@@ -3895,6 +4020,10 @@ position: absolute;
      meant for the pinned strip behind it — this button needs its own override or
      clicks pass straight through it. */
   pointer-events: auto;
+}
+.sound-icon-s32 .sound-icon-state{
+  width: 60px;
+  height: 60px;
 }
 /* Three stacked icon states (landing/play/pause) — crossfaded via opacity based on the
    button's data-sound-state attribute, set in scroll.js, so the user can always see
@@ -3955,8 +4084,8 @@ position: absolute;
 
 /* Sadik's name plate — same style as Samuel's/Asmelash's, positioned near panel-32-sadik. */
 #sound-caption-sadik {
-      bottom: 48vh;
-    left: 275vw;
+         bottom: 59.5vh;
+    left: 269vw;
 }
 .sound-icon-sadik {
   width: 60px;

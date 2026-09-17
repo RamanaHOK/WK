@@ -322,6 +322,7 @@ const char37Asmelash   = document.querySelector('.char-s37-asmelash');
 const char37Asmelash2  = document.querySelector('.char-s37-asmelash2');
 const char35Pregnant   = document.querySelector('.char-s35-pregnant');
 const char32Sadik      = document.querySelector('.char-s32-sadik');
+const char34Kid1       = document.querySelector('.char-s34-kid1'); // lollipop kid — shown/hidden together with Sadik, see showSadik in animateS32S43
 
 // Fixed trees overlay for scene 4 — sits above #jungle-bus (z:11 vs z:10)
 const s4TreesOverlay = document.getElementById('s4-trees');
@@ -786,6 +787,29 @@ window.addEventListener('scroll', () => {
   }, IDLE_TIMEOUT);
 }, { passive: true });
 
+// ---- panel-32-sadik's own internal scroll (its text wrapper has max-height+overflow-y:
+// auto — see style.css). .text-panel is pointer-events:none site-wide, so the wrapper's own
+// pointer-events:auto override lets the wheel "hit" it, but the page's main wheel listener
+// below still fires on every wheel event regardless (window-level listeners aren't scoped to
+// a hit-tested target) and would otherwise ALSO drive the story's scroll position at the same
+// time. This must be registered BEFORE that listener and use stopImmediatePropagation (not
+// stopPropagation, which only stops bubbling between elements, not sibling listeners on the
+// same window target) so it actually pre-empts it — but only while there's still more of the
+// wrapper's own content left to reveal in the gesture's direction; once at that edge, this
+// does nothing and control falls through to the normal page-scroll listener below. ----
+window.addEventListener('wheel', e => {
+  if (!panel32Sadik || panel32Sadik.style.opacity !== '1') return;
+  const wrapper = panel32Sadik.querySelector('[data-i18n-panel-text]');
+  if (!wrapper || wrapper.scrollHeight <= wrapper.clientHeight + 1) return;
+  const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+  const atTop = wrapper.scrollTop <= 0;
+  const atBottom = wrapper.scrollTop + wrapper.clientHeight >= wrapper.scrollHeight - 1;
+  if ((dir > 0 && atBottom) || (dir < 0 && atTop) || dir === 0) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  wrapper.scrollTop += e.deltaY;
+}, { passive: false });
+
 // ---- Popup scroll-freeze: swallow wheel input for a grace period right after a
 // scene-32 popup opens (see _scrollFreezeUntil, set in animateS32S43) so it doesn't get
 // scrolled past before there's been any time to read it. Native wheel scroll only —
@@ -849,16 +873,9 @@ window.addEventListener('wheel', e => {
     return;
   }
 
-  // 4th popup (Lesan AI): freezes the scene entirely while it's up — no background
-  // panning behind it — and dismisses on the very next scroll input instead of counting
-  // several scroll bursts while the scene kept moving underneath. That one scroll is
-  // swallowed (e.preventDefault) so the scene doesn't jump the instant it dismisses;
-  // normal scrolling (toward Asmelash's popup next) resumes from the following input.
-  if (_panel32LesanShown && !_s32LesanDismissed) {
-    e.preventDefault();
-    _s32LesanDismissed = true;
-    return;
-  }
+  // 4th popup (Lesan AI) dismiss-on-next-scroll REMOVED per request — it now closes purely
+  // by position (LESAN_END_LOCAL in animateS32S43), not by scroll gesture. _s32LesanDismissed
+  // stays declared (still reset in animateS32S43) but nothing sets it true any more.
 
   // Wheelchair man's hold (scene 46) now releases the instant his zoom-in finishes — see
   // frame()'s currentScene===21 branch. No gesture-count/wheel-listener wiring needed here
@@ -2423,31 +2440,58 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
       if (panel30Popup1) { panel30Popup1.style.opacity = '0'; panel30Popup1.classList.remove('visible'); }
       if (panel30Popup2) { panel30Popup2.style.opacity = '0'; panel30Popup2.classList.remove('visible'); }
     }
+  } else if (scene === 22) {
+    // Tail of scene 47 — frame()'s effectiveTx already blends the background pan toward scene
+    // 55's start position during the crossing-matatu sequence (see the "currentScene === 22"
+    // reveal blend there), fully arriving by the time crossingT reaches 1 and the freeze holds.
+    // Since that freeze only releases on the NEXT scroll after it times out (not automatically —
+    // same "wait for real input" pattern as Chris's popup elsewhere in this scene), `scene`
+    // itself can stay 22 for a while after the street is already fully visible on screen. The
+    // Prevailer bus/companion cars now drive in DURING this same window (mirroring the exact
+    // reveal-progress formula that pans the background), one continuous forward motion —
+    // NOT a separate entry animation once `scene` reaches 23 below, which used to snap the bus
+    // back off-screen and re-play the drive-in from scratch right as it flipped (already fully
+    // parked here, then yanked back to half-off-screen there — a jarring "back then forward"
+    // glitch). Scene 23+ below just holds the parked position this drive-in already reached.
+    const _revealStart = _s47PopupHiddenLocal !== null ? _s47PopupHiddenLocal : 0.3;
+    const _revealEnd = _revealStart + S47_CROSSING_DURATION;
+    const _revealCrossingT = Math.min(1, Math.max(0, (local - _revealStart) / (_revealEnd - _revealStart)));
+    const revealT = _revealCrossingT >= S47_REVEAL_START_T
+      ? easeInOutCubic(Math.min(1, (_revealCrossingT - S47_REVEAL_START_T) / (1 - S47_REVEAL_START_T)))
+      : 0;
+    if (cityBus) cityBus.style.transformOrigin = '50% 50%';
+    if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
+    if (cityBusS55)   cityBusS55.style.opacity   = '1';
+    zoom = 1;
+    // Half of the bus's own 55vw width — starts half on-screen rather than fully off, same
+    // "don't read as a totally empty street" reasoning as everywhere else this trick is used.
+    const FAR_ENTRY = -0.275 * vw;
+    busX = FAR_ENTRY + revealT * (CENTER - FAR_ENTRY);
+    eff  = opacity * revealT;
+    if (s5558Car) {
+      const carFar = -0.18 * vw; // half of its own 36vw width
+      const carTarget = CENTER + 0.15 * vw;
+      s5558Car.style.opacity   = (opacity * revealT).toFixed(3);
+      s5558Car.style.transform = `translateX(${(carFar + revealT * (carTarget - carFar)).toFixed(1)}px)`;
+    }
+    if (s5558Car2) {
+      const carFar = -0.15 * vw; // half of its own 30vw width
+      const carTarget = CENTER - 0.35 * vw;
+      s5558Car2.style.opacity   = (opacity * revealT).toFixed(3);
+      s5558Car2.style.transform = `translateX(${(carFar + revealT * (carTarget - carFar)).toFixed(1)}px)`;
+    }
   } else if (scene >= 23 && scene <= 26) {
-    // Scenes 55-58: matatu drives in and parks outside the Municipal Federation building —
-    // same drive-in-then-park pattern as scene 5 (see scene===4 block above), using the
-    // "full bus" exterior variant. Parked through 56-57, then drives off right as the
+    // Scenes 55-58: matatu sits parked outside the Municipal Federation building — already
+    // drove in during scene 22's reveal above (see there), so no entry animation needed here,
+    // just holding the parked position. Parked through 56-57, then drives off right as the
     // street pans away into clear sky at the end of scene 58.
     eff  = opacity;
     zoom = 1;
     if (cityBus) cityBus.style.transformOrigin = '50% 50%';
     if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
     if (cityBusS55)   cityBusS55.style.opacity   = '1';
-    if (scene === 23) {
-      // Drive in from further off-screen (like the scene-4 savanna entry) instead of the
-      // near-visible ENTRY point, so it reads as a continuous drive sliding in from under
-      // the previous scene rather than popping in already mostly on-screen. Opacity ramps
-      // in over the same window so it fades up while it's still off-screen, not a hard cut.
-      // Spread across the FULL scene (was 0.7, sped up once SCENE_SCROLL[23] got cut to
-      // 0.4 for the 150vw-wide background — same local fraction now means much less actual
-      // scroll, so it read as fast) — this is the slowest it can be within that unchanged
-      // scroll budget, not a scroll-length change.
-      const FAR_ENTRY = -0.36 * vw;
-      const t = easeInOutCubic(Math.min(1, local / 1.0));
-      busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
-      eff  = opacity; // fully visible from the start of the drive-in, no fade-up ramp
-    } else if (scene <= 25) {
-      // Scenes 56-57: stays parked
+    if (scene <= 25) {
+      // Scenes 55-57: stays parked
       busX = CENTER;
     } else {
       // Scene 58: the clouds+birds transition frame (#s5558-transition-frame-front) already
@@ -2457,19 +2501,13 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
       busX = CENTER;
       eff  = 0;
     }
-    // Companion cars — same drive-in/hold-sway/hide pattern, own timing per car so they
-    // don't read as three identical clones moving in lockstep. entryWindow/fadeInWindow
-    // control speed/fade-in like the bus's own window above; ahead offsets their parked X
-    // so they don't all stack on the same spot; swayPhase offsets the idle sway so they
-    // drift independently during the hold.
-    function driveCar(el, { farEntry, ahead, entryWindow, fadeInWindow, swayPhase, swayAmp }) {
+    // Companion cars — same hold-sway/hide pattern, own sway phase per car so they don't read
+    // as identical clones moving in lockstep. Already drove in during scene 22's reveal above
+    // (see there) — this only holds the parked position, no entry animation left to do here.
+    function driveCar(el, { ahead, swayPhase, swayAmp }) {
       if (!el) return;
       let carX, carEff;
-      if (scene === 23) {
-        const t = easeInOutCubic(Math.min(1, local / entryWindow));
-        carX   = farEntry + t * (CENTER + ahead - farEntry);
-        carEff = opacity * Math.min(1, local / fadeInWindow);
-      } else if (scene <= 25) {
+      if (scene <= 25) {
         const holdPhase = (scene - 24) + local + swayPhase;
         const sway = Math.sin(holdPhase * Math.PI * 1.5) * swayAmp;
         carX   = CENTER + ahead + sway;
@@ -2485,9 +2523,9 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     }
     // Leads ahead of the bus, a little earlier than it so it's already rolling into frame
     // before the bus catches up.
-    driveCar(s5558Car,  { farEntry: -0.75 * vw, ahead:  0.15 * vw, entryWindow: 0.5,  fadeInWindow: 0.2,  swayPhase: 0,   swayAmp: 0.015 * vw });
-    // Trails further back and enters slower — reads as a second car catching up from behind.
-    driveCar(s5558Car2, { farEntry: -0.95 * vw, ahead: -0.35 * vw, entryWindow: 0.65, fadeInWindow: 0.3,  swayPhase: 0.4, swayAmp: 0.02  * vw });
+    driveCar(s5558Car,  { ahead:  0.15 * vw, swayPhase: 0,   swayAmp: 0.015 * vw });
+    // Trails further back — reads as a second car catching up from behind.
+    driveCar(s5558Car2, { ahead: -0.35 * vw, swayPhase: 0.4, swayAmp: 0.02  * vw });
     // s5558Car3 (toyota probox) hidden per request — no driveCar() call, stays at its
     // default opacity 0 (set below) instead of driving in.
   } else if (scene >= 27 && scene <= 29) {
@@ -2838,7 +2876,7 @@ function animateS32S43(scene, local, etx, ts) {
     // finishes (see the crossfade in animateS32S43 below) — showing it any sooner made
     // its white background look washed-out/translucent since it inherits the still-
     // fading-in ancestor's opacity.
-    const showIntro = scene === 16 && local >= 0.01 && local < 0.20;
+    const showIntro = scene === 16 && local >= 0.05 && local < 0.20;
     if (showIntro && !_panel32IntroShown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     _panel32IntroShown = showIntro;
     panel32Intro.style.opacity = showIntro ? '1' : '0';
@@ -2878,7 +2916,8 @@ function animateS32S43(scene, local, etx, ts) {
   // True the instant Samuel's popup hides (local 0.90+) and the Lesan popup takes over —
   // used below to start the Asmelash zoom-in right away instead of waiting for Lesan to
   // actually be dismissed by scrolling.
-  const lesanTriggered = scene > 16 || (scene === 16 && local >= 0.90);
+  const LESAN_OPEN_LOCAL = 1; // scene 16 local where it first becomes eligible to open
+  const lesanTriggered = scene > 16 || (scene === 16 && local >= LESAN_OPEN_LOCAL);
 
   // The 5th popup ("Many people may not know...") is "done" the instant it's dismissed
   // by the 3-scroll counter, or (fallback) once local reaches 0.20 anyway.
@@ -2990,9 +3029,11 @@ function animateS32S43(scene, local, etx, ts) {
     if (soundCaptionSamuel) soundCaptionSamuel.style.opacity = showSamuel ? '1' : '0';
   }
 
-  // Lesan AI / community-centred practices popup — 4th popup, appears after Samuel's
-  // quote (3rd) hides (local 0.90+), then dismisses itself after 2 wheel scrolls (see
-  // the 'wheel' listener above) instead of a wall-clock timer.
+  // Lesan AI / community-centred practices popup — 4th popup, opens at LESAN_OPEN_LOCAL
+  // (above, near lesanTriggered), auto-closes at LESAN_END_LOCAL below — plain scroll-
+  // position numbers. Can also still be dismissed early via a scroll gesture (see the
+  // 'wheel' listener above), whichever comes first.
+  const LESAN_END_LOCAL = 1.02; // combined (scene-16)+local position where it auto-closes
   if (panel32Lesan) {
     // Stays triggered even after scrolling past scene 32 into 33+ (unlike the popup
     // itself, which is scene-32-only) — otherwise, scrolling through the tail of scene
@@ -3001,7 +3042,9 @@ function animateS32S43(scene, local, etx, ts) {
     if (!lesanTriggered) {
       _s32LesanDismissed = false; // scrolled back out — reset so re-entering replays it
     }
-    const showLesan = lesanTriggered && !_s32LesanDismissed;
+    const lesanCombinedLocal = (scene - 16) + local;
+    const showLesan = lesanTriggered && !_s32LesanDismissed && lesanCombinedLocal < LESAN_END_LOCAL;
+    window.__lesanDebug = { scene, local, lesanTriggered, dismissed: _s32LesanDismissed, lesanCombinedLocal, LESAN_END_LOCAL, showLesan };
     if (showLesan && !_panel32LesanShown) _scrollFreezeUntil = Date.now() + POPUP_SCROLL_FREEZE_MS;
     _panel32LesanShown = showLesan;
     panel32Lesan.style.opacity = showLesan ? '1' : '0';
@@ -3065,6 +3108,7 @@ function animateS32S43(scene, local, etx, ts) {
   // showing until much later than intended.
   const showSadik = scene > 17 || (scene === 17 && local >= 0.97);
   if (char32Sadik) char32Sadik.style.opacity = showSadik ? '1' : '0';
+  if (char34Kid1) char34Kid1.style.opacity = showSadik ? '1' : '0'; // lollipop kid, opens/hides together with Sadik per request
 
   // 7th popup — above the pregnant woman, opens first once she's fully zoomed-in-revealed
   // (pregnantT reaches 1). 8th popup — below her, opens a bit later (staggered, one by one).
@@ -3119,6 +3163,20 @@ function animateS44(scene, local) {
   const scale = 1 + 0.5 * exitT;
   s44Overlay.style.transform = `translateY(${translateY.toFixed(2)}%) scale(${scale.toFixed(3)})`;
   s44Overlay.style.opacity = (1 - exitT).toFixed(3);
+
+  // #s45-s48-bg (scene 45-48's own background) stays at opacity 0 until the overlay above
+  // actually starts revealing it (exitT), instead of being visible underneath the whole time.
+  if (s4548Bg) s4548Bg.style.opacity = exitT.toFixed(3);
+
+  // #s32-s43-bg (scenes 32-43's own background) stays at opacity 1 permanently past scene 16
+  // (see animateS32S43's own opacity logic, which never reduces it again) — with #s45-s48-bg
+  // above now correctly hidden until exitT reveals it, that left #s32-s43-bg visibly bleeding
+  // through underneath/alongside it once the overlay faded away, a mismatch between the old
+  // scene-32-43 art and the new scene-45-48 art. Runs AFTER animateS32S43 in frame() (see the
+  // call order there), so this intentionally overrides its own opacity assignment for this
+  // element during the exit window — fades out in the opposite direction of exitT so there's
+  // no visible seam between the two backgrounds.
+  if (s3243Bg) s3243Bg.style.opacity = (1 - exitT).toFixed(3);
 
   // "The guy" (toto-moto) — fades in a bit before the popup, so he's clearly visible by the
   // time the message appears rather than lagging behind it. Fades away with the rest of the
@@ -3506,11 +3564,14 @@ function applyCityParallax(scene, local, px1, py1, px2, py2, px3, py3, px4, py4)
   move(s8ParallaxEls.buildingImg, inS8, px2, py2, 30, 12);
   move(s9ParallaxEls.buildingImg, inS9, px2, py2, 30, 12);
 
-  // Scene 7 people — each on a different tier for distinct timing
-  move(s7ParallaxEls.redGirl,   inS7, px3, py3, 40, 18);  // tier 3 — mid-fast
-  move(s7ParallaxEls.granny,    inS7, px2, py2, 30, 14);  // tier 2 — medium (furthest)
-  move(s7ParallaxEls.orangeMan, inS7, px1, py1, 20, 10);  // tier 1 — slowest
-  move(s7ParallaxEls.greenMan,  inS7, px4, py4, 50, 22);  // tier 4 — fastest
+  // Scene 7 people — parallax removed per request (read as a jittery "shake" on mouse
+  // move/hover, much more pronounced than anywhere else on the site since these used the
+  // fast tiers (px3/px4) with unusually large multipliers). `false` disables each the same
+  // way inS9 above permanently disables its own tier — clouds/buildings above are untouched.
+  move(s7ParallaxEls.redGirl,   false, px3, py3, 40, 18);
+  move(s7ParallaxEls.granny,    false, px2, py2, 30, 14);
+  move(s7ParallaxEls.orangeMan, false, px1, py1, 20, 10);
+  move(s7ParallaxEls.greenMan,  false, px4, py4, 50, 22);
 
   // Scene 8 people — parallax + fade-out + blur as bus zooms in
   // Fade starts at 20 % through scene 8, fully gone by 70 %.
@@ -3527,10 +3588,11 @@ function applyCityParallax(scene, local, px1, py1, px2, py2, px3, py3, px4, py4)
     el.style.filter  = s8Blur > 0.05 ? `blur(${s8Blur.toFixed(1)}px)` : '';
   });
 
-  move(s8ParallaxEls.purpleMan, inS8, px4, py4, 45, 20);
-  move(s8ParallaxEls.greenMan,  inS8, px3, py3, 40, 18);
-  move(s8ParallaxEls.blueGirl,  inS8, px2, py2, 35, 16);
-  move(s8ParallaxEls.limeMan,   inS8, px4, py4, 55, 25);
+  // Same parallax removal as scene 7's people above, same reasoning.
+  move(s8ParallaxEls.purpleMan, false, px4, py4, 45, 20);
+  move(s8ParallaxEls.greenMan,  false, px3, py3, 40, 18);
+  move(s8ParallaxEls.blueGirl,  false, px2, py2, 35, 16);
+  move(s8ParallaxEls.limeMan,   false, px4, py4, 55, 25);
 
   // Scenes 12–13 — wide s12-s15 background; no per-layer parallax needed
 

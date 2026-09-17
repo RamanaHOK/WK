@@ -90,6 +90,15 @@ function i18nRenderDOM() {
     if (val != null) el.alt = val;
   });
 
+  // Image source — same fallback rules as data-i18n, applied to src instead of textContent.
+  // The English file stays hard-coded as src="" (the pre-hydration/no-JS fallback); this only
+  // swaps it once JSON is loaded, so panels.<key> in each i18n/<lang>.json should hold the
+  // path to that language's version of the image (e.g. "assets/foo/screenshot-sw.png").
+  document.querySelectorAll('[data-i18n-src]').forEach(el => {
+    const val = t(el.dataset.i18nSrc);
+    if (val != null) el.src = val;
+  });
+
   document.documentElement.lang = i18nCurrent;
   document.dispatchEvent(new CustomEvent('i18n:rendered'));
 }
