@@ -660,7 +660,7 @@ body {
    vehicle. Transform/opacity driven from JS in sync with the bus (see animateCityBus). */
 #s5558-car {
   position: fixed;
-  bottom: 5%;
+  bottom: 9%;
   left: 0;
   width: 36vw;
   height: 20vh; /* same aspect ratio as #s21v-truck (32vw/20vh), same lottie asset */
@@ -2682,7 +2682,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
 #panel-47-newguy {
   position: absolute;
     bottom: 48vh;
-    left: 346vw;
+    left: 335vw;
   /* scale(1/1.5) cancels out #s45-s48-visual's permanent 1.5x wheelchair-zoom scale (see
      wheelchairZoomT in scroll.js — it's constant through this popup's whole display window,
      so a fixed counter-scale is enough, no per-frame JS needed) so the popup itself renders
@@ -2748,7 +2748,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
 
 #sound-caption-s47newguy {
   bottom: 44vh;
-  left: 346vw; /* matches panel-47-newguy's own left (348vw), -2vw offset */
+  left: 339vw; /* matches panel-47-newguy's own left (348vw), -2vw offset */
   /* Same counter-scale as panel-47-newguy above, same reason. */
   transform: scale(0.6667);
   transform-origin: left center;
@@ -2953,7 +2953,8 @@ left: 33vw !important;
    still toggled per frame (see scroll.js) — no position math left to get wrong. */
 #panel-55 {
   position: fixed;
-  left: 35%;
+  left: 55%;
+  min-width: 555px !important;
   bottom: 60vh;
   transform: translateX(-50%);
   background: #FFFFFFF2;
@@ -2963,7 +2964,8 @@ left: 33vw !important;
 }
 #panel-55b {
   position: fixed;
-  left: 35%;
+left: 55%;
+  min-width: 600px !important;
   bottom: 60vh;
   transform: translateX(-50%);
   background: #FFFFFFF2;
@@ -2973,9 +2975,9 @@ left: 33vw !important;
 }
 #panel-56 {
   position: fixed;
-  left: 35%;
+  left: 58%;
   min-width: 600px !important;
-  bottom: 8vh;
+  bottom: 27vh;
   transform: translateX(-50%);
   background: #FFFFFFF2;
   border-color: #9F2222;
@@ -2984,9 +2986,9 @@ left: 33vw !important;
 }
 #panel-57 {
   position: fixed;
-  left: 35%;
+  left: 58%;
   min-width: 600px !important;
-  bottom: 8vh;
+  bottom: 27vh;
   transform: translateX(-50%);
   max-width: 32rem; /* the "bigger" third popup, per the reference */
   min-width: 0; /* base .text-panel's min-width:37.5rem (600px) beats a smaller max-width —
@@ -2994,7 +2996,8 @@ left: 33vw !important;
   background: #FFFFFFF2;
   border-color: #9F2222;
   box-shadow: 0px 4px 6px 0px #0000004D;
-  z-index: 4; /* below #s5558-car (z:6), same reasoning as panel-56 above */
+  z-index: 6; /* above #city-bus (z:5), per request — matches #s5558-car's own z-index, and
+    panel-57 comes later in the DOM than that lottie element, so it still paints on top */
 }
 #panel-55 p, #panel-56 p, #panel-57 p { color: #9F2222; }
 /* Speech-bubble tail hidden on all 4 of these popups per request. */
@@ -3042,7 +3045,7 @@ left: 33vw !important;
    already baked into the building artwork behind it — see the panel-55 block in scroll.js. */
 #s55-huniki-sign {
   position: fixed;
-  left: 36%;
+  left: 55%;
   transform: translateX(-50%);
   bottom: 76vh;
   color: #9F2222;
@@ -3427,7 +3430,7 @@ position: absolute;
   line-height: 1.1;
   letter-spacing: 0;
   color: var(--s6263-text);
-  padding: 9vh 144px 3vh; /* top/bottom now vh-based (was a flat 130px/40px) so they scale
+  padding: 9vh 144px 10vh; /* top/bottom now vh-based (was a flat 130px/40px) so they scale
     with the actual window height instead of eating a fixed chunk of it regardless of size —
     top still clears #navbar-wrap. left/right (144px) unchanged, matches #navbar-wrap. */
   box-sizing: border-box;
@@ -3579,7 +3582,7 @@ position: absolute;
    background button needed like the earlier guessed placeholders had. */
 .s6263-social-row { display: flex; align-items: center; gap: 20px; }
 .s6263-social-row a { display: flex; text-decoration: none; }
-.s6263-social-row img { width: 50px; height: 50px; }
+.s6263-social-row img { width: 40px; height: 40px; }
 
 @media (max-width: 640px) {
   .s6263-resources { padding: 5vh 24px; border-radius: 24px; }
@@ -3778,6 +3781,28 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-asmelash2 p { color: #9F2222; }
+/* Scrolls INSIDE the text wrapper only, not the whole panel — see #panel-32-sadik's own
+   comment for why (a parent's overflow clips the bubble__tail too, since it sits outside
+   the box as a sibling of this wrapper). */
+#panel-32-asmelash2 [data-i18n-panel-text] {
+  max-height: 145px;
+  overflow-y: auto;
+  pointer-events: auto; /* .text-panel itself is pointer-events:none — see #panel-32-sadik's
+    own comment for why this is needed for the mouse wheel to reach this element at all. */
+}
+#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar {
+  width: 8px;
+}
+#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-track {
+  background: #fff;
+}
+#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-thumb {
+  background: #D9D9D9;
+  border-radius: 4px;
+}
+#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-button {
+  display: none;
+}
 /* bubble__tail — same technique/style as #panel-32-samuel's tail, replacing the smaller
    .popup-tail triangle this used before. */
 #panel-32-asmelash2 .bubble__tail {
@@ -3806,7 +3831,7 @@ position: absolute;
 #panel-32-pregnant-up {
   position: absolute;
   top: auto;
-  bottom: 60vh;
+  bottom: 62vh;
   left: 198vw;
   min-width: 650px !important;
   right: auto;
@@ -3821,7 +3846,7 @@ position: absolute;
 #panel-32-pregnant-down {
   position: absolute;
   top: auto;
-  bottom: 30vh;
+  bottom: 28vh;
   left: 198vw;
   min-width: 650px !important;
   right: auto;
@@ -4096,6 +4121,7 @@ position: absolute;
 .sound-icon-sadik .sound-icon-state {
   width: 60px;
   height: 60px;
+  left:150px
 }
 
 /* Awa Ly's name plate — same sound-caption-s32 visual style, but position:fixed (not
@@ -4103,7 +4129,7 @@ position: absolute;
 #sound-caption-awayly {
   position: fixed;
   top: auto;
-bottom: 63%;
+bottom: 64%;
     right: 20%;
   left: auto;
   z-index: 30;

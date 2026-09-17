@@ -673,17 +673,6 @@
   <img id="s5558-car2" src="assets/s55-s58/Honda%20Fit.svg" alt="" aria-hidden="true">
   <img id="s5558-car3" src="assets/s55-s58/toyota%20probox.svg" alt="" aria-hidden="true">
 
-  <!-- Clouds+birds transition frame — root-level fixed element, NOT a child of #s55-s58-bg
-       (that wrapper has its own lower stacking context, so a child's z-index can never
-       render above #city-bus/#s5558-car — same issue as the seller earlier). Position
-       synced every frame to its 122vw slot inside #s55-s58-bg (see frame() in scroll.js),
-       so it still slides across with the pan exactly like an in-background element would,
-       but its z-index now genuinely sits above the bus/car/seller — full viewport width,
-       so there's a point in its transit where it fully covers/hides them. -->
-  <div id="s5558-transition-frame-front" aria-hidden="true">
-    <lottie-player id="s5558-transition-frame-lottie" src="assets/lottie/Brown_cloud_lottie.json" background="transparent"></lottie-player>
-  </div>
-
   <!-- Scenes 55-57 popups + building sign — moved to root level with true CSS position:fixed
        (see style.css), same technique as #s47-crossing-matatu/#s47-crossing-frame above and
        #debug-scale — a position:fixed descendant of a transformed ancestor (#scroll-x's pan)
@@ -701,9 +690,13 @@
   <!-- Scene-47 (wheelchair man) tail: another matatu crosses by in the opposite direction
        (right-to-left, against the story's own left-to-right travel), seen through a window
        frame — a brief beat once Chris's popup has closed, before scene 55 begins. Must be
-       root-level (a sibling of #pinned-wrap, not inside #scroll-x) — #scroll-x's own
-       transform turns "position:fixed" descendants into "position:absolute"-relative-to-it,
-       same gotcha #s5558-transition-frame-front above escapes. Synced in animateS45S48. -->
+       root-level (a sibling of #pinned-wrap, not inside #scroll-x/#pinned-wrap) — both have
+       their own JS-applied transforms, which turn "position:fixed" descendants into
+       "position:absolute"-relative-to-them instead of the true viewport. STILL WRONGLY
+       NESTED inside #pinned-wrap as of this comment (same bug #s5558-transition-frame-front
+       had, now moved past #pinned-wrap's closing tag — see there) — not yet moved because
+       nothing's reported broken here yet, but this has the same latent issue. Synced in
+       animateS45S48. -->
   <img id="s47-crossing-matatu" src="assets/s45-s52/Matatu-12.svg" alt="" aria-hidden="true">
   <img id="s47-crossing-frame"  src="assets/s45-s52/frame.svg" alt="" aria-hidden="true">
 
@@ -732,6 +725,20 @@
   -->
 
 </div><!-- /pinned-wrap -->
+
+<!-- Clouds+birds transition frame — genuinely root-level fixed element now (was wrongly left
+     nested INSIDE #pinned-wrap above despite this exact comment already claiming otherwise —
+     #pinned-wrap gets a JS-applied transform:scale(...) on nearly every frame — even scale(1)
+     counts — which makes it a containing block for position:fixed descendants, same gotcha
+     #s47-crossing-matatu/#s47-crossing-frame below already call out. That's what let this
+     element's content visibly escape its own overflow:hidden clip at the screen's left edge).
+     Position synced every frame to its 122vw slot inside #s55-s58-bg (see frame() in
+     scroll.js), so it still slides across with the pan exactly like an in-background element
+     would, but its z-index now genuinely sits above the bus/car/seller — full viewport width,
+     so there's a point in its transit where it fully covers/hides them. -->
+<div id="s5558-transition-frame-front" aria-hidden="true">
+  <lottie-player id="s5558-transition-frame-lottie" src="assets/lottie/Brown_cloud_lottie.json" background="transparent" renderer="canvas"></lottie-player>
+</div>
 
 <!-- Scene-30 zoom "come and go" people — separate overlay from #city-bus so it can hold
      more than one passenger later, not just Awa Ly. Root-level fixed (not scaled by

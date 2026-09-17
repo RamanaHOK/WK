@@ -797,17 +797,26 @@ window.addEventListener('scroll', () => {
 // same window target) so it actually pre-empts it — but only while there's still more of the
 // wrapper's own content left to reveal in the gesture's direction; once at that edge, this
 // does nothing and control falls through to the normal page-scroll listener below. ----
+const SCROLLABLE_POPUPS = [panel32Sadik, panel32Asmelash2];
 window.addEventListener('wheel', e => {
-  if (!panel32Sadik || panel32Sadik.style.opacity !== '1') return;
-  const wrapper = panel32Sadik.querySelector('[data-i18n-panel-text]');
-  if (!wrapper || wrapper.scrollHeight <= wrapper.clientHeight + 1) return;
-  const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
-  const atTop = wrapper.scrollTop <= 0;
-  const atBottom = wrapper.scrollTop + wrapper.clientHeight >= wrapper.scrollHeight - 1;
-  if ((dir > 0 && atBottom) || (dir < 0 && atTop) || dir === 0) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  wrapper.scrollTop += e.deltaY;
+  for (const panel of SCROLLABLE_POPUPS) {
+    if (!panel || panel.style.opacity !== '1') continue;
+    const wrapper = panel.querySelector('[data-i18n-panel-text]');
+    if (!wrapper || wrapper.scrollHeight <= wrapper.clientHeight + 1) continue;
+    // Window-level listeners fire on every wheel event regardless of what's under the
+    // cursor, so without this check scrolling the STORY (mouse anywhere else on the page)
+    // would also hijack this popup's internal scroll just because it happens to be open.
+    // Only take over when the cursor is actually over this popup's own text.
+    if (!wrapper.contains(e.target)) continue;
+    const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+    const atTop = wrapper.scrollTop <= 0;
+    const atBottom = wrapper.scrollTop + wrapper.clientHeight >= wrapper.scrollHeight - 1;
+    if ((dir > 0 && atBottom) || (dir < 0 && atTop) || dir === 0) continue;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    wrapper.scrollTop += e.deltaY;
+    return;
+  }
 }, { passive: false });
 
 // ---- Popup scroll-freeze: swallow wheel input for a grace period right after a
@@ -2446,13 +2455,14 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     // reveal blend there), fully arriving by the time crossingT reaches 1 and the freeze holds.
     // Since that freeze only releases on the NEXT scroll after it times out (not automatically —
     // same "wait for real input" pattern as Chris's popup elsewhere in this scene), `scene`
-    // itself can stay 22 for a while after the street is already fully visible on screen. The
-    // Prevailer bus/companion cars now drive in DURING this same window (mirroring the exact
-    // reveal-progress formula that pans the background), one continuous forward motion —
-    // NOT a separate entry animation once `scene` reaches 23 below, which used to snap the bus
-    // back off-screen and re-play the drive-in from scratch right as it flipped (already fully
-    // parked here, then yanked back to half-off-screen there — a jarring "back then forward"
-    // glitch). Scene 23+ below just holds the parked position this drive-in already reached.
+    // itself can stay 22 for a while after the street is already fully visible on screen,
+    // leaving the Prevailer bus/companion cars invisible (their own branch starts at scene 23)
+    // for that whole stretch. Fix: fade them in here too, but only up to their HALF-visible
+    // "just arrived" position (FAR_ENTRY below) — held fixed there for the rest of scene 22,
+    // not driven all the way to fully parked. The visible half-to-fully-parked slide itself
+    // still plays out within scene 23's own scroll range below (see there), so scrolling
+    // through the actual scene 55 street still shows the bus/cars visibly rolling in, instead
+    // of arriving already fully parked with nothing left to animate.
     const _revealStart = _s47PopupHiddenLocal !== null ? _s47PopupHiddenLocal : 0.3;
     const _revealEnd = _revealStart + S47_CROSSING_DURATION;
     const _revealCrossingT = Math.min(1, Math.max(0, (local - _revealStart) / (_revealEnd - _revealStart)));
@@ -2463,35 +2473,37 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
     if (cityBusS55)   cityBusS55.style.opacity   = '1';
     zoom = 1;
-    // Half of the bus's own 55vw width — starts half on-screen rather than fully off, same
-    // "don't read as a totally empty street" reasoning as everywhere else this trick is used.
-    const FAR_ENTRY = -0.275 * vw;
-    busX = FAR_ENTRY + revealT * (CENTER - FAR_ENTRY);
+    // Half of the bus's own 55vw width — half on-screen rather than fully off, same "don't
+    // read as a totally empty street" reasoning as everywhere else this trick is used. Scene
+    // 23 below picks up from this exact same value, so there's no jump at the boundary.
+    busX = -0.275 * vw;
     eff  = opacity * revealT;
-    if (s5558Car) {
-      const carFar = -0.18 * vw; // half of its own 36vw width
-      const carTarget = CENTER + 0.15 * vw;
-      s5558Car.style.opacity   = (opacity * revealT).toFixed(3);
-      s5558Car.style.transform = `translateX(${(carFar + revealT * (carTarget - carFar)).toFixed(1)}px)`;
-    }
-    if (s5558Car2) {
-      const carFar = -0.15 * vw; // half of its own 30vw width
-      const carTarget = CENTER - 0.35 * vw;
-      s5558Car2.style.opacity   = (opacity * revealT).toFixed(3);
-      s5558Car2.style.transform = `translateX(${(carFar + revealT * (carTarget - carFar)).toFixed(1)}px)`;
-    }
+    if (s5558Car) { s5558Car.style.opacity = (opacity * revealT).toFixed(3); s5558Car.style.transform = `translateX(${(-0.18 * vw).toFixed(1)}px)`; } // half of its own 36vw width
+    // White Honda Fit (s5558Car2) deliberately NOT shown here at all — it stays fully hidden
+    // (opacity 0, the "reset every frame" default above) through all of scene 22, instead of
+    // also pre-appearing at its own half-visible position like the bus/lead car do. It gets
+    // its own fade-in + slide entirely within scene 23 below, arriving later and reading as
+    // a proper late entrance rather than "already sitting there, just needs to slide".
   } else if (scene >= 23 && scene <= 26) {
-    // Scenes 55-58: matatu sits parked outside the Municipal Federation building — already
-    // drove in during scene 22's reveal above (see there), so no entry animation needed here,
-    // just holding the parked position. Parked through 56-57, then drives off right as the
+    // Scenes 55-58: matatu drives in and parks outside the Municipal Federation building —
+    // same drive-in-then-park pattern as scene 5 (see scene===4 block above), using the
+    // "full bus" exterior variant. Parked through 56-57, then drives off right as the
     // street pans away into clear sky at the end of scene 58.
     eff  = opacity;
     zoom = 1;
     if (cityBus) cityBus.style.transformOrigin = '50% 50%';
     if (cityBusEmpty) cityBusEmpty.style.opacity = '0';
     if (cityBusS55)   cityBusS55.style.opacity   = '1';
-    if (scene <= 25) {
-      // Scenes 55-57: stays parked
+    if (scene === 23) {
+      // Continues from the exact half-visible position scene 22 above already faded it in
+      // at (FAR_ENTRY here matches busX there) — one continuous forward slide into fully
+      // parked, now playing out across scene 55's own scroll range where it's actually
+      // visible, instead of finishing early during scene 47's hold.
+      const FAR_ENTRY = -0.275 * vw;
+      const t = easeInOutCubic(Math.min(1, local / 1.0));
+      busX = FAR_ENTRY + t * (CENTER - FAR_ENTRY);
+    } else if (scene <= 25) {
+      // Scenes 56-57: stays parked
       busX = CENTER;
     } else {
       // Scene 58: the clouds+birds transition frame (#s5558-transition-frame-front) already
@@ -2501,13 +2513,28 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
       busX = CENTER;
       eff  = 0;
     }
-    // Companion cars — same hold-sway/hide pattern, own sway phase per car so they don't read
-    // as identical clones moving in lockstep. Already drove in during scene 22's reveal above
-    // (see there) — this only holds the parked position, no entry animation left to do here.
-    function driveCar(el, { ahead, swayPhase, swayAmp }) {
+    // Companion cars — same drive-in/hold-sway/hide pattern, own timing per car so they
+    // don't read as three identical clones moving in lockstep. ahead offsets their parked X
+    // so they don't all stack on the same spot; swayPhase offsets the idle sway so they
+    // drift independently during the hold.
+    function driveCar(el, { farEntry, ahead, entryWindow, startDelay = 0, swayPhase, swayAmp }) {
       if (!el) return;
       let carX, carEff;
-      if (scene <= 25) {
+      if (scene === 23) {
+        if (startDelay > 0) {
+          // Stays fully hidden at farEntry until `startDelay`, then fades in WHILE sliding —
+          // a proper late entrance (see s5558Car2's call below), not already faded in from
+          // scene 22 like the bus/lead car (which just continue their slide from local:0).
+          const t = easeInOutCubic(Math.min(1, Math.max(0, local - startDelay) / (entryWindow - startDelay)));
+          carX   = farEntry + t * (CENTER + ahead - farEntry);
+          carEff = opacity * t;
+        } else {
+          // Continues from the same half-visible position scene 22 already faded it in at.
+          const t = easeInOutCubic(Math.min(1, local / entryWindow));
+          carX   = farEntry + t * (CENTER + ahead - farEntry);
+          carEff = opacity;
+        }
+      } else if (scene <= 25) {
         const holdPhase = (scene - 24) + local + swayPhase;
         const sway = Math.sin(holdPhase * Math.PI * 1.5) * swayAmp;
         carX   = CENTER + ahead + sway;
@@ -2522,10 +2549,11 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
       el.style.transform = `translateX(${carX.toFixed(1)}px)`;
     }
     // Leads ahead of the bus, a little earlier than it so it's already rolling into frame
-    // before the bus catches up.
-    driveCar(s5558Car,  { ahead:  0.15 * vw, swayPhase: 0,   swayAmp: 0.015 * vw });
-    // Trails further back — reads as a second car catching up from behind.
-    driveCar(s5558Car2, { ahead: -0.35 * vw, swayPhase: 0.4, swayAmp: 0.02  * vw });
+    // before the bus catches up. farEntry matches scene 22's own half-visible fade-in position.
+    driveCar(s5558Car,  { farEntry: -0.18 * vw, ahead:  0.15 * vw, entryWindow: 0.5,  swayPhase: 0,   swayAmp: 0.015 * vw });
+    // Trails further back and enters slower — reads as a second car catching up from behind.
+    // startDelay: stays hidden until scene 23 is already 15% scrolled, then fades in + slides.
+    driveCar(s5558Car2, { farEntry: -0.15 * vw, ahead: -0.35 * vw, entryWindow: 0.65, startDelay: 0.15, swayPhase: 0.4, swayAmp: 0.02  * vw });
     // s5558Car3 (toyota probox) hidden per request — no driveCar() call, stays at its
     // default opacity 0 (set below) instead of driving in.
   } else if (scene >= 27 && scene <= 29) {
