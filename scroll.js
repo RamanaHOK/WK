@@ -2841,10 +2841,13 @@ function animateS26S30(scene, local, etx) {
   else if (scene > 14) progress =  3;
   else                 progress = (scene - 12) + local;
 
-  // Once all 3 batches are done, slowly fade ALL characters out (they've boarded the bus)
+  // Once all 3 batches are done, fade ALL characters out (they've boarded the bus) — group1
+  // (standing chars) is already at opacity 0 by this point (its own swap already finished),
+  // so in practice this rate is what's actually visible: how fast group2 (the name cards)
+  // disappears. Sped up per request — was 0.018 (~3s to fade).
   const allDone = progress >= 2.7;
   if (!allDone) _s2630BoardFade = 0;
-  else          _s2630BoardFade += (1 - _s2630BoardFade) * 0.018; // ~3 s to full fade
+  else          _s2630BoardFade += (1 - _s2630BoardFade) * 0.06; // ~0.8s to full fade
 
   const LERP = 0.08;
   s2630Pairs.forEach(([g1, g2], i) => {

@@ -1931,7 +1931,7 @@ div#panel-1-start {
   top: auto;
   bottom: -32vh;
   height: 100vh;
-  width: 265vw;
+  width: 215vw;
   z-index: 101;
   pointer-events: none;
   opacity: 0;
@@ -3582,7 +3582,7 @@ position: absolute;
    background button needed like the earlier guessed placeholders had. */
 .s6263-social-row { display: flex; align-items: center; gap: 20px; }
 .s6263-social-row a { display: flex; text-decoration: none; }
-.s6263-social-row img { width: 40px; height: 40px; }
+.s6263-social-row img { width: 30px; height: 30px; }
 
 @media (max-width: 640px) {
   .s6263-resources { padding: 5vh 24px; border-radius: 24px; }
