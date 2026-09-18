@@ -1166,6 +1166,14 @@ div#panel-1-start {
   pointer-events: none;
   opacity: 0;
 }
+/* #city-overlay-8 specifically raised above the shared z:100 above — #panel-13a lives inside
+   it, and #s1215-trees-front (root-level fixed, z:101, scene 12-15's foreground tree layer)
+   was rendering in front of it whenever they overlap. Scoped to just this overlay (not the
+   shared rule above) so scenes 7/9 are untouched — separate rule, later in the cascade, wins
+   at equal (ID) specificity. */
+#city-overlay-8 {
+  z-index: 110;
+}
 
 /* char imgs fill their wrapper — wrapper div holds the absolute position */
 #city-overlay-7 .char-wrap > img,
@@ -1427,13 +1435,15 @@ div#panel-1-start {
     left: 48%;
     z-index: 2;
  }
-/* Scene 12 characters + popup — fixed overlay, z:100, above city-bus */
+/* Scene 12 characters + popup — fixed overlay, above city-bus AND above #s1215-trees-front
+   (root-level fixed, z:101, scene 12-15's foreground tree layer), which used to render in
+   front of #panel-12/#panel-12b whenever they overlap — was z:100, one below the trees. */
 #city-overlay-12 {
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 100;
+  z-index: 110;
   pointer-events: none;
   opacity: 0;
 }
@@ -2485,7 +2495,7 @@ position: absolute;
   position: absolute;
   left: 2254vw;
   top: 0;
-  width: 520vw;
+  width: 500vw;
   height: 100vh;
   overflow: hidden;
   pointer-events: none;
@@ -2682,7 +2692,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
 #panel-47-newguy {
   position: absolute;
     bottom: 48vh;
-    left: 335vw;
+    left: 356vw;
   /* scale(1/1.5) cancels out #s45-s48-visual's permanent 1.5x wheelchair-zoom scale (see
      wheelchairZoomT in scroll.js — it's constant through this popup's whole display window,
      so a fixed counter-scale is enough, no per-frame JS needed) so the popup itself renders
@@ -2747,8 +2757,8 @@ div#sound-caption-kathleen .sound-icon-s32 {
 #panel-46-bigtech p { color: #9F2222; }
 
 #sound-caption-s47newguy {
-  bottom: 44vh;
-  left: 339vw; /* matches panel-47-newguy's own left (348vw), -2vw offset */
+  bottom: 44.5vh;
+  left: 361vw; /* matches panel-47-newguy's own left (348vw), -2vw offset */
   /* Same counter-scale as panel-47-newguy above, same reason. */
   transform: scale(0.6667);
   transform-origin: left center;
@@ -2795,7 +2805,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
 
 #s55-s58-bg {
   position: absolute;
-  left: 2665vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
+  left: 2658vw; /* scene-55 (index 23): 23*100vw + 365vw (scene-21 extra width shift) = 2300vw + 365vw */
   top: 0;
   width: 300vw; /* was 122vw (just enough for the street content alone) — widened so
     buildings/road/pedestrians/etc. have real room to extend, reading as one continuous
@@ -3013,7 +3023,8 @@ left: 55%;
   min-width: 0;
   max-width: 26rem;
   overflow: visible;
-  left: 38vw !important;
+     left: 48vw !important;
+    top: 18vh !important;
 }
 #panel-61 .bubble__tail {
   position: absolute;
@@ -3167,7 +3178,7 @@ left: 18vw;
    one stretched image without it looking distorted/empty). */
 .s5973-ground {
     position: absolute;
-    left: 13vw;
+    left: 0vw;
     bottom: -50vh;
     width: 309vw;
     height: 200vh;
@@ -3182,13 +3193,30 @@ left: 18vw;
    class rule on specificity regardless of source order — same reason every sibling layer
    below (.s5973-bridge-lake etc.) also has !important on left/width. */
 .s5973-prop905 {
-     left: 201vw !important;
-    bottom: 58vh;
+     left: 221vw !important;
+    bottom: 53vh;
     top: auto;
-    width: 25vw !important;
+    width: 15vw !important;
+       
+
     height: auto;
     z-index: 6;
+
 }
+@media(min-width:1300px) and (max-width:1600px){
+.s5973-prop905 {
+
+        left: 259vw !important;
+    bottom: 48vh;
+    top: auto;
+    width: 15vw !important;
+}
+#panel-61 {
+    left: 43vw !important;
+    top: 22vh !important;
+}
+}
+
 /* Ambient standing character — first-guess placement near the ground/road, retune
    left/bottom/width. left needs !important — see .s5973-prop905's comment above for why. */
 .s5973-purple-man {
@@ -3250,11 +3278,13 @@ div#panel-59 {
 }
 div#panel-purple-man {
     bottom: 74vh;
-    left: 89vw !important;
+    left: 101vw !important;
 }
 div#panel-language-justice {
     bottom: 65vh;
     left: 147vw !important;
+    min-width: max-content !important;
+    max-width: max-content !important;
 }
 
 /* The bridge — root-level (not inside #scroll-x) so it can render in front of #city-bus, which
@@ -4310,7 +4340,7 @@ bottom: 64%;
   .char-bubble-stat, .char-bubble-lang    { font-size: 2.22vmin; }
   #char-bubble.dialogue .char-bubble-lang { font-size: 2vmin; }
   .sound-caption-s32-name                 { font-size: 3.7vmin; }
-  .sound-caption-s32-role                 { font-size: 1.85vmin; }
+  .sound-caption-s32-role                 { font-size: 1.85vmin; max-width: 260px; text-wrap: wrap; }
   .brand-name                             { font-size: 2vmin; }
   .nav-btn                                { font-size: 1.5vmin; }
   .lang-option                            { font-size: 1.5vmin; }

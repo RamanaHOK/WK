@@ -126,9 +126,10 @@ const S46_HOLD_START = 0.05;
 // there and the old 0.8 was pure "dummy" scroll: pan pinned, zoom already done, popups playing
 // on their own wall-clock timer regardless. Only a small buffer past the zoom now.
 const S46_HOLD_END = 0.65;
-// Scene 59->61 zoom+clouds-cover trigger point — how far through scene 59 (sceneLocal, 0-1)
-// before the wall-clock auto-play sequence starts (see _s5960T0 below). 0.8 gives more scroll
-// runway before it triggers than earlier values (0.3, then 0.7) did.
+// Bus drive-in settle point at the start of scene 59 — how far through scene 59 (sceneLocal,
+// 0-1) the bus takes to slide from half-visible to fully parked (see animateCityBus's
+// scene===27 branch). Used to also gate an early wall-clock zoom-out here (removed per
+// request — see the comment above _s61PostZoomT0), now it's just this drive-in's own timing.
 const S5960_ZOOM_START_PHASE = 0.2;
 // (Scenes 55-57's slow-pan blend was removed — SCENE_SCROLL there is now small enough,
 // 0.4/0.4/0.4/0.3 total, that natural panning alone doesn't feel frozen; the blend was tuned
@@ -448,46 +449,34 @@ let _s32FrozenTx  = null; // pan held stable during the initial zoom window (loc
 let _s32ZoomOutT0 = null; // wall-clock timestamp when the zoom-out + Samuel reveal started
 const S32_ZOOMOUT_MS = 1200; // duration of the auto-playing zoom-out — plays like a video, no scroll needed
 
-// Scenes 59->61 zoom + clouds-cover sequence: a single wall-clock auto-play, like a video —
-// crossing S5960_ZOOM_START_PHASE triggers it, then scroll is fully blocked (no
-// "stepped"/scroll-tick-driven motion) until it finishes on its own: bus/background zoom out,
-// then clouds fade in and cover the screen — and STAY covering, as the permanent backdrop for
-// the closing scene 61 (matching the reference — no reveal/fade-out, the clouds don't part
-// again). Scrolling BACKWARD is deliberately never blocked by this, though (see the
-// effectiveTx branch) — only the forward auto-play is meant to be hands-off; that asymmetry
-// is what fixed the "stuck/jerky" bugs from an earlier version that froze both directions.
-let _s5960T0 = null;         // wall-clock timestamp the sequence started (null = not playing)
-let _s5960FrozenTx = null;   // pan held stable for the whole sequence
-// Set true the first time each sequence's trigger fires and NEVER reset back to false
-// (unlike _s5960T0/_s61PostZoomT0, which DO reset so the forward trigger can replay) — lets
-// s5960ZoomT/s61PostZoomT tell "backing out after having already played" (should ease
-// smoothly back down as you scroll, see the reverse-ease branches below) apart from
-// "approaching the trigger for the very first time" (should stay flat until the trigger
-// actually fires, not ease in early).
-let _s5960EverTriggered = false;
-let _s61PostZoomEverTriggered = false;
-// Second pull-back stage, same wall-clock/freeze-scroll technique as _s5960T0 above but
-// triggered once panel-61 has closed (combinedLocal5973 crosses S61_POSTZOOM_TRIGGER_LOCAL)
-// instead of the original sceneLocal threshold — see the matching branch in frame()'s
-// effectiveTx chain and s61PostZoomT's computation just below s5960ZoomT's.
-let _s61PostZoomT0 = null;
-let _s61PostZoomFrozenTx = null;
-// Plays every time sceneLocal crosses S5960_ZOOM_START_PHASE in scene 59, scrolling FORWARD
-// (see _scrollingForward in frame() — without that direction check, re-entering scene 27 from
-// above by scrolling backward also satisfied "sceneLocal >= threshold" and kept re-triggering
-// the whole sequence, snapping back to the end every time). Also fixed: scrolling back into
-// scene 60 used to leave _s5960T0 stale/"completed", so the clouds kept computing full opacity
-// even while real scene 60 art was rendering normally underneath (duplicate-looking clouds) —
-// fixed by resetting _s5960T0 whenever currentScene < 29 (see the fallback branch below),
-// which is also exactly what makes clean replay work: null state on re-entry means the
-// trigger fires fresh again. No more hidden auto-scroll jump to scene 61 either (removed —
-// see the comment where it used to be) — scene 61 is reached by ordinary continued scrolling.
-const S5960_TOTAL_MS = 3400; // total duration of the whole cinematic sequence
-const S5960_ZOOM_END_FRAC  = 0.4;  // bus/background finish zooming out by this fraction
-const S5960_COVER_END_FRAC = 0.8;  // clouds finish covering (and just stay) by this fraction
+// Scene 59-61 final pull-back: a wall-clock auto-play in EITHER direction, like a video —
+// crossing S61_POSTZOOM_TRIGGER_LOCAL forward (once panel-61 has closed) triggers the zoom-out;
+// crossing back below S61_POSTZOOM_REVERSE_TRIGGER_LOCAL backward triggers the mirror-image
+// zoom-in. Either way scroll is fully blocked (no "stepped"/scroll-tick-driven motion) until it
+// finishes on its own — same freeze/hard-pin-scrollY mechanism both directions share with
+// every other wall-clock sequence on this site (see _scrollFreezeUntil). Once the forward
+// sequence finishes, the clouds scrub in and cover the screen as the permanent backdrop for
+// the closing scene 61 (matching the reference — no reveal/fade-out on its own; reversing this
+// wall-clock sequence is the only way they part again). The two triggers use DIFFERENT
+// thresholds (a hysteresis gap, not one shared boundary) so a small scroll wobble right at the
+// line can't flip back and forth re-triggering either direction — you have to scroll
+// meaningfully past one or the other. _s61PostZoomT0/_s61PostZoomReverseT0 are mutually
+// exclusive: triggering one always clears the other. There used to be an EARLIER wall-clock
+// zoom too, triggered partway through scene 59 (S5960_ZOOM_START_PHASE) — removed per request
+// so scrolling through scene 59 (and the start of scene 60) is ordinary/scroll-driven the whole
+// way, right up to this one remaining forward/reverse pair.
+let _s61PostZoomT0 = null;         // wall-clock timestamp the FORWARD (zoom-out) sequence started
+let _s61PostZoomFrozenTx = null;   // pan held stable for the whole forward sequence
+let _s61PostZoomReverseT0 = null;      // wall-clock timestamp the REVERSE (zoom-in) sequence started
+let _s61PostZoomReverseFrozenTx = null; // pan held stable for the whole reverse sequence
 
 const S61_POSTZOOM_TRIGGER_LOCAL = 1.2; // combinedLocal5973 point where panel-61 has closed — must match show61's own close bound above
-const S61_POSTZOOM_TOTAL_MS = 2000; // duration of the second (0.5 -> 0.3) pull-back's auto-play
+const S61_POSTZOOM_TOTAL_MS = 2000; // duration of the pull-back's auto-play, either direction
+// Reverse trigger point — deliberately LOWER than S61_POSTZOOM_TRIGGER_LOCAL (hysteresis), so
+// a small backward wobble right at the forward trigger line can't immediately re-trigger a
+// reverse (and vice versa scrolling forward again right after a reverse). Only scrolling back
+// meaningfully past this point starts the reverse.
+const S61_POSTZOOM_REVERSE_TRIGGER_LOCAL = 0.9;
 
 // Zoom cycle spanning the whole Asmelash + pregnant-woman sequence: zooms IN right
 // after the 4th popup (Lesan) is dismissed, stays zoomed through Asmelash/Asmelash2/
@@ -1254,47 +1243,39 @@ function frame(ts) {
     } else {
       effectiveTx = tx;
     }
-  } else if (_s5960T0 !== null && ts - _s5960T0 < S5960_TOTAL_MS) {
-    // Mid wall-clock sequence (see the state comment above _s5960T0) — checked by STATE, not
-    // currentScene, since wheel input is blocked for the whole duration (_scrollFreezeUntil)
-    // so currentScene can't actually change during this window anyway; state is just the more
-    // direct thing to check.
-    if (_s5960FrozenTx === null) { _s5960FrozenTx = tx; }
-    effectiveTx = _s5960FrozenTx;
   } else if (_s61PostZoomT0 !== null && ts - _s61PostZoomT0 < S61_POSTZOOM_TOTAL_MS) {
-    // Mid second wall-clock sequence — same "checked by STATE" reasoning as _s5960T0 above.
+    // Mid FORWARD wall-clock sequence (the scene-59-61 zoom-out — see the state comment above
+    // _s61PostZoomT0) — checked by STATE, not currentScene, since wheel input is blocked for
+    // the whole duration (_scrollFreezeUntil) so currentScene can't actually change during this
+    // window anyway; state is just the more direct thing to check.
     if (_s61PostZoomFrozenTx === null) { _s61PostZoomFrozenTx = tx; }
     effectiveTx = _s61PostZoomFrozenTx;
-  } else if (currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE && _scrollingForward && _s5960T0 === null) {
-    // Trigger: crossing this point starts the sequence, but only while actually scrolling
-    // FORWARD (_scrollingForward, computed above from raw scrollY) — arriving here already
-    // past the threshold by scrolling BACKWARD from scene 60/61 (sceneLocal starts near 1
-    // re-entering scene 27 from above) is ordinary scrolling, not a re-trigger. Without this
-    // guard scrolling back past scene 59 immediately re-triggered the whole sequence and
-    // jumped straight back to the end, every time.
-    // _s5960T0 === null is equally critical: without it, once the freeze naturally expired
-    // (elapsed >= S5960_TOTAL_MS) while STILL sitting at sceneLocal >= threshold (never having
-    // scrolled away), this branch matched again on the very next frame and overwrote
-    // _s5960T0 = ts, restarting the whole sequence from scratch — forever, every
-    // S5960_TOTAL_MS, since nothing ever reset it while stuck at the same spot. That's what
-    // read as a periodic "jump". Now it only re-arms once you've actually left (currentScene
-    // < 29 resets it in the fallback below).
-    _s5960T0 = ts;
-    _s5960EverTriggered = true;
-    _scrollFreezeUntil = Date.now() + S5960_TOTAL_MS;
-    _s5960FrozenTx = tx;
-    effectiveTx = _s5960FrozenTx;
-  } else if (currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) >= S61_POSTZOOM_TRIGGER_LOCAL && _scrollingForward && _s5960T0 === null && _s61PostZoomT0 === null) {
-    // Trigger for the second pull-back — same reasoning as the _s5960T0 trigger above (forward-
-    // only, state-gated so it can't re-fire while already played and sitting past the
-    // threshold). _s5960T0 === null guard keeps this from firing WHILE the first sequence is
-    // still active (it can't be, since that branch is checked first above, but matches the
-    // defensive style of the original).
+  } else if (_s61PostZoomReverseT0 !== null && ts - _s61PostZoomReverseT0 < S61_POSTZOOM_TOTAL_MS) {
+    // Mid REVERSE wall-clock sequence — same freeze-pan technique as the forward branch above,
+    // just for the mirror-image zoom-in.
+    if (_s61PostZoomReverseFrozenTx === null) { _s61PostZoomReverseFrozenTx = tx; }
+    effectiveTx = _s61PostZoomReverseFrozenTx;
+  } else if (currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) >= S61_POSTZOOM_TRIGGER_LOCAL && _scrollingForward && _s61PostZoomT0 === null && _s61PostZoomReverseT0 === null) {
+    // FORWARD trigger: crossing this point starts the zoom-out, but only while actually
+    // scrolling FORWARD (_scrollingForward) — same reasoning as every other forward-only
+    // wall-clock trigger on this site. _s61PostZoomReverseT0 === null keeps this from firing
+    // while a reverse is still active (can't happen, that branch is checked first above, but
+    // matches the defensive style used elsewhere).
     _s61PostZoomT0 = ts;
-    _s61PostZoomEverTriggered = true;
+    _s61PostZoomReverseT0 = null; // mutually exclusive with the reverse sequence
     _scrollFreezeUntil = Date.now() + S61_POSTZOOM_TOTAL_MS;
     _s61PostZoomFrozenTx = tx;
     effectiveTx = _s61PostZoomFrozenTx;
+  } else if (currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) <= S61_POSTZOOM_REVERSE_TRIGGER_LOCAL && !_scrollingForward && _s61PostZoomT0 !== null) {
+    // REVERSE trigger: mirror image of the forward trigger above — only fires while actually
+    // scrolling BACKWARD, past the (lower, hysteresis) reverse threshold, and only if we're
+    // actually in the "zoomed" state to begin with (_s61PostZoomT0 !== null — nothing to
+    // reverse otherwise, e.g. scrolling around below the threshold before ever zooming in).
+    _s61PostZoomReverseT0 = ts;
+    _s61PostZoomT0 = null; // mutually exclusive with the forward sequence
+    _scrollFreezeUntil = Date.now() + S61_POSTZOOM_TOTAL_MS;
+    _s61PostZoomReverseFrozenTx = tx;
+    effectiveTx = _s61PostZoomReverseFrozenTx;
   } else {
     if (currentScene < 21) { _s46ZoomT0 = null; } // scrolled back out — reset so re-entering replays it
     _s32FrozenTx = null; // out of the freeze window — reset so re-entering starts fresh
@@ -1303,26 +1284,8 @@ function frame(ts) {
     _s33FrozenTx = null;
     _s33ZoomOutT0 = null;
     _s44FrozenTx = null;
-    _s5960FrozenTx = null;
     _s61PostZoomFrozenTx = null;
-    // Reset _s5960T0 UNLESS we're sitting right in the trigger zone itself (scene 27, at/past
-    // the threshold) — that exact condition is what the retrigger branch above requires
-    // _s5960T0 to stay non-null through, to know "already played, don't restart". Resetting it
-    // here unconditionally for currentScene < 29 (an earlier version of this fix) was itself
-    // the bug: once the freeze naturally finished while sceneLocal was STILL >= threshold
-    // (never having scrolled away), this fallback ran anyway (currentScene 27 < 29), reset
-    // _s5960T0 to null, and the very next frame the retrigger branch's conditions were all
-    // true again — replaying the whole sequence from scratch, forever, every S5960_TOTAL_MS.
-    // That's what read as a periodic "jump". This condition only resets once you've actually
-    // moved out of the trigger zone (left scene 59, or scrolled back below the threshold
-    // within it) — scene 28 is included so the duplicate-clouds bug (see git log) stays fixed.
-    if (!(currentScene === 27 && sceneLocal >= S5960_ZOOM_START_PHASE)) {
-      _s5960T0 = null; // reset so crossing forward again replays the whole sequence
-    }
-    // Same reset reasoning as _s5960T0 above, for the second pull-back's own trigger zone.
-    if (!(currentScene >= 27 && currentScene <= 29 && ((currentScene - 27) + sceneLocal) >= S61_POSTZOOM_TRIGGER_LOCAL)) {
-      _s61PostZoomT0 = null;
-    }
+    _s61PostZoomReverseFrozenTx = null;
     effectiveTx = tx;
   }
 
@@ -1333,24 +1296,14 @@ function frame(ts) {
     _s13TotalScale = 1;
   }
 
-  // Scenes 59->60 zoom+cover progress (0-1) — driven by the wall-clock state (_s5960T0),
-  // single source of truth reused by the bus (passed into animateCityBus), the background art
-  // zoom, and the cloud puffs below, so none of them can drift apart.
-  // s5960ZoomT  — bus/background scale pulling back, finishes at S5960_ZOOM_END_FRAC
-  // s5960CoverT — clouds fading in (see the puff-driving code below), finishes at
-  //               S5960_COVER_END_FRAC and then just stays at 1 — no reveal/fade-out, the
-  //               clouds are the permanent backdrop for scene 61 once they've covered.
-  let s5960ZoomT = 0, s5960CoverT = 0, s5960Overall = 0;
-  if (_s5960T0 !== null) {
-    s5960Overall = Math.min(1, (ts - _s5960T0) / S5960_TOTAL_MS);
-    s5960ZoomT  = easeInOutCubic(Math.min(1, s5960Overall / S5960_ZOOM_END_FRAC));
-    s5960CoverT = easeInOutCubic(Math.max(0, Math.min(1, (s5960Overall - S5960_ZOOM_END_FRAC) / (S5960_COVER_END_FRAC - S5960_ZOOM_END_FRAC))));
-    // (The hidden auto-scroll-to-scene-61 jump that used to live here was removed — it was
-    // the root cause of most of the back-and-forth bugs this session: duplicate clouds,
-    // repeated re-triggering, "stuck" backward scrolling. Without clouds to hide the jump
-    // behind, it wasn't serving its original purpose anyway. Scene 61 is now reached by
-    // ordinary continued scrolling after the zoom-out finishes, same as any other scene.)
-  } else if (_s6263Active) {
+  // s5960ZoomT used to also drive an early scene-59 wall-clock zoom-out, shared with the bus
+  // (passed into animateCityBus), background art, and bridge/trees — removed per request, so
+  // scrolling through scene 59 is now ordinary (no wall-clock takeover, no early pull-back).
+  // The only thing still setting this nonzero is the scenes-62-64 closing-screens reverse-zoom
+  // just below; everywhere else it stays 0, leaving s61PostZoomT (the final pull-back,
+  // computed further down) as the sole zoom driver for scenes 59-61.
+  let s5960ZoomT = 0;
+  if (_s6263Active) {
     // Scenes 62-64 (Resources/Credits/Contact) — the zoom REVERSES here, easing scale back
     // from 0.5 up to 1 (full size) over the Resources->Credits step, staying at full size for
     // Contact too (Math.max saturates once s6263Pos passes 1) — instead of staying permanently
@@ -1358,47 +1311,23 @@ function frame(ts) {
     // _s6263TransT0), not currentScene/sceneLocal — scroll is locked once inside this zone, so
     // sceneLocal stops advancing.
     s5960ZoomT = Math.max(0, 1 - s6263Pos);
-    s5960CoverT = 1;
-    s5960Overall = 1;
-  } else if (currentScene >= 28) {
-    // Scene 60-61 — the bus's zoomed-out scale (0.5) is permanent through these two, not just
-    // something that holds while _s5960T0 happens to still be set. Without this, crossing from
-    // scene 59 into scene 60 (which resets _s5960T0 — see the fallback above) left s5960ZoomT
-    // with no source at all and it defaulted back to 0, snapping the bus back to full scale(1)
-    // right at the 59/60 boundary. Also covers reaching scene 60/61 some other way (e.g. nav
-    // jump) without ever playing the sequence.
-    s5960ZoomT = 1;
-    s5960CoverT = 1;
-    s5960Overall = 1;
-  } else if (_s5960EverTriggered && currentScene === 27) {
-    // Smooth reverse — scrolling back below S5960_ZOOM_START_PHASE after having already
-    // played this sequence once eases s5960ZoomT back down to 0 over a small scroll range
-    // instead of instantly snapping (the bug: bus scale used to jump 0.5 -> 1 in one frame
-    // the moment sceneLocal crossed back under the threshold, since s5960ZoomT had no source
-    // at all once _s5960T0 got reset to null here).
-    const S5960_REVERSE_EASE_SPAN = 0.05;
-    s5960ZoomT = Math.max(0, Math.min(1, (sceneLocal - (S5960_ZOOM_START_PHASE - S5960_REVERSE_EASE_SPAN)) / S5960_REVERSE_EASE_SPAN));
   }
 
-  // Second pull-back stage (0.5 -> 0.3 combined scale), same wall-clock technique as
-  // s5960ZoomT above, driven by _s61PostZoomT0 instead of _s5960T0. Once triggered it stays
-  // non-null (see the reset condition in the effectiveTx chain above) for as long as you're
-  // still past S61_POSTZOOM_TRIGGER_LOCAL, so this naturally clamps at 1 and stays there
-  // rather than needing its own separate "permanent hold" branch — except for a direct-nav
-  // jump straight into scene 29 (never having played the trigger), where scene 29 alone is
-  // enough to know it should already be fully applied.
+  // Final pull-back stage — wall-clock driven in EITHER direction now (see the effectiveTx
+  // branch above): _s61PostZoomT0 eases 0->1 (zooming out), _s61PostZoomReverseT0 eases the
+  // mirror image 1->0 (zooming back in). The two are mutually exclusive (triggering one always
+  // clears the other — see effectiveTx branch), so at most one of these ever applies at a time;
+  // each naturally clamps and stays at its own end value once its own sequence finishes,
+  // needing no separate "permanent hold" branch — except for a direct-nav jump straight into
+  // scene 29 (never having played either trigger), where scene 29 alone is enough to know it
+  // should already be fully zoomed out.
   let s61PostZoomT = 0;
   if (_s61PostZoomT0 !== null) {
     s61PostZoomT = easeInOutCubic(Math.min(1, (ts - _s61PostZoomT0) / S61_POSTZOOM_TOTAL_MS));
+  } else if (_s61PostZoomReverseT0 !== null) {
+    s61PostZoomT = 1 - easeInOutCubic(Math.min(1, (ts - _s61PostZoomReverseT0) / S61_POSTZOOM_TOTAL_MS));
   } else if (currentScene === 29) {
     s61PostZoomT = 1;
-  } else if (_s61PostZoomEverTriggered && currentScene >= 27 && currentScene <= 29) {
-    // Same smooth-reverse fix as s5960ZoomT above — scrolling back below
-    // S61_POSTZOOM_TRIGGER_LOCAL after having already played this stage once eases back down
-    // over a small combinedLocal5973 range instead of snapping straight from 0.3 to 0.5.
-    const S61_POSTZOOM_REVERSE_EASE_SPAN = 0.05;
-    const combinedLocalNow = (currentScene - 27) + sceneLocal;
-    s61PostZoomT = Math.max(0, Math.min(1, (combinedLocalNow - (S61_POSTZOOM_TRIGGER_LOCAL - S61_POSTZOOM_REVERSE_EASE_SPAN)) / S61_POSTZOOM_REVERSE_EASE_SPAN));
   }
 
   // .scene-60 extras (matatu 5/8, Group 898) — fade in together with the second bus/background
@@ -1688,7 +1617,7 @@ function frame(ts) {
 
   // -- Matatu drive-in --
   animateMatatu(currentScene, sceneLocal, tx, junglePhase, busOpacity);
-  animateCityBus(currentScene, sceneLocal, busOpacity, s5960ZoomT, ts, s61PostZoomT);
+  animateCityBus(currentScene, sceneLocal, busOpacity, ts, s61PostZoomT);
   animateS21Vehicles(currentScene, sceneLocal, ts);
   animateS26S30(currentScene, sceneLocal, effectiveTx);
   animateS32S43(currentScene, sceneLocal, effectiveTx, ts);
@@ -1832,7 +1761,7 @@ function frame(ts) {
       // rest of the scene during the zoom-out instead of staying a fixed size on its own
       // while everything around it pulls back (needs its own copy here since it's root-level,
       // not a child of #s5973BgArt that would inherit its transform automatically).
-      const bridgeScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT;
+      const bridgeScale = 1 - 0.5 * s61PostZoomT;
       s5973BridgeFront.style.transform = `translateX(${(bridgeOnScreenVw * vwPx2).toFixed(1)}px) scale(${bridgeScale.toFixed(3)})`;
       s5973BridgeFront.style.opacity = (currentScene === 27 || currentScene === 28) ? '1' : '0';
     }
@@ -1842,7 +1771,7 @@ function frame(ts) {
     // place"), same zoom-out scale so it shrinks together with everything else.
     if (s5973TreesFront) {
       const treesOnScreenVw = S5973_BG_LEFT_VW - viewportCenterVw2 + 50;
-      const treesScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT;
+      const treesScale = 1 - 0.5 * s61PostZoomT;
       s5973TreesFront.style.transform = `translateX(${(treesOnScreenVw * vwPx2).toFixed(1)}px) scale(${treesScale.toFixed(3)})`;
       s5973TreesFront.style.opacity = (currentScene === 27 || currentScene === 28) ? '1' : '0';
     }
@@ -1850,10 +1779,7 @@ function frame(ts) {
     // 4 popups here, same combinedLocal technique as scenes 55-57's inHoldRange/combinedLocal
     // above — one continuous value spanning scenes 27-29 (59-61) so all 4 windows read as
     // plain sequential bands instead of scattered separate blocks. panel-60 stays disabled
-    // (duplicate text of panel-61, only the true final scene should open). showLanguageJustice
-    // is the one exception — it's wall-clock driven (bus zoom-out finishing, s5960ZoomT
-    // reaching 1, see S5960_ZOOM_END_FRAC), not a combinedLocal band, so retune its timing
-    // there instead of the number below.
+    // (duplicate text of panel-61, only the true final scene should open).
     const inHoldRange5973 = currentScene >= 27 && currentScene <= 29;
     const combinedLocal5973 = inHoldRange5973 ? (currentScene - 27) + sceneLocal : -1;
 
@@ -1900,7 +1826,11 @@ function frame(ts) {
     const cloudStart = S61_POSTZOOM_TRIGGER_LOCAL;
     const CLOUD_REVEAL_SPAN = 0.6; // smaller = clouds fully cover over less scroll (faster); was 3.0-cloudStart (1.8)
     const cloudSpan = CLOUD_REVEAL_SPAN;
-    const cloudT = (inHoldRange5973 && s61PostZoomT >= 1) ? Math.max(0, Math.min(1, (combinedLocal5973 - cloudStart) / cloudSpan)) : 0;
+    // Multiplied by s61PostZoomT (rather than gated by a hard s61PostZoomT>=1 check) so
+    // scrolling back and un-zooming fades the clouds out smoothly in step with it, instead of
+    // an instant cut to opacity 0 the moment s61PostZoomT drops off 1 even slightly.
+    const cloudRawT = inHoldRange5973 ? Math.max(0, Math.min(1, (combinedLocal5973 - cloudStart) / cloudSpan)) : 0;
+    const cloudT = cloudRawT * s61PostZoomT;
     if (s5973CloudsLottie) {
       s5973CloudsLottie.style.opacity = cloudT.toFixed(3);
       if (cloudT > 0 && typeof s5973CloudsLottie.getLottie === 'function') {
@@ -1909,18 +1839,16 @@ function frame(ts) {
       }
     }
 
-    // -- Whole-background zoom: auto-playing, wall-clock driven by s5960ZoomT (computed once,
-    // shared with the bus's own zoom in animateCityBus — see the freeze branch above and
-    // where s5960ZoomT is computed, right after the effectiveTx chain). transform-origin
-    // tracks the current viewport center (popupCenterVw2, already computed above) so it
-    // zooms from what's actually on screen instead of some fixed point on the 300vw-wide
-    // strip. --
+    // -- Whole-background zoom: auto-playing, wall-clock driven by s61PostZoomT (computed
+    // once, shared with the bus's own zoom in animateCityBus — see the freeze branch above).
+    // transform-origin tracks the current viewport center (popupCenterVw2, already computed
+    // above) so it zooms from what's actually on screen instead of some fixed point on the
+    // 300vw-wide strip. --
     if (s5973BgArt) {
       if (currentScene === 27 || currentScene === 28) {
-        // Same wall-clock s61PostZoomT as animateCityBus's zoom (computed once, alongside
-        // s5960ZoomT, near the top of frame()) — background's multiplier goes 0.3 -> 0.42
-        // (same 0.6 ratio to the bus's 0.5 -> 0.7) so the two stay in sync.
-        const bgScale = 1 - 0.3 * s5960ZoomT - 0.12 * s61PostZoomT; // dramatic pull-back: 1.0 -> 0.2
+        // Same wall-clock s61PostZoomT as animateCityBus's zoom — kept at the same 0.5
+        // fraction as the bus so the two stay in sync (matching the bridge/trees above).
+        const bgScale = 1 - 0.5 * s61PostZoomT; // pull-back: 1.0 -> 0.5
         s5973BgArt.style.transformOrigin = `${popupCenterVw2.toFixed(2)}vw 50%`;
         s5973BgArt.style.transform = `scale(${bgScale.toFixed(3)})`;
         s5973BgArt.style.opacity = '1';
@@ -2110,7 +2038,7 @@ function animateMatatu(scene, local, tx, junglePhase, opacity) {
 }
 
 // ---- City bus: starts entering when 30% of scene 4 (savanna) has passed ----
-function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0) {
+function animateCityBus(scene, local, opacity, ts, s61PostZoomT = 0) {
   if (!cityBus) return;
   const vw     = getVw();
   const vh     = window.innerHeight;
@@ -2569,28 +2497,33 @@ function animateCityBus(scene, local, opacity, s5960ZoomT, ts, s61PostZoomT = 0)
     // Continuous phase across all 3 scenes so the bob doesn't reset/jump at each scene
     // boundary — 0 at scene-59 start, 2+local at scene-61.
     const chapterPhase = (scene - 27) + local;
-    // Zoom scale driven by s5960ZoomT (passed in from frame() — wall-clock/auto-playing, see
-    // the freeze branch + s5960ZoomT computation there), NOT scroll position. This used to be
-    // a locally-redeclared scroll-driven copy here, which is exactly how it drifted out of
-    // sync with the background's own copy before.
-    // Pull-back: 1.0 -> 0.7 (s5960ZoomT), then a further 0.7 -> 0.6 once panel-61 has closed
-    // (s61PostZoomT) — was 0.5/0.2 (ending at 0.3), increased per request so the bus stays
-    // noticeably bigger through the zoom-out instead of shrinking so dramatically.
-    zoom = 1 - 0.3 * s5960ZoomT - 0.18 * s61PostZoomT;
-    if (scene === 27 && s5960ZoomT === 0) {
+    // Zoom scale — the early scene-59 auto-play pull-back (s5960ZoomT) was removed per
+    // request, so this is now driven purely by s61PostZoomT (the second/final pull-back,
+    // wall-clock/auto-playing once triggered — see the freeze branch + s61PostZoomT
+    // computation in frame()). Bus stays full scale through all of scene 59 and the start of
+    // scene 60, ordinary scroll-driven, right up until that second zoom takes over.
+    // Pull-back: 1.0 -> 0.5 once panel-61 has closed (s61PostZoomT) — same 0.5 fraction as
+    // the bridge/trees/background art, so everything pulls back together.
+    zoom = 1 - 0.5 * s61PostZoomT;
+    if (scene === 27) {
       // Drive in already half-visible at the very start (bus is 50vw wide, so -0.25vw left
-      // edge = exactly half on-screen), not from fully off-screen like scene 55's entry.
-      // Still scroll-driven (local) — this part happens BEFORE the auto-play zoom triggers.
+      // edge = exactly half on-screen), not from fully off-screen like scene 55's entry, then
+      // hold at CENTER with a gentle bob for the rest of scene 59 — ordinary scroll-driven,
+      // no auto-play zoom anymore (removed per request).
       const FAR_ENTRY = -0.25 * vw;
       const t = easeInOutCubic(Math.min(1, local / S5960_ZOOM_START_PHASE));
       const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
       busX = FAR_ENTRY + t * (CENTER + bob - FAR_ENTRY);
       eff  = opacity; // no fade-in — fully visible (half on-screen) from local:0
-    } else if (scene === 27 || scene === 28) {
-      // Hard freeze — the instant the cloud-cover sequence begins (s5960ZoomT > 0), the bus
-      // holds completely still (no shake/jitter/bob) for the whole window, only moving again
-      // once scrolled back below the trigger (s5960ZoomT back to exactly 0). Scale still
-      // eases via the zoom formula above (unchanged, still driven by the same s5960ZoomT).
+    } else if (scene === 28 && s61PostZoomT === 0) {
+      // Still scene 60, but before the second zoom has triggered — same gentle bob as scene
+      // 59, ordinary scrolling continues right up to the trigger point.
+      const bob = Math.sin(chapterPhase * Math.PI * 2) * 0.006 * vw;
+      busX = CENTER + bob;
+    } else if (scene === 28) {
+      // The second zoom has triggered (or already finished) — hard freeze, no bob, while/
+      // after the wall-clock pull-back plays, so the scale change doesn't fight the bob.
+      // Only reachable in scene 28 now (scene 27's own branch above never freezes).
       busX = CENTER;
       busY = 0;
     } else {
@@ -3373,7 +3306,7 @@ function animateS45S48(scene, local, etx, ts) {
   // whatever local thresholds end up chosen above/below — confirmed live they were opening
   // at the same time (both visible, overlapping text) once this popup's own window was
   // widened to start earlier in scene 21.
-  const showChris = ((scene === 21 && local >= 0.68) || (scene === 22 && local < 0.6)) && !showHuniki && !showBigTech;
+  const showChris = ((scene === 21 && local >= 0.75) || (scene === 22 && local < 0.6)) && !showHuniki && !showBigTech;
   // No freeze-on-open here any more — this popup now freezes when it reaches screen center
   // instead (see the _panel47CenterReached check below, on panel47NewGuy).
 
