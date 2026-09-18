@@ -2953,7 +2953,7 @@ div#sound-caption-kathleen .sound-icon-s32 {
   left: 75vw !important;
   bottom: 37vh;
   top: auto !important;
-  width: 8vw !important;
+  width: 6vw !important;
   height: auto;
   z-index: 3;
 }
@@ -3119,32 +3119,35 @@ left: 55%;
 .scene.city.scene-59, .scene.city.scene-60, .scene.city.scene-61,
 .scene.city.scene-62, .scene.city.scene-63 { background: transparent; }
 
-/* Fade-in-with-bus-zoom-out extras (.scene-60 is its own 100vw slot, position:relative — left/
-   bottom below are relative to just this one scene, not the wider #s59-s73-bg strip). Opacity
-   driven by s61PostZoomT every frame (see "s60ZoomExtras" in scroll.js), not scroll position —
-   first-guess placement, retune left/bottom/width freely. */
+/* Fade-in-with-bus-zoom-out extras — now children of #s5973-bg-art (same layer as
+   .s5973-group897/898/899), so left/bottom below are relative to that 400vw strip, not a
+   single 100vw scene slot, and they automatically inherit its existing zoom-out scale/pan
+   (see s5973BgArt.style.transform in scroll.js) instead of needing their own sync logic.
+   left/width need !important — #s59-s73-bg img's `left: 0` is an ID selector and beats a
+   plain class rule on specificity, same reason every sibling layer here has it (see
+   .s5973-prop905's comment). Opacity driven by s61PostZoomT every frame (see
+   "s60ZoomExtras" in scroll.js), not scroll position — first-guess placement, retune
+   left/bottom/width freely. */
 .s60-zoom-extra { position: absolute; opacity: 0; pointer-events: none; }
-.s60-matatu5  { left: 81vw;
-    bottom: -3vh;
-  z-index: 2;
-    width: 21vw; }
-.s60-matatu8  {       left: 97vw;
-    bottom: 87vh;
-    width: 21vw;
+.s60-matatu5  { left: 221vw !important;
+    bottom: -56vh;
+    z-index: 2;
+    width: 48vw !important;}
+.s60-matatu8  {           left: 252vw !important;
+    bottom: 111vh;
+    width: 50vw !important;
     z-index: 14; }
-.s60-group898 { left: 90vw;
-    bottom: 15vh;
-    width: 5vw;
-  z-index: 2;}
-.scene.city.scene-60{
-  overflow: visible;
+.s60-group898 {     left: 244vw !important;
+    bottom: -12vh;
+    width: 11vw !important;
+    z-index: 2;
 }
 .s60-group89-blue{
-left: 18vw;
-    bottom: 39vh;
-  z-index: 2;
-    width: 21vw;
-    transform: scaleX(-1); /* flipped to face the other direction, per request */
+left: 73vw !important;
+    bottom: 27vh;
+    z-index: 2;
+    width: 50vw !important;
+    transform: scaleX(-1);/* flipped to face the other direction, per request */
 }
 #s59-s73-bg {
   position: absolute;
@@ -4127,8 +4130,8 @@ position: absolute;
 .sound-icon-asmelash {
   width: 60px;
   height: 60px;
-    top: -43px;
-    left: 52%;
+   top: -30px;
+    left: 92%;
 }
 .sound-icon-asmelash .sound-icon-state {
   width: 60px;

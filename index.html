@@ -436,16 +436,7 @@
          even though scenes 62-73 were cut — only 59-61 remain now). Popup text is real for
          panel-59/60 (from the references); panel-61 pending real closing copy. -->
     <div class="scene city scene-59"></div>
-    <div class="scene city scene-60">
-      <!-- Fade in together with the bus/background zoom-out (s61PostZoomT — see the
-           "s60ZoomExtras" block in scroll.js), not scroll-position-driven. First-guess
-           placement (top-left corner, stacked) — tune left/bottom/width in style.css
-           (.s60-matatu5/.s60-matatu8/.s60-group898). -->
-      <img class="s60-zoom-extra s60-matatu5"  src="assets/s59-s73/Matatu%205.svg" alt="">
-      <img class="s60-zoom-extra s60-matatu8"  src="assets/s59-s73/Matatu%208.svg" alt="">
-      <img class="s60-zoom-extra s60-group898" src="assets/s59-s73/person on bike.svg" alt="">
-      <img class="s60-zoom-extra s60-group89-blue" src="assets/s59-s73/Matatu-12.svg" alt="">
-    </div>
+    <div class="scene city scene-60"></div>
     <div class="scene city scene-61"></div>
     <div class="scene city scene-62"></div>
     <div class="scene city scene-63"></div>
@@ -497,6 +488,16 @@
         <img class="s5973-group897"     src="assets/s59-s73/Group%20897.svg"                       alt="">
         <img class="s5973-group898"     src="assets/s59-s73/Group%20898.svg"                       alt="">
         <img class="s5973-group899"     src="assets/s59-s73/Group%20899.svg"                       alt="">
+        <!-- Fade in together with the bus/background zoom-out (s61PostZoomT — see the
+             "s60ZoomExtras" block in scroll.js), not scroll-position-driven. Now children of
+             this same #s5973-bg-art layer (like Group 897/898/899 above) instead of their own
+             separate .scene-60 box, so they inherit its existing zoom-out scale/pan for free —
+             no separate sync logic needed. First-guess placement, tune left/bottom/width in
+             style.css (.s60-matatu5/.s60-matatu8/.s60-group898/.s60-group89-blue). -->
+        <img class="s60-zoom-extra s60-matatu5"  src="assets/s59-s73/Matatu%205.svg" alt="">
+        <img class="s60-zoom-extra s60-matatu8"  src="assets/s59-s73/Matatu%208.svg" alt="">
+        <img class="s60-zoom-extra s60-group898" src="assets/s59-s73/person on bike.svg" alt="">
+        <img class="s60-zoom-extra s60-group89-blue" src="assets/s59-s73/Matatu-12.svg" alt="">
       </div>
 
       <!-- Popups — content from panels.panel-59..panel-61 in i18n/<lang>.json, dynamically
@@ -668,7 +669,7 @@
   <!-- Two more cars — static images already in assets/s55-s58/ (not more lottie clones),
        own staggered timing (see driveCar() in animateCityBus), so the street has a bit more
        passing traffic. -->
-  <img id="s5558-car2" src="assets/s55-s58/Honda%20Fit.svg" alt="" aria-hidden="true">
+  <!-- <img id="s5558-car2" src="assets/s55-s58/Honda%20Fit.svg" alt="" aria-hidden="true"> -->
   <img id="s5558-car3" src="assets/s55-s58/toyota%20probox.svg" alt="" aria-hidden="true">
 
   <!-- Scenes 55-57 popups + building sign — moved to root level with true CSS position:fixed
