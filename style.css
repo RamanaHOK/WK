@@ -253,6 +253,34 @@ body {
 .text-panel p:last-child {
   margin-bottom: 0;
 }
+/* Covers the case :last-child misses — a single <p> followed by a non-p sibling (a tail
+   SVG that isn't wrapped in [data-i18n-panel-text], several panels still do this) means the
+   <p> isn't technically the LAST child, so :last-child never matches it even though it's the
+   only paragraph. :only-of-type ignores non-p siblings entirely, so it catches that case too. */
+.text-panel p:only-of-type {
+  margin-bottom: 0;
+}
+
+/* Reusable scrollable-popup text — add class="popup-scroll" to a popup's own
+   [data-i18n-panel-text] wrapper (NOT the outer .text-panel itself: a parent's overflow
+   clips a bubble__tail sibling too, since the tail sits outside the box via top:100% — the
+   constraint has to live on this inner wrapper only). Tune the height per-panel with the
+   --popup-scroll-max custom property (e.g. `#panel-x [data-i18n-panel-text] { --popup-scroll-max:
+   170px; }`) instead of copy-pasting this whole block for every popup that needs it — this
+   used to be duplicated in full per-panel (#panel-32-sadik, #panel-32-asmelash2). Also needs
+   the popup added to SCROLLABLE_POPUPS in scroll.js so the mouse wheel actually reaches it
+   (.text-panel is pointer-events:none site-wide, and the page's own scroll would otherwise
+   fight this element's internal one). */
+.popup-scroll {
+  max-height: var(--popup-scroll-max, 150px);
+  overflow-y: auto;
+  pointer-events: auto; /* a child can restore its own pointer-events independently of an
+    ancestor's none — needed for the mouse wheel to "hit" this element at all */
+}
+.popup-scroll::-webkit-scrollbar { width: 8px; }
+.popup-scroll::-webkit-scrollbar-track { background: #fff; }
+.popup-scroll::-webkit-scrollbar-thumb { background: #D9D9D9; border-radius: 4px; }
+.popup-scroll::-webkit-scrollbar-button { display: none; } /* hides the up/down arrow buttons */
 
 /* ================================================================
    GLOBAL — cross/plus buttons (shared by character overlays in
@@ -1476,7 +1504,7 @@ div#panel-1-start {
     padding: 10px 20px;
 }
 
-.char-s12-green-man  { height: 30vh; bottom: 13%; left: 24%; }
+.char-s12-green-man  { height: 30vh; bottom: 13%; left: 20%; }
 .char-s12-blue-man   { height: 37vh; bottom: 8%;  left: -25%; }
 .char-s12-pink-lady  {     height: 44vh;
     bottom: -10%; }
@@ -1955,7 +1983,7 @@ div#panel-1-start {
   top: auto;
   height: 25%;
   width: 415vw;
-  z-index: 101;
+  z-index: 999;
   pointer-events: none;
   opacity: 0;
 }
@@ -3204,6 +3232,9 @@ left: 18vw;
 
 }
 @media(min-width:1300px) and (max-width:1600px){
+  #s55-huniki-sign{
+    bottom: 79% !important;
+  }
 .s5973-prop905 {
 
         left: 259vw !important;
@@ -3819,28 +3850,9 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-asmelash2 p { color: #9F2222; }
-/* Scrolls INSIDE the text wrapper only, not the whole panel — see #panel-32-sadik's own
-   comment for why (a parent's overflow clips the bubble__tail too, since it sits outside
-   the box as a sibling of this wrapper). */
-#panel-32-asmelash2 [data-i18n-panel-text] {
-  max-height: 145px;
-  overflow-y: auto;
-  pointer-events: auto; /* .text-panel itself is pointer-events:none — see #panel-32-sadik's
-    own comment for why this is needed for the mouse wheel to reach this element at all. */
-}
-#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar {
-  width: 8px;
-}
-#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-track {
-  background: #fff;
-}
-#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-thumb {
-  background: #D9D9D9;
-  border-radius: 4px;
-}
-#panel-32-asmelash2 [data-i18n-panel-text]::-webkit-scrollbar-button {
-  display: none;
-}
+/* Scroll height — see the shared .popup-scroll class (class="popup-scroll" is on the
+   [data-i18n-panel-text] element itself in index.html) for the rest of the scrolling setup. */
+#panel-32-asmelash2 [data-i18n-panel-text] { --popup-scroll-max: 145px; }
 /* bubble__tail — same technique/style as #panel-32-samuel's tail, replacing the smaller
    .popup-tail triangle this used before. */
 #panel-32-asmelash2 .bubble__tail {
@@ -3910,31 +3922,9 @@ position: absolute;
   z-index: 30;
 }
 #panel-32-sadik p { color: #9F2222; }
-/* Scrolls INSIDE the text wrapper only, not the whole panel — putting max-height/overflow
-   on #panel-32-sadik itself (as it was) clips the bubble__tail too, since the tail sits
-   outside the box (top:100%) as a sibling of this wrapper; a parent's overflow clips all
-   descendants regardless of the tail's own overflow:visible. */
-#panel-32-sadik [data-i18n-panel-text] {
-  max-height: 140px;
-  overflow-y: auto;
-  pointer-events: auto; /* .text-panel itself is pointer-events:none, so without this the
-    mouse wheel can't "hit" this element at all — it just falls through to the page's own
-    scroll instead of scrolling this box's content. A child can restore its own
-    pointer-events independently of an ancestor's none. */
-}
-#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar {
-  width: 8px;
-}
-#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-track {
-  background: #fff;
-}
-#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-thumb {
-  background: #D9D9D9;
-  border-radius: 4px;
-}
-#panel-32-sadik [data-i18n-panel-text]::-webkit-scrollbar-button {
-  display: none; /* hides the up/down arrow buttons at the top/bottom of the track */
-}
+/* Scroll height — see the shared .popup-scroll class (class="popup-scroll" is on the
+   [data-i18n-panel-text] element itself in index.html) for the rest of the scrolling setup. */
+#panel-32-sadik [data-i18n-panel-text] { --popup-scroll-max: 140px; }
 /* bubble__tail — same technique/style as #panel-32-samuel's tail, replacing the smaller
    .popup-tail triangle this used before. */
 #panel-32-sadik .bubble__tail {

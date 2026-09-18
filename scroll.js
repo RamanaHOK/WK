@@ -786,7 +786,7 @@ window.addEventListener('scroll', () => {
 // same window target) so it actually pre-empts it — but only while there's still more of the
 // wrapper's own content left to reveal in the gesture's direction; once at that edge, this
 // does nothing and control falls through to the normal page-scroll listener below. ----
-const SCROLLABLE_POPUPS = [panel32Sadik, panel32Asmelash2];
+const SCROLLABLE_POPUPS = [panel32Sadik, panel32Asmelash2, panel26_3, panel45RedLady];
 window.addEventListener('wheel', e => {
   for (const panel of SCROLLABLE_POPUPS) {
     if (!panel || panel.style.opacity !== '1') continue;
@@ -2454,12 +2454,11 @@ function animateCityBus(scene, local, opacity, ts, s61PostZoomT = 0) {
       let carX, carEff;
       if (scene === 23) {
         if (startDelay > 0) {
-          // Stays fully hidden at farEntry until `startDelay`, then fades in WHILE sliding —
-          // a proper late entrance (see s5558Car2's call below), not already faded in from
-          // scene 22 like the bus/lead car (which just continue their slide from local:0).
+          // Stays at farEntry until `startDelay`, then SLIDES in late (see s5558Car2's call
+          // below) — opacity stays flat at full (no fade-in transition), per request.
           const t = easeInOutCubic(Math.min(1, Math.max(0, local - startDelay) / (entryWindow - startDelay)));
           carX   = farEntry + t * (CENTER + ahead - farEntry);
-          carEff = opacity * t;
+          carEff = opacity;
         } else {
           // Continues from the same half-visible position scene 22 already faded it in at.
           const t = easeInOutCubic(Math.min(1, local / entryWindow));
