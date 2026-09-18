@@ -3099,13 +3099,13 @@ left: 55%;
 .s60-matatu5  { left: 81vw;
     bottom: -3vh;
   z-index: 2;
-    width: 18vw; }
+    width: 21vw; }
 .s60-matatu8  {       left: 97vw;
     bottom: 87vh;
-    width: 18vw;
+    width: 21vw;
     z-index: 14; }
 .s60-group898 { left: 90vw;
-    bottom: 17vh;
+    bottom: 15vh;
     width: 5vw;
   z-index: 2;}
 .scene.city.scene-60{
@@ -3115,7 +3115,7 @@ left: 55%;
 left: 18vw;
     bottom: 39vh;
   z-index: 2;
-    width: 16vw;
+    width: 21vw;
     transform: scaleX(-1); /* flipped to face the other direction, per request */
 }
 #s59-s73-bg {
@@ -3196,7 +3196,7 @@ left: 18vw;
      left: 221vw !important;
     bottom: 53vh;
     top: auto;
-    width: 15vw !important;
+    width: 22vw !important;
        
 
     height: auto;
@@ -3209,11 +3209,19 @@ left: 18vw;
         left: 259vw !important;
     bottom: 48vh;
     top: auto;
-    width: 15vw !important;
+    /* width: 15vw !important; */
 }
 #panel-61 {
     left: 43vw !important;
     top: 22vh !important;
+}
+#s5973-trees-front {
+    position: fixed;
+    left: 54vw !important;
+    bottom: -28vh !important;
+}
+.s5973-prop905{
+
 }
 }
 
@@ -3329,8 +3337,8 @@ div#panel-language-justice {
    from left:65vw (its old in-strip position) to sit right at the bridge instead. */
 #s5973-trees-front {
   position: fixed;
-    left: 41vw;
-    bottom: -34vh;
+    left: 47vw;
+    bottom: -28vh;
     top: auto;
     width: 288vw;
     height: 103vh;
@@ -4224,10 +4232,11 @@ bottom: 64%;
 .nav-track-fill {
   position: absolute;
   left: 0; top: 0;
-  width: 0%;
+  width: 30px; /* fixed-width block that slides along the track, instead of growing/filling it — must match the 30 in navProgressFill's own left calc() in scroll.js */
   height: 100%;
   background: #FF3B3B;
   pointer-events: none;
+  transition: left 0.1s linear; /* matches #progress-bar's own timing, just animating position now */
 }
 
 .brand {

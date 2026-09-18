@@ -1594,7 +1594,11 @@ function frame(ts) {
 
   // -- Progress bar --
   progressBar.style.width = (scrollPct * 100) + '%';
-  if (navProgressFill) navProgressFill.style.width = (scrollPct * 100) + '%';
+  // Fixed 30px block sliding along the track (must match .nav-track-fill's own width in
+  // style.css) rather than growing a fill — left goes from 0% (flush at the start) to
+  // calc(100% - 30px) (flush at the end, i.e. its right edge reaches the track's right edge
+  // exactly at scrollPct 1).
+  if (navProgressFill) navProgressFill.style.left = `calc(${(scrollPct * 100).toFixed(2)}% - ${(scrollPct * 30).toFixed(2)}px)`;
 
   // -- Scroll hint --
   if (scrollHint) scrollHint.classList.toggle('hidden', scrollY > 80);
