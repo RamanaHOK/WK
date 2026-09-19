@@ -3757,40 +3757,24 @@ function checkNarration() {
 // edit the right line without knowing anything about the scroll engine.
 // sceneBeatKeyFor() below derives that key from currentScene on every call; nothing here
 // needs updating if scenes are ever renumbered or SCENE_SCROLL/SCENE_LABELS changes shape
-// — except SCENE_BEAT_KEY_FORCE_SINGLE just below, see its own comment.
-// Not every scene has an entry — a few (33, 46, 56, 57) are dense enough with their own
-// dialogue panels that an extra beat would just be noise. "8" and 13-20 also fold in the
-// #char-bubble stats (language + speaker counts) that the s8/s12 ambient characters show on
-// click — that popup system isn't .text-panel, so checkNarration() never picks it up on its
-// own; this is the only place that content reaches a screen reader. idx7 (real scene-8's
-// slot) is the one place a single SCENE_SCROLL segment covers several real scenes that each
-// get their OWN beat instead of being bundled into one range — see SCENE8_BEAT_THRESHOLDS
-// and sceneBeatKeyFor's scene===7 special case just below; scenes 9 and 10 are Toto Moto's
-// two separate speeches (popup8a/popup8b) and need to narrate as they actually appear, not
-// lumped in with scene 8's arrival or scene 11's exit. t() falls back to English the same
-// way it does for panels, so a scene with no configured beat simply narrates nothing extra.
-// Full key list, cross-checked scene-by-scene against the Figma storyboard screenshots
-// (not just SCENE_SCROLL's own comments, which had drifted stale for the closing chapter):
-// 1-3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13-20, 21-25, 26-31, 32, 34-43, 44, 45, 47-54, 55, 58,
-// 59, 60, 63, 72, 73.
-// "1-3" (the opening jungle drive) and "26-31" (the 6 interviewees boarding) are the two
-// ranges here that span multiple SCENE_SCROLL segments rather than several real scenes
-// bundled into one — see SCENE_BEAT_KEY_MERGE
-// above. ui.sceneIntroDesc (a static block read once before scrolling starts) is a
-// preamble, not a substitute for this — it still fires as the user actually scrolls in.
+// — except SCENE_BEAT_KEY_MERGE/SCENE47_BEAT_THRESHOLDS just below, see their own comments.
+// "8" and 13-20 also fold in the #char-bubble stats (language + speaker counts) that the
+// s8/s12 ambient characters show on click — that popup system isn't .text-panel, so
+// checkNarration() never picks it up on its own; this is the only place that content reaches
+// a screen reader. idx7 (real scene-8's slot) is the one place a single SCENE_SCROLL segment
+// covers several real scenes that each get their OWN beat instead of being bundled into one
+// range — see SCENE8_BEAT_THRESHOLDS and sceneBeatKeyFor's scene===7 special case just below;
+// scenes 9 and 10 are Toto Moto's two separate speeches (popup8a/popup8b) and need to narrate
+// as they actually appear, not lumped in with scene 8's arrival or scene 11's exit. t() falls
+// back to English the same way it does for panels, so a scene with no configured beat simply
+// narrates nothing extra.
+// Full key list, matching the real-scene grouping requested (not a literal SCENE_LABELS
+// span for every merged range — see SCENE_BEAT_KEY_MERGE's own comment):
+// 1-3, 4, 5-6, 7, 8, 9, 10, 11, 12, 13-20, 21-25, 26-31, 32-33, 34-43, 44, 45-47, 48-51, 52,
+// 53-55, 56, 57-58, 59-61, 62-63, 72, 73.
+// ui.sceneIntroDesc (a static block read once before scrolling starts) is a preamble, not a
+// substitute for this — it still fires as the user actually scrolls in.
 let _lastExtraKey = null;
-
-// idx28 (scene-60) and idx29 (scene-63) both border a gap in SCENE_LABELS that does NOT
-// mean "these real scenes are bundled into this segment" the way e.g. idx7's 8-11 gap does.
-// The Figma storyboard confirms scenes 61/62 and 65/66/70/71 were deleted/renumbered out of
-// existence entirely (nothing to bundle), while 64/67/68/69 DO have real designed content —
-// just not confidently attributable to either neighboring segment (idx28 is only 1.3
-// viewport-widths, idx29 a mere 0.15 — not plausibly enough room for either to cover 4+ more
-// full scenes). Rather than guess a wrong split, force these two to stay single-scene keys
-// ("60", "63") instead of letting the normal range formula produce "60-62"/"63-71" and
-// overclaim coverage. Revisit once scenes 64/67/68/69's actual place in the live site (if
-// any) is confirmed.
-const SCENE_BEAT_KEY_FORCE_SINGLE = new Set([28, 29]);
 
 // currentScene indices 0/1/2 (real scenes 1/2/3, the opening jungle drive) share ONE
 // sceneBeats entry ("1-3") by request — unlike every other range here, this one genuinely
@@ -3799,9 +3783,25 @@ const SCENE_BEAT_KEY_FORCE_SINGLE = new Set([28, 29]);
 // index specifically so scrolling 0→1→2 doesn't re-fire the same text three times.
 // Indices 11-15 (real scenes 26-31, the 6 interviewees boarding one by one) merge the same
 // way by request — narrated once as a single stretch instead of re-firing at every swap-in.
+// idx4/5, idx16/17, idx20, idx21, idx23, idx25/26, idx27/28, idx29 all relabelled by request
+// (matching the user's own real-scene grouping) — these are label choices, not claims that
+// the merged span mathematically covers every number in the string (same as "26-31" above,
+// which per SCENE_LABELS only reaches real scene 30, or idx16/17's "32-33", which spans two
+// full SCENE_SCROLL segments rather than one). idx16/17 merging scene 33 into scene 32's own
+// beat also preserves the original "33 is dense enough with its own dialogue, no separate
+// beat needed" intent (see SCENE47_BEAT_THRESHOLDS's own note on scene 46) — the key just
+// stops changing once you're inside scene 33, so nothing new narrates there.
 const SCENE_BEAT_KEY_MERGE = {
   0: '1-3', 1: '1-3', 2: '1-3',
+  4: '5-6', 5: '5-6',
   11: '26-31', 12: '26-31', 13: '26-31', 14: '26-31', 15: '26-31',
+  16: '32-33', 17: '32-33',
+  20: '45-47',
+  21: '48-51',
+  23: '53-55',
+  25: '57-58', 26: '57-58',
+  27: '59-61', 28: '59-61',
+  29: '62-63',
 };
 
 // idx7 (real scene-8's slot) actually contains 4 distinct beats as the viewer scrolls
@@ -3810,6 +3810,18 @@ const SCENE_BEAT_KEY_MERGE = {
 // thresholds mirror the popup8a/popup8b show windows above (0.42-0.54 and 0.60-0.68) so the
 // narration switches right as each one actually appears/finishes on screen.
 const SCENE8_BEAT_THRESHOLDS = [[0.42, '9'], [0.60, '10'], [0.75, '11']]; // below first = '8'
+
+// idx22 (real scene-47's slot, 20.5vw — wheelchair man ambient, Chris Emezue's popup, then
+// the crossing-matatu sequence, then the tail leading into scene 55) also splits into 3
+// beats by request. The first threshold (0.6) is an exact anchor — it's the same value
+// showChris above uses to cut off Chris's popup for this scene (see "scene === 22 && local
+// < 0.6"). The second (0.72) is an approximation: the actual crossing sequence starts at
+// _s47PopupHiddenLocal (whenever the popup's own freeze-release actually happens — varies
+// with real scroll timing, not a fixed fraction) and runs for S47_CROSSING_DURATION (0.1) —
+// deliberately NOT reusing that exact mutable state here, to keep narration timing decoupled
+// from the freeze/crossing animation logic itself (per request, no scene-animation changes).
+// Revisit this fraction if the crossing narration ("52") fires noticeably early/late live.
+const SCENE47_BEAT_THRESHOLDS = [[0, '48-51'], [0.6, '52'], [0.72, '53-55']];
 
 // currentScene index -> the "sceneBeats" key that covers it, e.g. 12 -> "13-20" (idx12 is
 // real scene-13's slot, and covers real scenes 13-20 since scenes 14-20 have no SCENE_SCROLL
@@ -3821,10 +3833,14 @@ function sceneBeatKeyFor(scene, sceneLocal) {
     for (const [t, k] of SCENE8_BEAT_THRESHOLDS) { if (sceneLocal >= t) key = k; }
     return key;
   }
+  if (scene === 22) {
+    let key = '48-51';
+    for (const [t, k] of SCENE47_BEAT_THRESHOLDS) { if (sceneLocal >= t) key = k; }
+    return key;
+  }
   if (SCENE_BEAT_KEY_MERGE[scene] !== undefined) return SCENE_BEAT_KEY_MERGE[scene];
   const lo = SCENE_LABELS[scene];
   if (lo == null) return null;
-  if (SCENE_BEAT_KEY_FORCE_SINGLE.has(scene)) return String(lo);
   const hi = (scene + 1 < SCENE_LABELS.length) ? SCENE_LABELS[scene + 1] - 1 : lo;
   return hi > lo ? `${lo}-${hi}` : String(lo);
 }
